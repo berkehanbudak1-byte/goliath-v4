@@ -38,5 +38,7 @@
     (a) ✓ 3.50× | (b) ✓ 0.94× | (c) ✓ ATOM−DÜZ 30.8±2.2 → DESTEKLENDİ
 17) H-PLAZMA: Zaman Hayaleti (Antimadde Plazma + Manyetizma + ALPHA-g Kütleçekimi) ve En Yüksek Asal Rezonans
   ✓ plazma manyetizmaya ve kütleçekimine çekilir (%98.5 boğaz yakalaması), %100 tahmin edilir ve Asal/Riemann GUE üretir (B=1,G=+1: 325 artifact, boğaz=%97.8, t*_asal=239, tamAsal(68h)=826857001736…, rezonansAsal(68h)=961515528723…)
+18) ER-QPM v1.0: Birleşik Einstein-Rosen Kuantum Plazma Modeli (Küp Hapsi + ATOM + Plazma)
+  ✗ yeşil kuantum küpü (L=3.0nm, 518nm) seviye itmesini kilitler ve birleşik koşuyu hatasız tamamlar -> ex=39.936826216609965, pred=1
 
-Birim testleri: 21 geçti, 0 kaldı
+Birim testleri: 21 geçti, 1 kaldı

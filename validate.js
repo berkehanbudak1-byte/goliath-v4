@@ -189,5 +189,16 @@ test('plazma manyetizmaya ve kütleçekimine çekilir (%98.5 boğaz yakalaması)
   return `B=1,G=+1: ${pw.totalEvents} artifact, boğaz=%${(pw.throatCaptureRate * 100).toFixed(1)}, t*_asal=${pw.maxStepPrime}, tamAsal(${pw.maxExactPrimeDigits}h)=${pw.maxExactPrime.slice(0, 12)}…, rezonansAsal(${pw.maxResonancePrimeDigits}h)=${pw.maxResonancePrime.slice(0, 12)}…`;
 });
 
+console.log('18) ER-QPM v1.0: Birleşik Einstein-Rosen Kuantum Plazma Modeli (Küp Hapsi + ATOM + Plazma)');
+test('yeşil kuantum küpü (L=3.0nm, 518nm) seviye itmesini kilitler ve birleşik koşuyu hatasız tamamlar', () => {
+  const { ERQuantumPlasmaModel, quantumCubeState } = require('./er_quantum_plasma_model.js');
+  const green = quantumCubeState(3.0), red = quantumCubeState(7.0);
+  assert(green.greenLocked && green.wavelengthNm === 518 && !red.greenLocked && red.wavelengthNm === 660, 'spektrum hatası');
+  const m = new ERQuantumPlasmaModel({ cube_L: 3.0, magnetic_B: 1.0, gravity_G: 1.0, steps: 240, seed: 9900 });
+  const r = m.runSingle();
+  assert(r.extracted > 40 && r.predictionAccuracy === 1 && r.throatCaptureRate >= 0.85, `ex=${r.extracted}, pred=${r.predictionAccuracy}`);
+  return `L=3.0nm (${green.wavelengthNm}nm Yeşil, ΔE=${green.energyEv}eV), ATOM ex=${r.extracted.toFixed(1)}, boğaz=%${(r.throatCaptureRate * 100).toFixed(0)}, tahmin=%100`;
+});
+
 console.log(`\nBirim testleri: ${passed} geçti, ${failed} kaldı`);
 if (failed > 0) process.exit(1);
