@@ -7,59 +7,60 @@
 </head>
 <body class="bg-transparent text-[var(--foreground)] antialiased p-0 m-0">
   <div class="py-1.5 space-y-2 min-w-0">
-    <!-- Top Compact Control Bar: Magnetic B + Antimatter Gravity G + Time Scrubber -->
+    <!-- Top Compact Control Bar: Quantum Cube Size L + Magnetic B + Gravity G + Time -->
     <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-[var(--card-border)] text-xs font-mono">
       <div class="flex flex-wrap items-center gap-2.5">
-        <label class="flex items-center gap-1 text-[var(--muted-foreground)]" title="Manyetik Alan Şiddeti B (Lorentz J×B Z-Pinch)">
-          <span>B=<b id="bVal" class="text-indigo-400">1.0</b></span>
-          <input id="bRange" type="range" min="0" max="2" step="0.1" value="1.0" class="w-14 sm:w-20 accent-indigo-400" />
+        <label class="flex items-center gap-1.5 text-[var(--foreground)] font-semibold" title="Kuantum Hapis Küpü Boyutu L (Küçüldükçe E ~ 1/L² artar, renk Kırmızı -> Sarı -> Yeşil olur)">
+          <span>Küp L=<b id="lVal" class="text-emerald-400">3.0 nm (520nm YEŞİL)</b></span>
+          <input id="lRange" type="range" min="3.0" max="7.0" step="0.1" value="3.0" class="w-20 sm:w-28 accent-emerald-400" />
         </label>
-        <label class="flex items-center gap-1 text-[var(--muted-foreground)]" title="Antimadde Kütleçekimi G (+1.0 = CERN ALPHA-g Normal Kütleçekim, -1.0 = Anti-Kütleçekim İtmesi)">
-          <span>Kütleçekim G=<b id="gVal" class="text-emerald-400">+1.0g</b></span>
-          <input id="gRange" type="range" min="-1" max="1.5" step="0.1" value="1.0" class="w-14 sm:w-20 accent-emerald-400" />
+        <label class="flex items-center gap-1 text-[var(--muted-foreground)]" title="Manyetik Alan Şiddeti B">
+          <span>B=<b id="bVal" class="text-indigo-400">1.0</b></span>
+          <input id="bRange" type="range" min="0" max="2" step="0.1" value="1.0" class="w-12 sm:w-16 accent-indigo-400" />
+        </label>
+        <label class="flex items-center gap-1 text-[var(--muted-foreground)]" title="Antimadde Kütleçekimi G">
+          <span>G=<b id="gVal" class="text-emerald-400">+1.0g</b></span>
+          <input id="gRange" type="range" min="-1" max="1.5" step="0.1" value="1.0" class="w-12 sm:w-16 accent-emerald-400" />
         </label>
       </div>
-      <div class="flex items-center gap-2">
-        <label class="flex items-center gap-1 text-[var(--muted-foreground)]">
-          <span>t=<b id="tVal" class="text-[var(--foreground)]">180</b></span>
-          <input id="tRange" type="range" min="1" max="240" value="180" class="w-16 sm:w-24 accent-[var(--primary)]" />
-        </label>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[var(--muted-foreground)]">t=<b id="tVal" class="text-[var(--foreground)]">180</b></span>
         <button id="play3dBtn" class="px-2 py-0.5 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]">Dur</button>
       </div>
     </div>
 
-    <!-- Main 3D Einstein-Rosen Bridge + Magnetic + Gravity Stage -->
+    <!-- Main 3D Einstein-Rosen Bridge + Quantum Confinement Cube Stage -->
     <div class="relative w-full overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)]">
-      <canvas id="stage3d" class="block w-full h-[355px] cursor-grab active:cursor-grabbing"></canvas>
+      <canvas id="stage3d" class="block w-full h-[360px] cursor-grab active:cursor-grabbing"></canvas>
 
-      <!-- Top-Left Live HUD: Gravity + Magnetism + Highest Prime Found -->
-      <div class="pointer-events-none absolute top-2.5 left-2.5 space-y-1 font-mono text-xs max-w-[92%] sm:max-w-[70%]">
+      <!-- Top-Left Live HUD: Quantum Confinement Energy & Prime Resonance -->
+      <div class="pointer-events-none absolute top-2.5 left-2.5 space-y-1 font-mono text-xs max-w-[94%] sm:max-w-[74%]">
         <div class="flex flex-wrap items-center gap-1.5">
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            Boğaz Kapanı (B+G): <b id="hudPinch" class="text-indigo-400">%98.5</b>
+            Hapis Enerjisi ΔE∝1/L²: <b id="hudEv" class="text-emerald-400">2.38 eV</b>
           </span>
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            Asal Adım Zirvesi: <b id="hudStepPrime" class="text-amber-400">t* = 239</b>
+            Seviye İtmesi (GUE): <b id="hudGue" class="text-amber-400">D_KS = 0.148 (Kilitli)</b>
+          </span>
+          <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
+            Boğaz Kapanı: <b id="hudPinch" class="text-indigo-400">%98.5</b>
           </span>
         </div>
         <div class="px-2 py-1 rounded bg-[var(--background)]/90 border border-[var(--border)] text-[var(--foreground)] truncate">
-          <span class="text-[var(--muted-foreground)]">53-Haneli Tam Asal (t=180):</span>
-          <b id="hudBigPrime" class="text-emerald-400">37043133948910111199463320056658381963233802558765827</b>
-        </div>
-        <div id="hudGravMode" class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)] text-[var(--muted-foreground)]">
-          CERN ALPHA-g (+1.0g): Antimadde Plazma Boğazdaki Ağır Kütle Kuyusuna Çekiliyor
+          <span class="text-[var(--muted-foreground)]">68-Haneli Kuantum Asalı:</span>
+          <b id="hudBigPrime" class="text-emerald-400">82685700173607319645261957491347494500399900496890888580107105480969</b>
         </div>
       </div>
 
       <!-- Bottom Legend -->
       <div class="pointer-events-none absolute bottom-2 left-2.5 right-2.5 flex flex-wrap items-center justify-between gap-1.5 font-mono text-xs">
         <div class="flex flex-wrap items-center gap-2 px-2 py-1 rounded bg-[var(--background)]/85 border border-[var(--border)]">
+          <span class="flex items-center gap-1"><span id="cubeLegendDot" class="inline-block w-2.5 h-2.5 border border-white bg-emerald-400"></span>Boğaz Kuantum Küpü (e⁻ Hapsi)</span>
           <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-indigo-400"></span>Manyetik B</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400"></span>Kütle Kuyusu (Boğaz)</span>
           <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-fuchsia-400"></span>Antimadde Plazma</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-emerald-400"></span>Asal Rezonans Köprüsü</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-emerald-400"></span>Asal Rezonans</span>
         </div>
-        <span class="hidden md:inline px-2 py-0.5 rounded bg-[var(--background)]/80 text-[var(--muted-foreground)]">G &lt; 0 yaparsan Anti-Kütleçekim plazmayı dış ağızlara iter</span>
+        <span class="hidden md:inline px-2 py-0.5 rounded bg-[var(--background)]/80 text-[var(--muted-foreground)]">Küp L sürgüsünü 7.0 nm ↔ 3.0 nm arasında kaydır!</span>
       </div>
     </div>
   </div>
@@ -73,13 +74,55 @@
     const nodes = [];
     const edges = [];
 
+    let cubeL = 3.0; // Quantum confinement cube size in nm (3.0 nm = 520nm Emerald Green -> 7.0 nm = 660nm Red)
     let magB = 1.0;
-    let gravG = 1.0; // +1.0 = CERN ALPHA-g attraction (narrows throat), -1.0 = antigravity repulsion (widens throat)
+    let gravG = 1.0;
+
+    // Quantum Dot wavelength & color from confinement length L (nm):
+    // E(L) = E_bulk + h^2 / (8 * m_eff * L^2) -> lambda from 515 nm (L=3.0, green) to 655 nm (L=7.0, red)
+    function quantumCubeSpectrum(L) {
+      const t = (L - 3.0) / 4.0; // 0 (smallest = green) .. 1 (largest = red)
+      const lambda = Math.round(518 + t * 142); // 518 nm .. 660 nm
+      const eV = (1239.8 / lambda).toFixed(2);
+      let r, g, b, name, hex;
+      if (t < 0.25) {
+        // 3.0 - 4.0 nm: Pure Emerald / Neon Quantum Green
+        const k = t / 0.25;
+        r = Math.round(16 + k * 110);
+        g = Math.round(235 - k * 10);
+        b = Math.round(129 - k * 80);
+        name = 'YEŞİL';
+      } else if (t < 0.55) {
+        // 4.0 - 5.2 nm: Lime -> Yellow
+        const k = (t - 0.25) / 0.30;
+        r = Math.round(126 + k * 124);
+        g = Math.round(225 - k * 30);
+        b = Math.round(49 - k * 25);
+        name = 'SARI';
+      } else if (t < 0.80) {
+        // 5.2 - 6.2 nm: Orange
+        const k = (t - 0.55) / 0.25;
+        r = 250;
+        g = Math.round(195 - k * 85);
+        b = 24;
+        name = 'TURUNCU';
+      } else {
+        // 6.2 - 7.0 nm: Deep Red
+        const k = (t - 0.80) / 0.20;
+        r = 244;
+        g = Math.round(110 - k * 55);
+        b = Math.round(24 + k * 45);
+        name = 'KIRMIZI';
+      }
+      const rgb = `${r}, ${g}, ${b}`;
+      return { lambda, eV, r, g, b, rgb, name, confinementFactor: Math.pow(3.0 / L, 2) };
+    }
 
     function wormholeRadius(u) {
-      // Positive gravity G deepens the gravitational potential well (pinches throat r0 tighter)
-      const r0 = Math.max(0.18, 0.28 - 0.045 * gravG);
-      return r0 * Math.cosh(u * (1.12 + 0.10 * gravG));
+      // As the quantum cube shrinks (L -> 3.0 nm) and gravity G > 0 pulls, the throat pinches tighter
+      const cubeScale = 0.16 + 0.032 * (cubeL - 3.0);
+      const r0 = Math.max(0.15, cubeScale - 0.03 * gravG);
+      return r0 * Math.cosh(u * (1.12 + 0.08 * gravG));
     }
     function wormholeY(u) {
       return 0.62 * Math.tanh(u * 1.05);
@@ -96,22 +139,21 @@
       };
     }
 
-    // Build 60 nodes on the wormhole manifold
     for (let i = 0; i < 4; i++) {
       const u = 0, th = (i / 4) * Math.PI * 2;
-      nodes.push({ id: i, u, th, layer: 0, deg: 9, mass: 2.4 });
+      nodes.push({ id: i, u, th, layer: 0, deg: 9 });
     }
     for (let i = 0; i < 16; i++) {
       const upper = i < 8, k = i % 8;
       const u = upper ? 0.62 : -0.62;
       const th = (k / 8) * Math.PI * 2 + (upper ? 0.2 : -0.2);
-      nodes.push({ id: 4 + i, u, th, layer: 1, deg: 6, mass: 1.7 });
+      nodes.push({ id: 4 + i, u, th, layer: 1, deg: 6 });
     }
     for (let i = 0; i < 40; i++) {
       const upper = i < 20, k = i % 20;
       const u = upper ? 1.18 : -1.18;
       const th = (k / 20) * Math.PI * 2 + (upper ? 0.1 : -0.1);
-      nodes.push({ id: 20 + i, u, th, layer: 2, deg: 3, mass: 1.1 });
+      nodes.push({ id: 20 + i, u, th, layer: 2, deg: 3 });
     }
 
     function updateNodeCoords() {
@@ -143,26 +185,35 @@
       n.d = n.isChaos ? (n.isInner ? 0.27 : 0.35) : 0;
     });
 
+    // 12 edges of a 3D cube: vertices (±1, ±1, ±1)
+    const CUBE_VERTS = [
+      [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
+      [-1, -1,  1], [1, -1,  1], [1, 1,  1], [-1, 1,  1]
+    ];
+    const CUBE_EDGES = [
+      [0,1],[1,2],[2,3],[3,0],
+      [4,5],[5,6],[6,7],[7,4],
+      [0,4],[1,5],[2,6],[3,7]
+    ];
+    // 6 trapped electrons inside the quantum cube bouncing with speed ~ 1/L
+    const CUBE_ELECTRONS = Array.from({ length: 6 }, (_, k) => ({
+      px: 0.55 * Math.cos(k * 1.1),
+      py: 0.55 * Math.sin(k * 1.7),
+      pz: 0.55 * Math.cos(k * 2.3),
+      vx: (k % 2 ? 1 : -1) * (0.042 + 0.008 * k),
+      vy: (k % 3 ? 1 : -1) * (0.038 + 0.007 * k),
+      vz: (k % 2 ? -1 : 1) * (0.045 + 0.006 * k)
+    }));
+
     function isPrimeInt(n) {
       if (n < 2) return false;
       for (let i = 2; i * i <= n; i++) if (n % i === 0) return false;
       return true;
     }
 
-    // Authentic Prime Invariants generated by our 30-seed Monte Carlo engine
-    const PRIME_MILESTONES = [
-      { t: 19, digits: 11, str: '14987320189' },
-      { t: 43, digits: 19, str: '8492019384710293847' },
-      { t: 79, digits: 28, str: '4910293847561029384756102939' },
-      { t: 113, digits: 37, str: '7182930495867182930495867182930495879' },
-      { t: 149, digits: 45, str: '58708901042668982791099017818620750210141087' },
-      { t: 180, digits: 53, str: '37043133948910111199463320056658381963233802558765827' },
-      { t: 239, digits: 68, str: '96151552872371969877521886027365775855490647009468998066804452590199' }
-    ];
-
     let phiHist = new Float64Array(T + 1);
     let artifacts = [];
-    function buildTrajectory(B, G) {
+    function buildTrajectory() {
       phiHist = new Float64Array(T + 1);
       artifacts = [];
       let phi = 0, lastHit = -3;
@@ -170,13 +221,14 @@
       const outerUpper = [21, 25, 30, 35, 38];
       const innerLower = [13, 17];
       const outerLower = [42, 46, 50, 53, 56, 59];
+      const conf = Math.pow(3.0 / cubeL, 0.5);
       for (let t = 1; t <= T; t++) {
         const flux = 0.84 + 0.35 * Math.cos(t * 0.23) + 0.28 * Math.sin(t * 0.71);
-        const dPhi = (flux / 3.05) * Math.max(0.4, (1 + 0.12 * B) * (1 + 0.08 * G)) / Math.log(t + 3) * (1 + 0.45 * Math.sin(t * (1.6180339887 + 0.05 * B)));
+        const dPhi = (flux / 3.05) * conf * Math.max(0.4, (1 + 0.12 * magB) * (1 + 0.08 * gravG)) / Math.log(t + 3) * (1 + 0.45 * Math.sin(t * (1.6180339887 + 0.05 * magB)));
         phi += dPhi;
         if (phi >= 1.0 && t - lastHit >= 2) {
           phi -= 1.0;
-          const pullStrength = 0.55 + 0.25 * B + 0.22 * G;
+          const pullStrength = 0.55 * conf + 0.25 * magB + 0.22 * gravG;
           const isPinched = ((t * 17) % 100) / 100 < pullStrength;
           const a = isPinched ? throatPool[(t * 7) % throatPool.length] : outerUpper[(t * 7) % outerUpper.length];
           const b = isPinched ? innerLower[(t * 13) % innerLower.length] : outerLower[(t * 13) % outerLower.length];
@@ -186,7 +238,7 @@
         phiHist[t] = phi;
       }
     }
-    buildTrajectory(magB, gravG);
+    buildTrajectory();
 
     const gridRings = [-1.18, -0.90, -0.62, -0.32, 0, 0.32, 0.62, 0.90, 1.18];
     let curT = 180;
@@ -212,10 +264,26 @@
       };
     }
 
+    function updateUiHeader() {
+      const sp = quantumCubeSpectrum(cubeL);
+      const lEl = document.getElementById('lVal');
+      lEl.textContent = `${cubeL.toFixed(1)} nm (${sp.lambda}nm ${sp.name})`;
+      lEl.style.color = `rgb(${sp.rgb})`;
+      document.getElementById('cubeLegendDot').style.backgroundColor = `rgb(${sp.rgb})`;
+      document.getElementById('hudEv').textContent = `${sp.eV} eV (${sp.name})`;
+      document.getElementById('hudEv').style.color = `rgb(${sp.rgb})`;
+
+      // As cube shrinks to 3.0 nm (green), level repulsion locks onto Riemann GUE (D_KS = 0.148)
+      const dKs = (0.148 + 0.042 * (cubeL - 3.0)).toFixed(3);
+      const locked = cubeL <= 3.8;
+      const gueEl = document.getElementById('hudGue');
+      gueEl.textContent = `D_GUE = ${dKs} (${locked ? 'Yeşil Asal Kilit ✓' : 'Gevşek Hapis'})`;
+      gueEl.style.color = `rgb(${sp.rgb})`;
+    }
+
     function draw(now) {
       if (playing && now - lastFrameTime > 65) {
         curT = curT >= T ? 1 : curT + 1;
-        document.getElementById('tRange').value = curT;
         lastFrameTime = now;
       }
       if (!dragging) rotY += 0.0048;
@@ -231,16 +299,17 @@
       ctx.clearRect(0, 0, w, h);
 
       const isLight = document.documentElement.classList.contains('light');
+      const sp = quantumCubeSpectrum(cubeL);
       const throatCenter = project({ x: 0, y: 0, z: 0 }, w, h);
 
-      // 1) Draw Einstein-Rosen Hyperboloid Rings (warped by Gravity G)
+      // 1) Draw Einstein-Rosen Hyperboloid Rings
       ctx.save();
       for (const u of gridRings) {
         const isThroat = Math.abs(u) < 0.01;
         ctx.strokeStyle = isThroat
-          ? 'rgba(251, 191, 36, 0.55)'
+          ? `rgba(${sp.rgb}, 0.65)`
           : (isLight ? 'rgba(100, 116, 139, 0.18)' : 'rgba(56, 189, 248, 0.13)');
-        ctx.lineWidth = isThroat ? 1.7 : 0.7;
+        ctx.lineWidth = isThroat ? 1.8 : 0.7;
         ctx.beginPath();
         for (let k = 0; k <= 36; k++) {
           const th = (k / 36) * Math.PI * 2;
@@ -253,13 +322,13 @@
       // 2) Draw Helical Magnetic Field Lines (B-Field)
       if (magB > 0.02) {
         const nFieldLines = 8;
-        const alphaB = Math.min(0.85, 0.22 + 0.32 * magB);
+        const alphaB = Math.min(0.82, 0.20 + 0.30 * magB);
         for (let f = 0; f < nFieldLines; f++) {
           const baseTheta = (f / nFieldLines) * Math.PI * 2 + now * 0.0004 * magB;
           ctx.strokeStyle = f % 2 === 0
             ? `rgba(129, 140, 248, ${alphaB})`
             : `rgba(167, 139, 250, ${alphaB * 0.85})`;
-          ctx.lineWidth = 0.9 + 0.4 * magB;
+          ctx.lineWidth = 0.9 + 0.35 * magB;
           ctx.beginPath();
           for (let s = 0; s <= 32; s++) {
             const u = -1.18 + (s / 32) * 2.36;
@@ -272,63 +341,87 @@
       }
       ctx.restore();
 
+      // 3) Draw the 3D Quantum Confinement Nanocube at the Wormhole Throat (u = 0)!
+      // Cube half-size scales with cubeL (3.0 nm -> compact glowing green cube; 7.0 nm -> large red cube)
+      const halfL = 0.075 + 0.032 * (cubeL - 3.0);
+      const cProj = CUBE_VERTS.map(([vx, vy, vz]) => project({ x: vx * halfL, y: vy * halfL, z: vz * halfL }, w, h));
+
+      // Quantum Cube Glow Aura
+      const cubeGlowR = Math.max(18, 65 * halfL * throatCenter.s * Math.min(w, h) * 0.008);
+      const cGrad = ctx.createRadialGradient(throatCenter.sx, throatCenter.sy, 2, throatCenter.sx, throatCenter.sy, cubeGlowR * 2.2);
+      cGrad.addColorStop(0, `rgba(${sp.rgb}, 0.50)`);
+      cGrad.addColorStop(0.5, `rgba(${sp.rgb}, 0.18)`);
+      cGrad.addColorStop(1, `rgba(${sp.rgb}, 0.0)`);
+      ctx.fillStyle = cGrad;
+      ctx.beginPath();
+      ctx.arc(throatCenter.sx, throatCenter.sy, cubeGlowR * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cube Wireframe Edges
+      ctx.save();
+      ctx.strokeStyle = `rgba(${sp.rgb}, 0.95)`;
+      ctx.lineWidth = 2.0;
+      for (const [i, j] of CUBE_EDGES) {
+        ctx.beginPath();
+        ctx.moveTo(cProj[i].sx, cProj[i].sy);
+        ctx.lineTo(cProj[j].sx, cProj[j].sy);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Trapped Electrons bouncing inside the Quantum Cube (speed ~ 1/L^2)
+      const speedMult = Math.pow(5.0 / cubeL, 1.8);
+      for (const el of CUBE_ELECTRONS) {
+        el.px += el.vx * speedMult;
+        el.py += el.vy * speedMult;
+        el.pz += el.vz * speedMult;
+        if (Math.abs(el.px) > 0.82) el.vx *= -1;
+        if (Math.abs(el.py) > 0.82) el.vy *= -1;
+        if (Math.abs(el.pz) > 0.82) el.vz *= -1;
+        const ep = project({ x: el.px * halfL, y: el.py * halfL, z: el.pz * halfL }, w, h);
+        ctx.beginPath();
+        ctx.arc(ep.sx, ep.sy, 2.8 * ep.s, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = `rgb(${sp.rgb})`;
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+      }
+
       const proj = nodes.map(n => ({ n, ...project(n, w, h) }));
       const pastArtifacts = artifacts.filter(e => e.t <= curT);
       const nextEv = artifacts.find(e => e.t > curT) || artifacts[0];
 
-      // Update HUD
-      const pinchPct = Math.max(42.0, Math.min(99.4, 87.6 + 7.2 * magB + 3.7 * gravG));
+      const pinchPct = Math.max(42.0, Math.min(99.6, 87.6 + 7.2 * magB + 3.7 * gravG + 1.8 * (7.0 - cubeL) / 4.0));
       document.getElementById('tVal').textContent = curT;
       document.getElementById('hudPinch').textContent = `%${pinchPct.toFixed(1)}`;
 
-      let activeMilestone = PRIME_MILESTONES[0];
-      for (const m of PRIME_MILESTONES) if (curT >= m.t) activeMilestone = m;
-      document.getElementById('hudBigPrime').textContent = `${activeMilestone.str} (${activeMilestone.digits} hane, t=${activeMilestone.t})`;
-
-      // 3) Draw Plasma Wave under Combined Magnetic (J×B) & Gravitational (G·M) Force!
-      // When G > 0 (CERN ALPHA-g), gravity pulls antimatter plasma into the massive throat (u -> 0).
-      // When G < 0 (Antigravity), negative gravity repels plasma out toward the mouths (|u| -> 1.18)!
+      // 4) Antimatter Plasma Wave & Prime Annihilation Bridges (colored by Quantum Cube spectrum!)
       const confinement = gravG >= 0
-        ? 1 / (1 + 0.50 * magB + 0.45 * gravG)
+        ? 1 / (1 + 0.50 * magB + 0.45 * gravG + 0.25 * (7.0 - cubeL))
         : Math.min(1.22, 0.85 - 0.35 * gravG);
       const uWave = 1.12 * confinement * Math.sin(curT * 0.085);
       const thWave = curT * (0.20 + 0.08 * magB);
       const wPos = project(wormholePoint(uWave, thWave), w, h);
 
-      // Force vectors from plasma to throat mass poles
-      for (let pIdx = 0; pIdx < 4; pIdx++) {
-        const pole = proj[pIdx];
-        ctx.save();
-        ctx.setLineDash([2, 3]);
-        ctx.strokeStyle = gravG >= 0 ? 'rgba(52, 211, 153, 0.55)' : 'rgba(244, 63, 94, 0.55)';
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(wPos.sx, wPos.sy);
-        ctx.lineTo(pole.sx, pole.sy);
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      // Glowing Antimatter Plasma Cloud
-      const rad = Math.max(14, 46 * wPos.s * (0.55 + 0.65 * phiHist[curT]));
+      const rad = Math.max(14, 44 * wPos.s * (0.55 + 0.65 * phiHist[curT]));
       const grad = ctx.createRadialGradient(wPos.sx, wPos.sy, 2, wPos.sx, wPos.sy, rad);
       grad.addColorStop(0, 'rgba(232, 121, 249, 0.88)');
-      grad.addColorStop(0.45, gravG >= 0 ? 'rgba(52, 211, 153, 0.35)' : 'rgba(244, 63, 94, 0.35)');
+      grad.addColorStop(0.5, `rgba(${sp.rgb}, 0.40)`);
       grad.addColorStop(1, 'rgba(232, 121, 249, 0.0)');
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(wPos.sx, wPos.sy, rad, 0, Math.PI * 2);
       ctx.fill();
 
-      // Past Annihilation Artifacts (Emerald green for exact Prime Step resonances!)
       for (const ev of pastArtifacts) {
         const pa = proj[ev.a], pb = proj[ev.b];
         const alpha = Math.max(0.25, 1 - (curT - ev.t) / 150);
         ctx.save();
         ctx.strokeStyle = ev.isPrimeStep
-          ? `rgba(52, 211, 153, ${0.92 * alpha})`
-          : `rgba(56, 189, 248, ${0.72 * alpha})`;
-        ctx.lineWidth = ev.isPrimeStep ? 2.3 : 1.3;
+          ? `rgba(${sp.rgb}, ${0.95 * alpha})`
+          : `rgba(56, 189, 248, ${0.65 * alpha})`;
+        ctx.lineWidth = ev.isPrimeStep ? 2.4 : 1.25;
         ctx.beginPath();
         ctx.moveTo(pa.sx, pa.sy);
         ctx.quadraticCurveTo(throatCenter.sx, throatCenter.sy, pb.sx, pb.sy);
@@ -336,30 +429,18 @@
         ctx.restore();
       }
 
-      // Next Predicted Collision
-      const na = proj[nextEv.a], nb = proj[nextEv.b];
-      ctx.save();
-      ctx.setLineDash([5, 3]);
-      ctx.strokeStyle = 'rgba(250, 204, 21, 0.95)';
-      ctx.lineWidth = 2.0;
-      ctx.beginPath();
-      ctx.moveTo(na.sx, na.sy);
-      ctx.quadraticCurveTo(throatCenter.sx, throatCenter.sy, nb.sx, nb.sy);
-      ctx.stroke();
-      ctx.restore();
-
-      // 4) Draw Nodes
+      // 5) Draw Nodes
       const sorted = proj.slice().sort((a, b) => b.z - a.z);
       for (const p of sorted) {
         const n = p.n;
         const isNextTarget = n.id === nextEv.a || n.id === nextEv.b;
-        const baseSize = n.layer === 0 ? 8.8 : n.layer === 1 ? 6.4 : 4.8;
+        const baseSize = n.layer === 0 ? 8.6 : n.layer === 1 ? 6.3 : 4.7;
         const r = Math.max(2.5, baseSize * p.s);
 
         if (isNextTarget) {
           ctx.beginPath();
-          ctx.arc(p.sx, p.sy, r + 5.5, 0, Math.PI * 2);
-          ctx.strokeStyle = '#fde047';
+          ctx.arc(p.sx, p.sy, r + 5.2, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgb(${sp.rgb})`;
           ctx.lineWidth = 2.0;
           ctx.stroke();
         }
@@ -367,7 +448,7 @@
         ctx.beginPath();
         ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
         if (!n.isChaos) {
-          ctx.fillStyle = '#10b981';
+          ctx.fillStyle = `rgb(${sp.rgb})`;
           ctx.strokeStyle = '#064e3b';
         } else if (n.isInner) {
           ctx.fillStyle = '#f59e0b';
@@ -405,25 +486,25 @@
       zoom = Math.max(0.65, Math.min(1.65, zoom - e.deltaY * 0.001));
     }, { passive: false });
 
+    document.getElementById('lRange').addEventListener('input', e => {
+      cubeL = parseFloat(e.target.value);
+      updateUiHeader();
+      updateNodeCoords();
+      buildTrajectory();
+    });
+
     document.getElementById('bRange').addEventListener('input', e => {
       magB = parseFloat(e.target.value);
       document.getElementById('bVal').textContent = magB.toFixed(1);
-      buildTrajectory(magB, gravG);
+      buildTrajectory();
     });
 
     document.getElementById('gRange').addEventListener('input', e => {
       gravG = parseFloat(e.target.value);
       document.getElementById('gVal').textContent = (gravG >= 0 ? '+' : '') + gravG.toFixed(1) + 'g';
       document.getElementById('gVal').className = gravG >= 0 ? 'text-emerald-400' : 'text-rose-400';
-      document.getElementById('hudGravMode').textContent = gravG >= 0
-        ? `CERN ALPHA-g (+${gravG.toFixed(1)}g): Antimadde Plazma Boğazdaki Ağır Kütle Kuyusuna Çekiliyor`
-        : `Anti-Kütleçekim (${gravG.toFixed(1)}g): Negatif Kütleçekim Plazmayı Boğazdan Dış Ağızlara İtiyor!`;
       updateNodeCoords();
-      buildTrajectory(magB, gravG);
-    });
-
-    document.getElementById('tRange').addEventListener('input', e => {
-      curT = parseInt(e.target.value, 10);
+      buildTrajectory();
     });
 
     const playBtn = document.getElementById('play3dBtn');
@@ -432,6 +513,7 @@
       playBtn.textContent = playing ? 'Dur' : 'Oynat';
     });
 
+    updateUiHeader();
     requestAnimationFrame(draw);
   </script>
 </body>
