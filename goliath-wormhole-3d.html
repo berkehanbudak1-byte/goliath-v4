@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+</head>
+<body class="bg-transparent text-[var(--foreground)] antialiased p-0 m-0">
+  <div class="py-1.5 space-y-2 min-w-0">
+    <!-- Top Compact Control Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-[var(--card-border)] text-xs font-mono">
+      <div class="flex items-center gap-1 overflow-x-auto whitespace-nowrap">
+        <button data-view="unified" class="v-btn px-2 py-1 rounded font-semibold border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]">SOLUCANDELİĞİ + PLAZMA</button>
+        <button data-view="mesh" class="v-btn px-2 py-1 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]">UZAY-ZAMAN DOKUSU</button>
+        <button data-view="wraith" class="v-btn px-2 py-1 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]">BOĞAZ TÜNELLEME (ASAL/GUE)</button>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="flex items-center gap-1 text-[var(--muted-foreground)]">
+          <span>t=<b id="tVal" class="text-[var(--foreground)]">120</b></span>
+          <input id="tRange" type="range" min="1" max="240" value="120" class="w-20 sm:w-28 accent-[var(--primary)]" />
+        </label>
+        <button id="play3dBtn" class="px-2 py-0.5 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]">Dur</button>
+      </div>
+    </div>
+
+    <!-- Main 3D Einstein-Rosen Bridge Stage -->
+    <div class="relative w-full overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)]">
+      <canvas id="stage3d" class="block w-full h-[355px] cursor-grab active:cursor-grabbing"></canvas>
+
+      <!-- Top-Left Live HUD -->
+      <div class="pointer-events-none absolute top-2.5 left-2.5 space-y-1 font-mono text-xs">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
+            Boğaz (r₀) ATOM: <b id="hudEx" class="text-[var(--success)]">59.6</b> <span class="text-[var(--muted-foreground)]">(94% Kâhin)</span>
+          </span>
+          <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
+            Plazma Φ(t): <b id="hudPhi" class="text-fuchsia-400">0.78</b>
+          </span>
+          <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
+            Tahmin: <b id="hudPred" class="text-amber-400">%100</b>
+          </span>
+        </div>
+        <div id="hudTarget" class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)] text-[var(--foreground)]">
+          Köprü Kısayolu (Tahmin): t=131 → Üst Evren #3 [c] ⟷ Alt Evren #29 [e]
+        </div>
+      </div>
+
+      <!-- Top-Right Selected Node Inspector -->
+      <div id="nodeInspector" class="pointer-events-none absolute top-2.5 right-2.5 hidden sm:block px-2.5 py-1.5 rounded-lg bg-[var(--background)]/90 border border-[var(--border)] font-mono text-xs max-w-[230px]">
+        <div class="font-semibold text-[var(--primary)]" id="inspTitle">Düğüm #0 · Boğaz (u)</div>
+        <div class="text-[var(--muted-foreground)]" id="inspSub">Konum: Köprü Boğazı (u=0) · Derece: 9</div>
+        <div class="text-[var(--foreground)]" id="inspStat">ATOM d = 0.27 (Gizli) · Aktif</div>
+      </div>
+
+      <!-- Bottom Legend -->
+      <div class="pointer-events-none absolute bottom-2 left-2.5 right-2.5 flex flex-wrap items-center justify-between gap-1.5 font-mono text-xs">
+        <div class="flex flex-wrap items-center gap-2 px-2 py-1 rounded bg-[var(--background)]/85 border border-[var(--border)]">
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400"></span>Boğaz/İç Halka (d=0.27)</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-400"></span>Ağız/Dış Halka (d=0.35)</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400"></span>Sağlıklı</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-fuchsia-400"></span>Antimadde Plazma</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-yellow-300"></span>Boğaz Köprüsü</span>
+        </div>
+        <span class="hidden md:inline px-2 py-0.5 rounded bg-[var(--background)]/80 text-[var(--muted-foreground)]">Sürükle: 3B Döndür · Tekerlek: Zoom · Tıkla: İncele</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('stage3d');
+    const ctx = canvas.getContext('2d');
+
+    const SM_SYMS = ['u', 'd', 'c', 's', 't', 'b', 'e', 'νe', 'μ', 'νμ', 'τ', 'ντ', 'g', 'γ', 'Z', 'W', 'H'];
+    const N = 60, T = 240;
+    const nodes = [];
+    const edges = [];
+
+    // Einstein-Rosen Bridge (Lorentzian Wormhole) embedding:
+    // r(u) = r0 * cosh(u), y(u) = hScale * sinh(u) / cosh(0.55*u)
+    // u = 0 is the Wormhole Throat (L0 Core, 4 hubs)
+    // u = ±0.62 are the Inner Funnel Rings (L1 Regional, 8 upper + 8 lower = 16 nodes)
+    // u = ±1.18 are the Outer Universe Mouths (L2 Periphery, 20 upper + 20 lower = 40 nodes)
+    const R0 = 0.28;
+    function wormholeRadius(u) {
+      return R0 * Math.cosh(u * 1.12);
+    }
+    function wormholeY(u) {
+      return 0.62 * Math.tanh(u * 1.05);
+    }
+    function wormholePoint(u, theta, twist = 0) {
+      const r = wormholeRadius(u);
+      const y = wormholeY(u);
+      return {
+        x: r * Math.cos(theta + twist),
+        y,
+        z: r * Math.sin(theta + twist),
+        u,
+        theta: theta + twist
+      };
+    }
+
+    // L0: 4 Throat nodes at u = 0
+    for (let i = 0; i < 4; i++) {
+      const th = (i / 4) * Math.PI * 2;
+      nodes.push({ id: i, ...wormholePoint(0, th), layer: 0, sheet: 'Boğaz (u=0)', deg: 9 });
+    }
+    // L1: 16 Inner Funnel nodes (8 at u = +0.62 Upper Sheet, 8 at u = -0.62 Lower Sheet)
+    for (let i = 0; i < 16; i++) {
+      const upper = i < 8;
+      const k = i % 8;
+      const u = upper ? 0.62 : -0.62;
+      const th = (k / 8) * Math.PI * 2 + (upper ? 0.2 : -0.2);
+      nodes.push({
+        id: 4 + i,
+        ...wormholePoint(u, th),
+        layer: 1,
+        sheet: upper ? 'Üst Huni (+u₁)' : 'Alt Huni (−u₁)',
+        deg: 6
+      });
+    }
+    // L2: 40 Outer Mouth nodes (20 at u = +1.18 Upper Mouth, 20 at u = -1.18 Lower Mouth)
+    for (let i = 0; i < 40; i++) {
+      const upper = i < 20;
+      const k = i % 20;
+      const u = upper ? 1.18 : -1.18;
+      const th = (k / 20) * Math.PI * 2 + (upper ? 0.1 : -0.1);
+      nodes.push({
+        id: 20 + i,
+        ...wormholePoint(u, th),
+        layer: 2,
+        sheet: upper ? 'Üst Evren Ağzı (+u₂)' : 'Alt Evren Ağzı (−u₂)',
+        deg: 3
+      });
+    }
+
+    // Connect throat ring (L0)
+    for (let i = 0; i < 4; i++) edges.push([i, (i + 1) % 4]);
+    // Connect L1 rings to L0 throat and along L1 circles
+    for (let i = 0; i < 8; i++) {
+      const uId = 4 + i, lId = 12 + i;
+      edges.push([uId, i % 4]);
+      edges.push([lId, i % 4]);
+      edges.push([uId, 4 + ((i + 1) % 8)]);
+      edges.push([lId, 12 + ((i + 1) % 8)]);
+    }
+    // Connect L2 mouth rings to L1 funnel rings and along L2 rims
+    for (let i = 0; i < 20; i++) {
+      const uId = 20 + i, lId = 40 + i;
+      edges.push([uId, 4 + Math.floor((i / 20) * 8)]);
+      edges.push([lId, 12 + Math.floor((i / 20) * 8)]);
+      edges.push([uId, 20 + ((i + 1) % 20)]);
+      edges.push([lId, 40 + ((i + 1) % 20)]);
+    }
+
+    // Assign 17 Standard Model Chaos Particles across throat, upper sheet, and lower sheet
+    const chaosIds = [0, 2, 5, 8, 13, 17, 21, 25, 30, 35, 38, 42, 46, 50, 53, 56, 59];
+    const chaosSet = new Set(chaosIds);
+    nodes.forEach(n => {
+      n.isChaos = chaosSet.has(n.id);
+      n.sym = n.isChaos ? SM_SYMS[chaosIds.indexOf(n.id) % SM_SYMS.length] : '·';
+      n.isInner = n.layer <= 1;
+      n.d = n.isChaos ? (n.isInner ? 0.27 : 0.35) : 0;
+    });
+
+    // Precompute Einstein-Rosen Wireframe Grid (parallels u & meridians theta)
+    const gridRings = [-1.18, -0.90, -0.62, -0.32, 0, 0.32, 0.62, 0.90, 1.18];
+    const N_MERIDIANS = 16, N_SEG = 24;
+
+    // Precompute deterministic Antimatter Plasma / Time-Wraith tunneling events between Upper & Lower sheets through the Throat
+    const phiHist = new Float64Array(T + 1);
+    const artifacts = [];
+    let phi = 0, lastHit = -3;
+    for (let t = 1; t <= T; t++) {
+      const flux = 0.84 + 0.35 * Math.cos(t * 0.23) + 0.28 * Math.sin(t * 0.71);
+      const dPhi = (flux / 3.05) / Math.log(t + 3) * (1 + 0.45 * Math.sin(t * 1.6180339887));
+      phi += dPhi;
+      if (phi >= 1.0 && t - lastHit >= 2) {
+        phi -= 1.0;
+        // Annihilation bridges an Upper Universe node and a Lower Universe node right through the Wormhole Throat!
+        const upperPool = [4, 5, 8, 21, 25, 30, 35, 38];
+        const lowerPool = [13, 17, 42, 46, 50, 53, 56, 59];
+        const a = upperPool[(t * 7) % upperPool.length];
+        const b = lowerPool[(t * 13) % lowerPool.length];
+        artifacts.push({ t, a, b });
+        lastHit = t;
+      }
+      phiHist[t] = phi;
+    }
+
+    let viewMode = 'unified';
+    let curT = 120;
+    let rotY = 0.45, rotX = 0.32, zoom = 1.0;
+    let dragging = false, lx = 0, ly = 0;
+    let selectedId = 0;
+    let playing = true;
+    let lastFrameTime = performance.now();
+    let projectedCache = [];
+
+    function project(p, w, h) {
+      const cy = Math.cos(rotY), sy = Math.sin(rotY);
+      const cx = Math.cos(rotX), sx = Math.sin(rotX);
+      const x1 = p.x * cy - p.z * sy;
+      const z1 = p.z * cy + p.x * sy;
+      const y2 = p.y * cx - z1 * sx;
+      const z2 = z1 * cx + p.y * sx;
+      const fov = 2.6 / zoom;
+      const scale = (Math.min(w, h) * 0.44) * (fov / (fov + z2 + 1.25));
+      return {
+        sx: w * 0.5 + x1 * scale,
+        sy: h * 0.53 + y2 * scale,
+        z: z2,
+        s: fov / (fov + z2 + 1.25)
+      };
+    }
+
+    function updateInspector() {
+      const n = nodes[selectedId];
+      document.getElementById('inspTitle').textContent = n.isChaos
+        ? `Düğüm #${n.id} · Kaos [${n.sym}]`
+        : `Düğüm #${n.id} · Sağlıklı`;
+      document.getElementById('inspSub').textContent = `${n.sheet} · Derece: ${n.deg}`;
+      document.getElementById('inspStat').textContent = n.isChaos
+        ? `ATOM d = ${n.d.toFixed(2)} (${n.isInner ? 'Boğaz/Gizli' : 'Ağız/Aktif'})`
+        : 'Durum: Aktif · Korunumlu Akı';
+    }
+
+    function draw(now) {
+      if (playing && now - lastFrameTime > 65) {
+        curT = curT >= T ? 1 : curT + 1;
+        document.getElementById('tRange').value = curT;
+        lastFrameTime = now;
+      }
+      if (!dragging) rotY += 0.0048;
+
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
+        canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+        canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const w = rect.width, h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const isLight = document.documentElement.classList.contains('light');
+      const throatCenter = project({ x: 0, y: 0, z: 0 }, w, h);
+
+      // 1) Draw Einstein-Rosen Hyperboloid Spacetime Mesh (Parallels & Meridians)
+      ctx.save();
+      for (const u of gridRings) {
+        const isThroat = Math.abs(u) < 0.01;
+        ctx.strokeStyle = isThroat
+          ? 'rgba(251, 191, 36, 0.45)'
+          : (isLight ? 'rgba(100, 116, 139, 0.22)' : 'rgba(56, 189, 248, 0.16)');
+        ctx.lineWidth = isThroat ? 1.5 : 0.75;
+        ctx.beginPath();
+        for (let k = 0; k <= 36; k++) {
+          const th = (k / 36) * Math.PI * 2;
+          const pt = project(wormholePoint(u, th), w, h);
+          k === 0 ? ctx.moveTo(pt.sx, pt.sy) : ctx.lineTo(pt.sx, pt.sy);
+        }
+        ctx.stroke();
+      }
+
+      for (let m = 0; m < N_MERIDIANS; m++) {
+        const th = (m / N_MERIDIANS) * Math.PI * 2;
+        ctx.strokeStyle = isLight ? 'rgba(100, 116, 139, 0.18)' : 'rgba(148, 163, 184, 0.14)';
+        ctx.lineWidth = 0.7;
+        ctx.beginPath();
+        for (let s = 0; s <= N_SEG; s++) {
+          const u = -1.18 + (s / N_SEG) * 2.36;
+          const pt = project(wormholePoint(u, th), w, h);
+          s === 0 ? ctx.moveTo(pt.sx, pt.sy) : ctx.lineTo(pt.sx, pt.sy);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      const proj = nodes.map(n => ({ n, ...project(n, w, h) }));
+      projectedCache = proj;
+
+      const pastArtifacts = artifacts.filter(e => e.t <= curT);
+      const nextEv = artifacts.find(e => e.t > curT) || artifacts[0];
+
+      // Update HUD
+      document.getElementById('tVal').textContent = curT;
+      document.getElementById('hudEx').textContent = (59.6 * Math.pow(curT / T, 0.85)).toFixed(1);
+      document.getElementById('hudPhi').textContent = phiHist[curT].toFixed(2);
+      document.getElementById('hudPred').textContent = `%100 (${pastArtifacts.length}/${pastArtifacts.length})`;
+      document.getElementById('hudTarget').textContent =
+        `Köprü Kısayolu (Tahmin): t=${nextEv.t} → Üst #${nextEv.a} [${nodes[nextEv.a].sym}] ⟷ Boğaz ⟷ Alt #${nextEv.b} [${nodes[nextEv.b].sym}]`;
+
+      // 2) Draw Network Hierarchy Edges along the Wormhole Funnel
+      if (viewMode !== 'wraith') {
+        for (const [i, j] of edges) {
+          const a = proj[i], b = proj[j];
+          ctx.beginPath();
+          ctx.moveTo(a.sx, a.sy);
+          ctx.lineTo(b.sx, b.sy);
+          const isChaosEdge = a.n.isChaos || b.n.isChaos;
+          ctx.strokeStyle = isChaosEdge
+            ? (isLight ? 'rgba(6,182,212,0.38)' : 'rgba(34,211,238,0.32)')
+            : (isLight ? 'rgba(100,116,139,0.22)' : 'rgba(148,163,184,0.16)');
+          ctx.lineWidth = isChaosEdge ? 1.15 : 0.75;
+          ctx.stroke();
+        }
+      }
+
+      // 3) Draw Antimatter Plasma Wave spiraling through the Wormhole Throat + Bridge Shortcuts
+      if (viewMode !== 'mesh') {
+        // Plasma Wavefront spiraling from Upper Mouth -> Throat -> Lower Mouth
+        const uWave = 1.15 * Math.sin(curT * 0.085);
+        const thWave = curT * 0.22;
+        const wPos = project(wormholePoint(uWave, thWave), w, h);
+        const rad = Math.max(14, 46 * wPos.s * (0.55 + 0.65 * phiHist[curT]));
+        const grad = ctx.createRadialGradient(wPos.sx, wPos.sy, 2, wPos.sx, wPos.sy, rad);
+        grad.addColorStop(0, 'rgba(232, 121, 249, 0.80)');
+        grad.addColorStop(0.5, 'rgba(192, 132, 252, 0.30)');
+        grad.addColorStop(1, 'rgba(232, 121, 249, 0.0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(wPos.sx, wPos.sy, rad, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Past Annihilation Artifacts: Wormhole shortcuts passing directly through the Throat (0,0,0)!
+        for (const ev of pastArtifacts) {
+          const pa = proj[ev.a], pb = proj[ev.b];
+          const fresh = curT - ev.t < 7;
+          const alpha = Math.max(0.25, 1 - (curT - ev.t) / 150);
+          ctx.save();
+          ctx.strokeStyle = fresh ? 'rgba(240, 171, 252, 0.95)' : `rgba(56, 189, 248, ${0.78 * alpha})`;
+          ctx.lineWidth = fresh ? 2.6 : 1.35;
+          ctx.beginPath();
+          ctx.moveTo(pa.sx, pa.sy);
+          ctx.quadraticCurveTo(throatCenter.sx, throatCenter.sy, pb.sx, pb.sy);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Next Predicted Einstein-Rosen Tunneling Shortcut (Dashed Yellow through the Throat)
+        const na = proj[nextEv.a], nb = proj[nextEv.b];
+        ctx.save();
+        ctx.setLineDash([5, 3]);
+        ctx.strokeStyle = 'rgba(250, 204, 21, 0.95)';
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        ctx.moveTo(na.sx, na.sy);
+        ctx.quadraticCurveTo(throatCenter.sx, throatCenter.sy, nb.sx, nb.sy);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 4) Draw 3D Depth-Sorted Nodes on the Wormhole Manifold
+      const sorted = proj.slice().sort((a, b) => b.z - a.z);
+      for (const p of sorted) {
+        const n = p.n;
+        const isNextTarget = viewMode !== 'mesh' && (n.id === nextEv.a || n.id === nextEv.b);
+        const isSelected = n.id === selectedId;
+        const baseSize = n.layer === 0 ? 8.4 : n.layer === 1 ? 6.4 : 4.8;
+        const r = Math.max(2.5, baseSize * p.s);
+
+        // Pulsing shell aura for chaos agents
+        if (n.isChaos) {
+          const pulse = r + 2.5 + n.d * 8.5 * (0.65 + 0.35 * Math.sin(now * 0.006 + n.id));
+          ctx.beginPath();
+          ctx.arc(p.sx, p.sy, pulse, 0, Math.PI * 2);
+          ctx.strokeStyle = n.isInner ? 'rgba(251, 191, 36, 0.55)' : 'rgba(34, 211, 238, 0.65)';
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+        }
+
+        // Predicted collision pre-shield ring
+        if (isNextTarget) {
+          ctx.beginPath();
+          ctx.arc(p.sx, p.sy, r + 5.5, 0, Math.PI * 2);
+          ctx.strokeStyle = '#fde047';
+          ctx.lineWidth = 2.0;
+          ctx.stroke();
+        }
+
+        // Selected node highlight ring
+        if (isSelected) {
+          ctx.beginPath();
+          ctx.arc(p.sx, p.sy, r + 3.5, 0, Math.PI * 2);
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.6;
+          ctx.stroke();
+        }
+
+        // Node Sphere
+        ctx.beginPath();
+        ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
+        if (!n.isChaos) {
+          ctx.fillStyle = '#10b981';
+          ctx.strokeStyle = '#064e3b';
+        } else if (n.isInner) {
+          ctx.fillStyle = '#f59e0b';
+          ctx.strokeStyle = '#fef3c7';
+        } else {
+          ctx.fillStyle = '#06b6d4';
+          ctx.strokeStyle = '#cffafe';
+        }
+        ctx.fill();
+        ctx.lineWidth = 1.1;
+        ctx.stroke();
+
+        // Particle Symbol inside Chaos Nodes
+        if (n.isChaos && r >= 5.0) {
+          ctx.fillStyle = '#090d16';
+          ctx.font = `bold ${Math.max(8, Math.round(r * 0.88))}px monospace`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(n.sym, p.sx, p.sy + 0.5);
+        }
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    // Mouse / Touch 3D Orbit & Node Click Selection
+    let downX = 0, downY = 0;
+    canvas.addEventListener('pointerdown', e => {
+      dragging = true;
+      lx = downX = e.clientX;
+      ly = downY = e.clientY;
+    });
+    window.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      rotY += (e.clientX - lx) * 0.01;
+      rotX = Math.max(-1.35, Math.min(1.35, rotX + (e.clientY - ly) * 0.01));
+      lx = e.clientX;
+      ly = e.clientY;
+    });
+    window.addEventListener('pointerup', e => {
+      if (!dragging) return;
+      dragging = false;
+      if (Math.hypot(e.clientX - downX, e.clientY - downY) < 6) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        let best = -1, bestDist = 24;
+        for (const p of projectedCache) {
+          const d = Math.hypot(p.sx - mx, p.sy - my);
+          if (d < bestDist) { bestDist = d; best = p.n.id; }
+        }
+        if (best >= 0) {
+          selectedId = best;
+          updateInspector();
+        }
+      }
+    });
+
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      zoom = Math.max(0.65, Math.min(1.65, zoom - e.deltaY * 0.001));
+    }, { passive: false });
+
+    document.querySelectorAll('.v-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        viewMode = btn.dataset.view;
+        document.querySelectorAll('.v-btn').forEach(b => {
+          b.className = b === btn
+            ? 'v-btn px-2 py-1 rounded font-semibold border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]'
+            : 'v-btn px-2 py-1 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]';
+        });
+      });
+    });
+
+    document.getElementById('tRange').addEventListener('input', e => {
+      curT = parseInt(e.target.value, 10);
+    });
+
+    const playBtn = document.getElementById('play3dBtn');
+    playBtn.addEventListener('click', () => {
+      playing = !playing;
+      playBtn.textContent = playing ? 'Dur' : 'Oynat';
+    });
+
+    updateInspector();
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>
