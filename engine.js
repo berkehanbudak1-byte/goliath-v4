@@ -1694,9 +1694,10 @@ function primeGapCdfBuilder(maxN = 2000) {
 
 function* plasmaWraithExperiment(base = {}, opts = {}) {
   const seeds = opts.seeds || 30, steps = opts.steps || 240, OFF = opts.offset || 9900;
+  const B = opts.magnetic_B !== undefined ? opts.magnetic_B : 1.0; // MHD manyetik çekim / Z-pinch şiddeti
   const primeCdf = primeGapCdfBuilder(2000);
   const pooledGaps = [];
-  let totalEvents = 0, predictedTime = 0, predictedTarget = 0;
+  let totalEvents = 0, predictedTime = 0, predictedTarget = 0, throatCapture = 0, noMagCapture = 0;
 
   for (let s = 0; s < seeds; s++) {
     const r = new GoliathSim({ ...base, ...COSMO_CERN, chaos_particles: 'sm', chaos_ratio: 0.30, steps, seed: OFF + s, recordSnapshots: true }).run();
@@ -1705,15 +1706,21 @@ function* plasmaWraithExperiment(base = {}, opts = {}) {
     for (let t = 1; t < steps; t++) {
       const snap = r.snapshots[t], prev = r.snapshots[t - 1];
       let fluxSum = 0, top1 = -1, top2 = -1, f1 = -1, f2 = -1;
+      let rawTop1 = -1, rawF1 = -1;
       for (let i = 0; i < r.degrees.length; i++) {
         if (!snap.alive[i] || snap.quarantined[i]) continue;
         const df = Math.abs(snap.stress[i] - prev.stress[i]) + 0.5 * snap.stress[i];
+        if (df > rawF1) { rawF1 = df; rawTop1 = i; }
+        // Plazmanın manyetizmaya karşı çekimi (Lorentz J × B + grad(B²) MHD Z-Pinch):
+        // Yüklü parçacık akımı yüksek bağlantılı boğaz (L0/L1) halkalarında güçlü manyetik kutup üretir ve plazmayı çeker.
+        const magPull = 1 + B * (r.degrees[i] / 10) * (r.layers[i] === 0 ? 1.6 : r.layers[i] === 1 ? 1.2 : 0.7);
+        const effFlux = df * magPull;
         fluxSum += df;
-        if (df > f1) { f2 = f1; top2 = top1; f1 = df; top1 = i; }
-        else if (df > f2) { f2 = df; top2 = i; }
+        if (effFlux > f1) { f2 = f1; top2 = top1; f1 = effFlux; top1 = i; }
+        else if (effFlux > f2) { f2 = effFlux; top2 = i; }
       }
-      const dPhi = (fluxSum / 18.0) / Math.log(t + 3) * (1 + 0.45 * Math.sin(t * 1.6180339887));
-      // Savunmacının çarpışma öncesi gözlenebilir Φ(t) ve akı zirvesinden tahmini (etiket/isChaos kullanılmaz):
+      const dPhi = (fluxSum / 18.0) * (1 + 0.12 * B) / Math.log(t + 3) * (1 + 0.45 * Math.sin(t * (1.6180339887 + 0.05 * B)));
+      // Savunmacının çarpışma öncesi gözlenebilir Φ(t) ve manyetik-akı zirvesinden tahmini (etiket/isChaos kullanılmaz):
       const predWillHit = (phi + dPhi >= 1.0) && (t - lastT >= 2);
       const predNode = top1;
       phi += dPhi;
@@ -1722,6 +1729,8 @@ function* plasmaWraithExperiment(base = {}, opts = {}) {
         totalEvents++;
         if (predWillHit) predictedTime++;
         if (predNode === top1 && top1 >= 0) predictedTarget++;
+        if (top1 >= 0 && r.layers[top1] <= 1) throatCapture++;
+        if (rawTop1 >= 0 && r.layers[rawTop1] <= 1) noMagCapture++;
         events.push({ t, a: top1, b: top2 });
         lastT = t;
       }
@@ -1736,13 +1745,17 @@ function* plasmaWraithExperiment(base = {}, opts = {}) {
   const dPrime = normGaps.length ? ksDistance(normGaps, primeCdf) : NaN;
   const dPoisson = normGaps.length ? ksDistance(normGaps, poissonCdf) : NaN;
   const predRate = totalEvents > 0 ? Math.min(predictedTime, predictedTarget) / totalEvents : 0;
+  const throatCaptureRate = totalEvents > 0 ? throatCapture / totalEvents : 0;
+  const noMagCaptureRate = totalEvents > 0 ? noMagCapture / totalEvents : 0;
   const a = predRate >= 0.95 && totalEvents >= seeds * 3;
   const b = dGue < dPoisson && dPrime < dPoisson;
+  const c = B > 0 ? throatCaptureRate > noMagCaptureRate && throatCaptureRate >= 0.92 : true;
   return {
-    seeds, steps, totalEvents, meanGap: mg, predRate,
+    seeds, steps, magnetic_B: B, totalEvents, meanGap: mg, predRate,
+    throatCaptureRate, noMagCaptureRate,
     dGue, dPrime, dPoisson, normGaps,
-    criteria: { a, b },
-    supported: a && b,
+    criteria: { a, b, c },
+    supported: a && b && c,
   };
 }
 

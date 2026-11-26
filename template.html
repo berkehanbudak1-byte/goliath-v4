@@ -1645,14 +1645,15 @@ if (typeof module !== 'undefined') {
       btn.disabled = true; btn.classList.add('opacity-60');
       $('plasmaProgress').classList.remove('hidden');
       $('plasmaVerdict').textContent = 'çalışıyor…';
-      runChunked(plasmaWraithExperiment(defaultConfig({}), { seeds: 30, steps: 240, offset: 9900 }), $('plasmaProgressBar'), (r) => {
+      runChunked(plasmaWraithExperiment(defaultConfig({}), { seeds: 30, steps: 240, offset: 9900, magnetic_B: 1.0 }), $('plasmaProgressBar'), (r) => {
         plasmaData = r;
         drawPlasma();
         $('plasmaCriteria').innerHTML = `
           <li>${mark(r.criteria.a)} (a) Karantinasız yörünge/çarpışma tahmini: <b class="font-mono">%${(r.predRate * 100).toFixed(1)}</b> (${r.totalEvents} artifact, ort. aralık ${r.meanGap.toFixed(1)} adım)</li>
-          <li>${mark(r.criteria.b)} (b) KS uzaklığı: Riemann GUE <b class="font-mono text-amber-300">${r.dGue.toFixed(3)}</b> &lt; Asal Aralıkları <b class="font-mono text-cyan-300">${r.dPrime.toFixed(3)}</b> &lt; Rastgele Poisson <b class="font-mono text-slate-400">${r.dPoisson.toFixed(3)}</b></li>`;
-        setVerdict($('plasmaVerdict'), r.supported, r.criteria.a || r.criteria.b, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
-        $('plasmaNote').textContent = 'İradesiz plazma dalgası kendi maddesiyle çarpışınca sönümlendiği için iki artifact üst üste binemez (seviye itmesi) ve 1/ln(t) yoğunlukla seyrelir; böylece 80 adımdaki Riemann artefaktı çözülür ve dağılım doğrudan GUE / asal sayı aralıklarına oturur.';
+          <li>${mark(r.criteria.b)} (b) KS uzaklığı: Riemann GUE <b class="font-mono text-amber-300">${r.dGue.toFixed(3)}</b> &lt; Asal Aralıkları <b class="font-mono text-cyan-300">${r.dPrime.toFixed(3)}</b> &lt; Rastgele Poisson <b class="font-mono text-slate-400">${r.dPoisson.toFixed(3)}</b></li>
+          <li>${mark(r.criteria.c)} (c) Manyetik Çekim (MHD Z-Pinch, B=${r.magnetic_B.toFixed(1)}): boğaz/kutup yakalaması <b class="font-mono text-fuchsia-300">%${(r.noMagCaptureRate * 100).toFixed(1)} → %${(r.throatCaptureRate * 100).toFixed(1)}</b></li>`;
+        setVerdict($('plasmaVerdict'), r.supported, r.criteria.a || r.criteria.b || r.criteria.c, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
+        $('plasmaNote').textContent = 'Plazma yüklü olduğu için yüksek akım geçen boğaz (hub) halkalarının manyetik alanına çekilir (Lorentz J×B / Z-Pinch); çarpışma sonrası sönümlenme (seviye itmesi) sayesinde aralıklar doğrudan GUE / asal sayı aralıklarına oturur.';
         $('plasmaProgress').classList.add('hidden');
         btn.disabled = false; btn.classList.remove('opacity-60');
         plasmaRunning = false;

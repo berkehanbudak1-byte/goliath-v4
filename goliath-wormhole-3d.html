@@ -7,23 +7,27 @@
 </head>
 <body class="bg-transparent text-[var(--foreground)] antialiased p-0 m-0">
   <div class="py-1.5 space-y-2 min-w-0">
-    <!-- Top Compact Control Bar -->
+    <!-- Top Compact Control Bar: View Modes + Magnetic Field Slider (B) + Time Scrubber -->
     <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-[var(--card-border)] text-xs font-mono">
       <div class="flex items-center gap-1 overflow-x-auto whitespace-nowrap">
-        <button data-view="unified" class="v-btn px-2 py-1 rounded font-semibold border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]">SOLUCANDELİĞİ + PLAZMA</button>
-        <button data-view="mesh" class="v-btn px-2 py-1 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]">UZAY-ZAMAN DOKUSU</button>
-        <button data-view="wraith" class="v-btn px-2 py-1 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]">BOĞAZ TÜNELLEME (ASAL/GUE)</button>
+        <button data-view="unified" class="v-btn px-2 py-1 rounded font-semibold border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]">KÖPRÜ + MANYETİK PLAZMA</button>
+        <button data-view="bfield" class="v-btn px-2 py-1 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]">MANYETİK ALAN (B)</button>
+        <button data-view="wraith" class="v-btn px-2 py-1 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]">Z-PINCH TÜNELLEME</button>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <label class="flex items-center gap-1 text-[var(--muted-foreground)]" title="Manyetik Alan Şiddeti B (Plazma Çekimi / MHD Z-Pinch)">
+          <span>Manyetik B=<b id="bVal" class="text-indigo-400">1.0</b></span>
+          <input id="bRange" type="range" min="0" max="2" step="0.1" value="1.0" class="w-16 sm:w-20 accent-indigo-400" />
+        </label>
         <label class="flex items-center gap-1 text-[var(--muted-foreground)]">
           <span>t=<b id="tVal" class="text-[var(--foreground)]">120</b></span>
-          <input id="tRange" type="range" min="1" max="240" value="120" class="w-20 sm:w-28 accent-[var(--primary)]" />
+          <input id="tRange" type="range" min="1" max="240" value="120" class="w-16 sm:w-24 accent-[var(--primary)]" />
         </label>
         <button id="play3dBtn" class="px-2 py-0.5 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]">Dur</button>
       </div>
     </div>
 
-    <!-- Main 3D Einstein-Rosen Bridge Stage -->
+    <!-- Main 3D Einstein-Rosen Bridge + MHD Magnetic Field Stage -->
     <div class="relative w-full overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)]">
       <canvas id="stage3d" class="block w-full h-[355px] cursor-grab active:cursor-grabbing"></canvas>
 
@@ -31,37 +35,36 @@
       <div class="pointer-events-none absolute top-2.5 left-2.5 space-y-1 font-mono text-xs">
         <div class="flex flex-wrap items-center gap-1.5">
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            Boğaz (r₀) ATOM: <b id="hudEx" class="text-[var(--success)]">59.6</b> <span class="text-[var(--muted-foreground)]">(94% Kâhin)</span>
+            Boğaz Çekimi (Z-Pinch): <b id="hudPinch" class="text-indigo-400">%97.3</b>
           </span>
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            Plazma Φ(t): <b id="hudPhi" class="text-fuchsia-400">0.78</b>
+            Plazma Φ(t): <b id="hudPhi" class="text-fuchsia-400">0.82</b>
           </span>
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            Tahmin: <b id="hudPred" class="text-amber-400">%100</b>
+            Yörünge Tahmini: <b id="hudPred" class="text-amber-400">%100</b>
           </span>
         </div>
         <div id="hudTarget" class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)] text-[var(--foreground)]">
-          Köprü Kısayolu (Tahmin): t=131 → Üst Evren #3 [c] ⟷ Alt Evren #29 [e]
+          Lorentz (J×B) Kutup Çekimi: Plazma Boğaz Kutup Düğümü #2 [d] ⟷ #13 [νe] Hattına Kilitlendi
         </div>
       </div>
 
       <!-- Top-Right Selected Node Inspector -->
-      <div id="nodeInspector" class="pointer-events-none absolute top-2.5 right-2.5 hidden sm:block px-2.5 py-1.5 rounded-lg bg-[var(--background)]/90 border border-[var(--border)] font-mono text-xs max-w-[230px]">
-        <div class="font-semibold text-[var(--primary)]" id="inspTitle">Düğüm #0 · Boğaz (u)</div>
-        <div class="text-[var(--muted-foreground)]" id="inspSub">Konum: Köprü Boğazı (u=0) · Derece: 9</div>
-        <div class="text-[var(--foreground)]" id="inspStat">ATOM d = 0.27 (Gizli) · Aktif</div>
+      <div id="nodeInspector" class="pointer-events-none absolute top-2.5 right-2.5 hidden sm:block px-2.5 py-1.5 rounded-lg bg-[var(--background)]/90 border border-[var(--border)] font-mono text-xs max-w-[235px]">
+        <div class="font-semibold text-[var(--primary)]" id="inspTitle">Düğüm #0 · Boğaz Kutbu [u]</div>
+        <div class="text-[var(--muted-foreground)]" id="inspSub">Manyetik Dipol B_z: 1.60 T · Derece: 9</div>
+        <div class="text-[var(--foreground)]" id="inspStat">ATOM d = 0.27 · Plazma Çekimi: Yüksek</div>
       </div>
 
       <!-- Bottom Legend -->
       <div class="pointer-events-none absolute bottom-2 left-2.5 right-2.5 flex flex-wrap items-center justify-between gap-1.5 font-mono text-xs">
         <div class="flex flex-wrap items-center gap-2 px-2 py-1 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400"></span>Boğaz/İç Halka (d=0.27)</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-400"></span>Ağız/Dış Halka (d=0.35)</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400"></span>Sağlıklı</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-fuchsia-400"></span>Antimadde Plazma</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-yellow-300"></span>Boğaz Köprüsü</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-indigo-400"></span>Manyetik Alan (B)</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400"></span>Manyetik Kutup (Boğaz)</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-fuchsia-400"></span>Plazma (B'ye Çekilen)</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-yellow-300"></span>Z-Pinch Çarpışma Tahmini</span>
         </div>
-        <span class="hidden md:inline px-2 py-0.5 rounded bg-[var(--background)]/80 text-[var(--muted-foreground)]">Sürükle: 3B Döndür · Tekerlek: Zoom · Tıkla: İncele</span>
+        <span class="hidden md:inline px-2 py-0.5 rounded bg-[var(--background)]/80 text-[var(--muted-foreground)]">Sürükle: 3B Döndür · Tekerlek: Zoom · Tıkla: Kutup İncele</span>
       </div>
     </div>
   </div>
@@ -75,18 +78,9 @@
     const nodes = [];
     const edges = [];
 
-    // Einstein-Rosen Bridge (Lorentzian Wormhole) embedding:
-    // r(u) = r0 * cosh(u), y(u) = hScale * sinh(u) / cosh(0.55*u)
-    // u = 0 is the Wormhole Throat (L0 Core, 4 hubs)
-    // u = ±0.62 are the Inner Funnel Rings (L1 Regional, 8 upper + 8 lower = 16 nodes)
-    // u = ±1.18 are the Outer Universe Mouths (L2 Periphery, 20 upper + 20 lower = 40 nodes)
     const R0 = 0.28;
-    function wormholeRadius(u) {
-      return R0 * Math.cosh(u * 1.12);
-    }
-    function wormholeY(u) {
-      return 0.62 * Math.tanh(u * 1.05);
-    }
+    function wormholeRadius(u) { return R0 * Math.cosh(u * 1.12); }
+    function wormholeY(u) { return 0.62 * Math.tanh(u * 1.05); }
     function wormholePoint(u, theta, twist = 0) {
       const r = wormholeRadius(u);
       const y = wormholeY(u);
@@ -99,12 +93,12 @@
       };
     }
 
-    // L0: 4 Throat nodes at u = 0
+    // L0: 4 Throat Magnetic Pole nodes at u = 0
     for (let i = 0; i < 4; i++) {
       const th = (i / 4) * Math.PI * 2;
-      nodes.push({ id: i, ...wormholePoint(0, th), layer: 0, sheet: 'Boğaz (u=0)', deg: 9 });
+      nodes.push({ id: i, ...wormholePoint(0, th), layer: 0, sheet: 'Boğaz Manyetik Kutbu (u=0)', deg: 9, bLocal: 1.6 });
     }
-    // L1: 16 Inner Funnel nodes (8 at u = +0.62 Upper Sheet, 8 at u = -0.62 Lower Sheet)
+    // L1: 16 Inner Funnel nodes (u = ±0.62)
     for (let i = 0; i < 16; i++) {
       const upper = i < 8;
       const k = i % 8;
@@ -114,11 +108,12 @@
         id: 4 + i,
         ...wormholePoint(u, th),
         layer: 1,
-        sheet: upper ? 'Üst Huni (+u₁)' : 'Alt Huni (−u₁)',
-        deg: 6
+        sheet: upper ? 'Üst Manyetik Huni (+u₁)' : 'Alt Manyetik Huni (−u₁)',
+        deg: 6,
+        bLocal: 1.2
       });
     }
-    // L2: 40 Outer Mouth nodes (20 at u = +1.18 Upper Mouth, 20 at u = -1.18 Lower Mouth)
+    // L2: 40 Outer Mouth nodes (u = ±1.18)
     for (let i = 0; i < 40; i++) {
       const upper = i < 20;
       const k = i % 20;
@@ -129,13 +124,12 @@
         ...wormholePoint(u, th),
         layer: 2,
         sheet: upper ? 'Üst Evren Ağzı (+u₂)' : 'Alt Evren Ağzı (−u₂)',
-        deg: 3
+        deg: 3,
+        bLocal: 0.7
       });
     }
 
-    // Connect throat ring (L0)
     for (let i = 0; i < 4; i++) edges.push([i, (i + 1) % 4]);
-    // Connect L1 rings to L0 throat and along L1 circles
     for (let i = 0; i < 8; i++) {
       const uId = 4 + i, lId = 12 + i;
       edges.push([uId, i % 4]);
@@ -143,7 +137,6 @@
       edges.push([uId, 4 + ((i + 1) % 8)]);
       edges.push([lId, 12 + ((i + 1) % 8)]);
     }
-    // Connect L2 mouth rings to L1 funnel rings and along L2 rims
     for (let i = 0; i < 20; i++) {
       const uId = 20 + i, lId = 40 + i;
       edges.push([uId, 4 + Math.floor((i / 20) * 8)]);
@@ -152,7 +145,6 @@
       edges.push([lId, 40 + ((i + 1) % 20)]);
     }
 
-    // Assign 17 Standard Model Chaos Particles across throat, upper sheet, and lower sheet
     const chaosIds = [0, 2, 5, 8, 13, 17, 21, 25, 30, 35, 38, 42, 46, 50, 53, 56, 59];
     const chaosSet = new Set(chaosIds);
     nodes.forEach(n => {
@@ -162,32 +154,10 @@
       n.d = n.isChaos ? (n.isInner ? 0.27 : 0.35) : 0;
     });
 
-    // Precompute Einstein-Rosen Wireframe Grid (parallels u & meridians theta)
     const gridRings = [-1.18, -0.90, -0.62, -0.32, 0, 0.32, 0.62, 0.90, 1.18];
-    const N_MERIDIANS = 16, N_SEG = 24;
-
-    // Precompute deterministic Antimatter Plasma / Time-Wraith tunneling events between Upper & Lower sheets through the Throat
-    const phiHist = new Float64Array(T + 1);
-    const artifacts = [];
-    let phi = 0, lastHit = -3;
-    for (let t = 1; t <= T; t++) {
-      const flux = 0.84 + 0.35 * Math.cos(t * 0.23) + 0.28 * Math.sin(t * 0.71);
-      const dPhi = (flux / 3.05) / Math.log(t + 3) * (1 + 0.45 * Math.sin(t * 1.6180339887));
-      phi += dPhi;
-      if (phi >= 1.0 && t - lastHit >= 2) {
-        phi -= 1.0;
-        // Annihilation bridges an Upper Universe node and a Lower Universe node right through the Wormhole Throat!
-        const upperPool = [4, 5, 8, 21, 25, 30, 35, 38];
-        const lowerPool = [13, 17, 42, 46, 50, 53, 56, 59];
-        const a = upperPool[(t * 7) % upperPool.length];
-        const b = lowerPool[(t * 13) % lowerPool.length];
-        artifacts.push({ t, a, b });
-        lastHit = t;
-      }
-      phiHist[t] = phi;
-    }
 
     let viewMode = 'unified';
+    let magB = 1.0;
     let curT = 120;
     let rotY = 0.45, rotX = 0.32, zoom = 1.0;
     let dragging = false, lx = 0, ly = 0;
@@ -195,6 +165,36 @@
     let playing = true;
     let lastFrameTime = performance.now();
     let projectedCache = [];
+
+    // Recompute plasma trajectory and magnetic pinch artifacts whenever magB changes
+    let phiHist = new Float64Array(T + 1);
+    let artifacts = [];
+    function buildTrajectory(B) {
+      phiHist = new Float64Array(T + 1);
+      artifacts = [];
+      let phi = 0, lastHit = -3;
+      const throatPool = [0, 2, 5, 8];
+      const outerUpper = [21, 25, 30, 35, 38];
+      const innerLower = [13, 17];
+      const outerLower = [42, 46, 50, 53, 56, 59];
+      for (let t = 1; t <= T; t++) {
+        const flux = 0.84 + 0.35 * Math.cos(t * 0.23) + 0.28 * Math.sin(t * 0.71);
+        const dPhi = (flux / 3.05) * (1 + 0.12 * B) / Math.log(t + 3) * (1 + 0.45 * Math.sin(t * (1.6180339887 + 0.05 * B)));
+        phi += dPhi;
+        if (phi >= 1.0 && t - lastHit >= 2) {
+          phi -= 1.0;
+          // Higher magnetic field B pulls plasma collisions toward the high-B throat/inner poles (Z-Pinch)!
+          const pinchProb = Math.min(0.99, 0.55 + 0.35 * B);
+          const isPinched = ((t * 17) % 100) / 100 < pinchProb;
+          const a = isPinched ? throatPool[(t * 7) % throatPool.length] : outerUpper[(t * 7) % outerUpper.length];
+          const b = isPinched ? innerLower[(t * 13) % innerLower.length] : outerLower[(t * 13) % outerLower.length];
+          artifacts.push({ t, a, b, isPinched });
+          lastHit = t;
+        }
+        phiHist[t] = phi;
+      }
+    }
+    buildTrajectory(magB);
 
     function project(p, w, h) {
       const cy = Math.cos(rotY), sy = Math.sin(rotY);
@@ -215,13 +215,13 @@
 
     function updateInspector() {
       const n = nodes[selectedId];
+      const bEff = (n.bLocal * magB).toFixed(2);
+      const pull = (1 + magB * (n.deg / 10) * n.bLocal).toFixed(2);
       document.getElementById('inspTitle').textContent = n.isChaos
         ? `Düğüm #${n.id} · Kaos [${n.sym}]`
         : `Düğüm #${n.id} · Sağlıklı`;
-      document.getElementById('inspSub').textContent = `${n.sheet} · Derece: ${n.deg}`;
-      document.getElementById('inspStat').textContent = n.isChaos
-        ? `ATOM d = ${n.d.toFixed(2)} (${n.isInner ? 'Boğaz/Gizli' : 'Ağız/Aktif'})`
-        : 'Durum: Aktif · Korunumlu Akı';
+      document.getElementById('inspSub').textContent = `${n.sheet} · B=${bEff} T`;
+      document.getElementById('inspStat').textContent = `Manyetik Çekim Çarpanı: ${pull}× (Derece ${n.deg})`;
     }
 
     function draw(now) {
@@ -245,14 +245,14 @@
       const isLight = document.documentElement.classList.contains('light');
       const throatCenter = project({ x: 0, y: 0, z: 0 }, w, h);
 
-      // 1) Draw Einstein-Rosen Hyperboloid Spacetime Mesh (Parallels & Meridians)
+      // 1) Draw Einstein-Rosen Hyperboloid Rings
       ctx.save();
       for (const u of gridRings) {
         const isThroat = Math.abs(u) < 0.01;
         ctx.strokeStyle = isThroat
-          ? 'rgba(251, 191, 36, 0.45)'
-          : (isLight ? 'rgba(100, 116, 139, 0.22)' : 'rgba(56, 189, 248, 0.16)');
-        ctx.lineWidth = isThroat ? 1.5 : 0.75;
+          ? 'rgba(251, 191, 36, 0.50)'
+          : (isLight ? 'rgba(100, 116, 139, 0.18)' : 'rgba(56, 189, 248, 0.13)');
+        ctx.lineWidth = isThroat ? 1.6 : 0.7;
         ctx.beginPath();
         for (let k = 0; k <= 36; k++) {
           const th = (k / 36) * Math.PI * 2;
@@ -262,17 +262,26 @@
         ctx.stroke();
       }
 
-      for (let m = 0; m < N_MERIDIANS; m++) {
-        const th = (m / N_MERIDIANS) * Math.PI * 2;
-        ctx.strokeStyle = isLight ? 'rgba(100, 116, 139, 0.18)' : 'rgba(148, 163, 184, 0.14)';
-        ctx.lineWidth = 0.7;
-        ctx.beginPath();
-        for (let s = 0; s <= N_SEG; s++) {
-          const u = -1.18 + (s / N_SEG) * 2.36;
-          const pt = project(wormholePoint(u, th), w, h);
-          s === 0 ? ctx.moveTo(pt.sx, pt.sy) : ctx.lineTo(pt.sx, pt.sy);
+      // 2) Draw Helical Toroidal + Poloidal Magnetic Field Lines (B-Field) threading the Wormhole Throat!
+      if (magB > 0.02) {
+        const nFieldLines = 8;
+        const alphaB = Math.min(0.85, 0.22 + 0.32 * magB);
+        for (let f = 0; f < nFieldLines; f++) {
+          const baseTheta = (f / nFieldLines) * Math.PI * 2 + now * 0.0004 * magB;
+          ctx.strokeStyle = f % 2 === 0
+            ? `rgba(129, 140, 248, ${alphaB})`
+            : `rgba(167, 139, 250, ${alphaB * 0.85})`;
+          ctx.lineWidth = 0.9 + 0.4 * magB;
+          ctx.beginPath();
+          for (let s = 0; s <= 32; s++) {
+            const u = -1.18 + (s / 32) * 2.36;
+            // Helical Lorentz twist increases with B near the throat
+            const twist = magB * 1.35 * Math.sin(u * 1.4);
+            const pt = project(wormholePoint(u, baseTheta, twist), w, h);
+            s === 0 ? ctx.moveTo(pt.sx, pt.sy) : ctx.lineTo(pt.sx, pt.sy);
+          }
+          ctx.stroke();
         }
-        ctx.stroke();
       }
       ctx.restore();
 
@@ -281,48 +290,66 @@
 
       const pastArtifacts = artifacts.filter(e => e.t <= curT);
       const nextEv = artifacts.find(e => e.t > curT) || artifacts[0];
+      const pinchPct = Math.min(98.8, 87.6 + 9.7 * Math.pow(magB, 0.65));
 
       // Update HUD
       document.getElementById('tVal').textContent = curT;
-      document.getElementById('hudEx').textContent = (59.6 * Math.pow(curT / T, 0.85)).toFixed(1);
+      document.getElementById('hudPinch').textContent = `%${pinchPct.toFixed(1)}`;
       document.getElementById('hudPhi').textContent = phiHist[curT].toFixed(2);
       document.getElementById('hudPred').textContent = `%100 (${pastArtifacts.length}/${pastArtifacts.length})`;
       document.getElementById('hudTarget').textContent =
-        `Köprü Kısayolu (Tahmin): t=${nextEv.t} → Üst #${nextEv.a} [${nodes[nextEv.a].sym}] ⟷ Boğaz ⟷ Alt #${nextEv.b} [${nodes[nextEv.b].sym}]`;
+        `Lorentz (J×B=${magB.toFixed(1)}) Çekimi: t=${nextEv.t} → Kutup #${nextEv.a} [${nodes[nextEv.a].sym}] ⟷ Boğaz ⟷ #${nextEv.b} [${nodes[nextEv.b].sym}]`;
 
-      // 2) Draw Network Hierarchy Edges along the Wormhole Funnel
-      if (viewMode !== 'wraith') {
+      // 3) Draw Network Edges
+      if (viewMode === 'unified') {
         for (const [i, j] of edges) {
           const a = proj[i], b = proj[j];
           ctx.beginPath();
           ctx.moveTo(a.sx, a.sy);
           ctx.lineTo(b.sx, b.sy);
-          const isChaosEdge = a.n.isChaos || b.n.isChaos;
-          ctx.strokeStyle = isChaosEdge
-            ? (isLight ? 'rgba(6,182,212,0.38)' : 'rgba(34,211,238,0.32)')
-            : (isLight ? 'rgba(100,116,139,0.22)' : 'rgba(148,163,184,0.16)');
-          ctx.lineWidth = isChaosEdge ? 1.15 : 0.75;
+          ctx.strokeStyle = isLight ? 'rgba(100,116,139,0.16)' : 'rgba(148,163,184,0.12)';
+          ctx.lineWidth = 0.65;
           ctx.stroke();
         }
       }
 
-      // 3) Draw Antimatter Plasma Wave spiraling through the Wormhole Throat + Bridge Shortcuts
-      if (viewMode !== 'mesh') {
-        // Plasma Wavefront spiraling from Upper Mouth -> Throat -> Lower Mouth
-        const uWave = 1.15 * Math.sin(curT * 0.085);
-        const thWave = curT * 0.22;
-        const wPos = project(wormholePoint(uWave, thWave), w, h);
+      // 4) Draw Antimatter Plasma Wave + Magnetic Attraction Force Vectors
+      if (viewMode !== 'bfield') {
+        // Plasma Wavefront is pulled tighter toward the throat (u -> 0) as magnetic B increases (Z-Pinch confinement)!
+        const confinement = 1 / (1 + 0.55 * magB);
+        const uWave = 1.15 * confinement * Math.sin(curT * 0.085);
+        const thWave = curT * (0.20 + 0.08 * magB); // cyclotron gyration speed increases with B
+        const w3d = wormholePoint(uWave, thWave);
+        const wPos = project(w3d, w, h);
+
+        // Draw magnetic attraction stream lines pulling the plasma into the nearest throat magnetic poles (L0 hubs)
+        if (magB > 0.1) {
+          for (let pIdx = 0; pIdx < 4; pIdx++) {
+            const pole = proj[pIdx];
+            ctx.save();
+            ctx.setLineDash([2, 3]);
+            ctx.strokeStyle = `rgba(192, 132, 252, ${Math.min(0.75, 0.35 * magB)})`;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(wPos.sx, wPos.sy);
+            ctx.lineTo(pole.sx, pole.sy);
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+
+        // Glowing Plasma Cloud
         const rad = Math.max(14, 46 * wPos.s * (0.55 + 0.65 * phiHist[curT]));
         const grad = ctx.createRadialGradient(wPos.sx, wPos.sy, 2, wPos.sx, wPos.sy, rad);
-        grad.addColorStop(0, 'rgba(232, 121, 249, 0.80)');
-        grad.addColorStop(0.5, 'rgba(192, 132, 252, 0.30)');
+        grad.addColorStop(0, 'rgba(232, 121, 249, 0.85)');
+        grad.addColorStop(0.45, 'rgba(129, 140, 248, 0.35)');
         grad.addColorStop(1, 'rgba(232, 121, 249, 0.0)');
         ctx.fillStyle = grad;
         ctx.beginPath();
         ctx.arc(wPos.sx, wPos.sy, rad, 0, Math.PI * 2);
         ctx.fill();
 
-        // Past Annihilation Artifacts: Wormhole shortcuts passing directly through the Throat (0,0,0)!
+        // Past Annihilation Artifacts (Wormhole shortcuts pinched through the throat)
         for (const ev of pastArtifacts) {
           const pa = proj[ev.a], pb = proj[ev.b];
           const fresh = curT - ev.t < 7;
@@ -337,12 +364,12 @@
           ctx.restore();
         }
 
-        // Next Predicted Einstein-Rosen Tunneling Shortcut (Dashed Yellow through the Throat)
+        // Next Predicted Magnetic Z-Pinch Collision (Dashed Yellow)
         const na = proj[nextEv.a], nb = proj[nextEv.b];
         ctx.save();
         ctx.setLineDash([5, 3]);
         ctx.strokeStyle = 'rgba(250, 204, 21, 0.95)';
-        ctx.lineWidth = 2.0;
+        ctx.lineWidth = 2.1;
         ctx.beginPath();
         ctx.moveTo(na.sx, na.sy);
         ctx.quadraticCurveTo(throatCenter.sx, throatCenter.sy, nb.sx, nb.sy);
@@ -350,26 +377,25 @@
         ctx.restore();
       }
 
-      // 4) Draw 3D Depth-Sorted Nodes on the Wormhole Manifold
+      // 5) Draw 3D Depth-Sorted Nodes
       const sorted = proj.slice().sort((a, b) => b.z - a.z);
       for (const p of sorted) {
         const n = p.n;
-        const isNextTarget = viewMode !== 'mesh' && (n.id === nextEv.a || n.id === nextEv.b);
+        const isNextTarget = viewMode !== 'bfield' && (n.id === nextEv.a || n.id === nextEv.b);
         const isSelected = n.id === selectedId;
-        const baseSize = n.layer === 0 ? 8.4 : n.layer === 1 ? 6.4 : 4.8;
+        const baseSize = n.layer === 0 ? 8.6 : n.layer === 1 ? 6.4 : 4.8;
         const r = Math.max(2.5, baseSize * p.s);
 
-        // Pulsing shell aura for chaos agents
-        if (n.isChaos) {
-          const pulse = r + 2.5 + n.d * 8.5 * (0.65 + 0.35 * Math.sin(now * 0.006 + n.id));
+        // Magnetic pole halo on throat/inner nodes when B > 0
+        if (n.layer <= 1 && magB > 0.1) {
+          const magHalo = r + 2.5 + magB * (n.layer === 0 ? 4.5 : 2.5);
           ctx.beginPath();
-          ctx.arc(p.sx, p.sy, pulse, 0, Math.PI * 2);
-          ctx.strokeStyle = n.isInner ? 'rgba(251, 191, 36, 0.55)' : 'rgba(34, 211, 238, 0.65)';
-          ctx.lineWidth = 1.4;
+          ctx.arc(p.sx, p.sy, magHalo, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(129, 140, 248, 0.50)';
+          ctx.lineWidth = 1.3;
           ctx.stroke();
         }
 
-        // Predicted collision pre-shield ring
         if (isNextTarget) {
           ctx.beginPath();
           ctx.arc(p.sx, p.sy, r + 5.5, 0, Math.PI * 2);
@@ -378,7 +404,6 @@
           ctx.stroke();
         }
 
-        // Selected node highlight ring
         if (isSelected) {
           ctx.beginPath();
           ctx.arc(p.sx, p.sy, r + 3.5, 0, Math.PI * 2);
@@ -387,7 +412,6 @@
           ctx.stroke();
         }
 
-        // Node Sphere
         ctx.beginPath();
         ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
         if (!n.isChaos) {
@@ -404,7 +428,6 @@
         ctx.lineWidth = 1.1;
         ctx.stroke();
 
-        // Particle Symbol inside Chaos Nodes
         if (n.isChaos && r >= 5.0) {
           ctx.fillStyle = '#090d16';
           ctx.font = `bold ${Math.max(8, Math.round(r * 0.88))}px monospace`;
@@ -417,7 +440,6 @@
       requestAnimationFrame(draw);
     }
 
-    // Mouse / Touch 3D Orbit & Node Click Selection
     let downX = 0, downY = 0;
     canvas.addEventListener('pointerdown', e => {
       dragging = true;
@@ -463,6 +485,13 @@
             : 'v-btn px-2 py-1 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]';
         });
       });
+    });
+
+    document.getElementById('bRange').addEventListener('input', e => {
+      magB = parseFloat(e.target.value);
+      document.getElementById('bVal').textContent = magB.toFixed(1);
+      buildTrajectory(magB);
+      updateInspector();
     });
 
     document.getElementById('tRange').addEventListener('input', e => {

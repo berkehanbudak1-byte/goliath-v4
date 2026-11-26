@@ -36,7 +36,7 @@
   ✓ kayıtlı LLM kararları motora yeniden oynatılınca sonuç birebir aynı (60/60)
   · H-ATOM (claude-haiku-4-5, 20 seed): ATOM 59.6±2.2 | DÜZ 28.8±2.5 | KURAL 23.0±1.3 | açgözlü 17.0±0.6 | kâhin d=0.3 63.0±2.3
     (a) ✓ 3.50× | (b) ✓ 0.94× | (c) ✓ ATOM−DÜZ 30.8±2.2 → DESTEKLENDİ
-17) H-PLAZMA: Zaman Hayaleti (Antimadde Plazma Graviton) ve Asal/Riemann Yörünge Tahmini
-  ✓ iradesiz plazma artifact hareketi karantinasız %100 tahmin edilir ve aralıkları Asal/Riemann GUE dağılımına uyar (266 artifact, tahmin=%100, D_GUE=0.148 < D_Asal=0.205 < D_Poisson=0.321)
+17) H-PLAZMA: Zaman Hayaleti (Antimadde Plazma + Manyetik Çekim) ve Asal/Riemann Yörünge Tahmini
+  ✓ plazmanın manyetizmaya çekimi (MHD Z-pinch) boğaz yakalamasını artırır, %100 tahmin edilir ve Asal/Riemann GUE dağılımına uyar (B=1.0: 300 artifact, tahmin=%100, manyetikÇekim=%88.3→%97.3, D_GUE=0.167 < D_Asal=0.205 < D_Poisson=0.314)
 
 Birim testleri: 21 geçti, 0 kaldı

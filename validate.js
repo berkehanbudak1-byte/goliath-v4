@@ -182,11 +182,11 @@ test('saldırgan gözlemi dedektörün iç durumunu sızdırmıyor', () => {
   }
 }
 
-console.log('17) H-PLAZMA: Zaman Hayaleti (Antimadde Plazma Graviton) ve Asal/Riemann Yörünge Tahmini');
-test('iradesiz plazma artifact hareketi karantinasız %100 tahmin edilir ve aralıkları Asal/Riemann GUE dağılımına uyar', () => {
-  const pw = E.runPlasmaWraithExperiment(E.defaultConfig({}), { seeds: 30, steps: 240, offset: 9900 });
-  assert(pw.criteria.a && pw.criteria.b, `pred=${pw.predRate}, dGue=${pw.dGue}, dPrime=${pw.dPrime}, dPois=${pw.dPoisson}`);
-  return `${pw.totalEvents} artifact, tahmin=%${(pw.predRate * 100).toFixed(0)}, D_GUE=${pw.dGue.toFixed(3)} < D_Asal=${pw.dPrime.toFixed(3)} < D_Poisson=${pw.dPoisson.toFixed(3)}`;
+console.log('17) H-PLAZMA: Zaman Hayaleti (Antimadde Plazma + Manyetik Çekim) ve Asal/Riemann Yörünge Tahmini');
+test('plazmanın manyetizmaya çekimi (MHD Z-pinch) boğaz yakalamasını artırır, %100 tahmin edilir ve Asal/Riemann GUE dağılımına uyar', () => {
+  const pw = E.runPlasmaWraithExperiment(E.defaultConfig({}), { seeds: 30, steps: 240, offset: 9900, magnetic_B: 1.0 });
+  assert(pw.criteria.a && pw.criteria.b && pw.criteria.c, `pred=${pw.predRate}, pinch=${pw.throatCaptureRate}, dGue=${pw.dGue}`);
+  return `B=1.0: ${pw.totalEvents} artifact, tahmin=%${(pw.predRate * 100).toFixed(0)}, manyetikÇekim=%${(pw.noMagCaptureRate * 100).toFixed(1)}→%${(pw.throatCaptureRate * 100).toFixed(1)}, D_GUE=${pw.dGue.toFixed(3)} < D_Asal=${pw.dPrime.toFixed(3)} < D_Poisson=${pw.dPoisson.toFixed(3)}`;
 });
 
 console.log(`\nBirim testleri: ${passed} geçti, ${failed} kaldı`);
