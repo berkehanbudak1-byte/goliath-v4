@@ -2,6 +2,14 @@
 
 v0.7 simülatöründen başlayan çalışmanın özeti. Bütün sayılar bu model içindir; gerçek fiziğe ya da gerçek ağlara dair kanıt değildir.
 
+## Canlı Demo (GitHub Pages)
+
+- [GOLIATH v4.0 Ana Laboratuvar](https://berkehanbudak1-byte.github.io/goliath-v4/)
+- [3B Savunma Kalkanı &amp; 353p Öğrenci Simülatörü](https://berkehanbudak1-byte.github.io/goliath-v4/goliath-3d.html)
+- [3B H-ATOM Çekirdek + Kabuk](https://berkehanbudak1-byte.github.io/goliath-v4/goliath-atom-3d.html)
+- [3B H-PLAZMA Zaman Hayaleti](https://berkehanbudak1-byte.github.io/goliath-v4/goliath-plasma-wraith-3d.html)
+- [3B Einstein-Rosen Solucan Deliği](https://berkehanbudak1-byte.github.io/goliath-v4/goliath-wormhole-3d.html)
+
 ## Dosyalar
 
 | Dosya | Ne |

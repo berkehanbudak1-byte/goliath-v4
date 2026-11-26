@@ -88,6 +88,7 @@ function build3dHtml() {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GOLIATH v4.0 — Etkileşimli 3B Ağ &amp; Öğrenci Simülatörü</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23090d16'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='monospace' font-weight='700' font-size='26' fill='%2338bdf8'%3EG4%3C/text%3E%3C/svg%3E" />
   <style>
     :root {
       --bg: #070b17;
@@ -111,6 +112,20 @@ function build3dHtml() {
       padding: 18px;
     }
     .wrap { max-width: 1180px; margin: 0 auto; }
+    .topnav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .navlink {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--acc);
+      text-decoration: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 10px;
+    }
+    .navlink:hover { border-color: var(--acc); background: #162242; }
+    .navlink.primary { color: var(--ok); border-color: rgba(52, 211, 153, 0.45); }
     h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: -0.01em; }
     .sub { color: var(--mut); font-size: 13px; margin-bottom: 14px; }
     .card {
@@ -252,6 +267,12 @@ function build3dHtml() {
 </head>
 <body>
 <div class="wrap">
+  <nav class="topnav" aria-label="GOLIATH Ekranları">
+    <a class="navlink primary" href="index.html">&larr; GOLIATH v4.0 Laboratuvar</a>
+    <a class="navlink" href="goliath-atom-3d.html">3B Atom</a>
+    <a class="navlink" href="goliath-plasma-wraith-3d.html">3B Plazma</a>
+    <a class="navlink" href="goliath-wormhole-3d.html">3B Solucan Deliği</a>
+  </nav>
   <h1>GOLIATH v4.0 — Etkileşimli 3B Ağ Simülatörü &amp; Sıfır-GPU Öğrenci (353p)</h1>
   <div class="sub">
     İnternet yok, WebGL/GPU bağımlılığı yok, dış CDN yok. <b><span id="metaBytes"></span> bayt</b>lık 353 parametreli öğrenci MLP ve tam GOLIATH v4.0 çekirdeği doğrudan tarayıcıda gerçek-zamanlı 3B olarak çalışır.
