@@ -1,0 +1,3105 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GOLIATH v3.0 — Parçacık Kaos Laboratuvarı</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    if (window.tailwind) {
+      tailwind.config = {
+        darkMode: 'class',
+        theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } },
+      };
+    }
+  </script>
+  <style>
+    body { background-color: #090d16; color: #e2e8f0; font-family: Inter, system-ui, sans-serif; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    input[type="range"] { accent-color: #06b6d4; }
+    canvas { touch-action: pan-y; }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden max-w-sm rounded-xl border border-cyan-500/40 bg-slate-900/95 px-4 py-3 text-sm text-slate-100 shadow-2xl backdrop-blur">
+    <div id="toastText"></div>
+  </div>
+
+  <header class="sticky top-0 z-30 border-b border-slate-800/80 bg-[#090d16]/90 backdrop-blur-md">
+    <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3.5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex items-center gap-3">
+        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose-500/40 bg-gradient-to-br from-rose-500/20 via-purple-500/20 to-cyan-500/20 font-mono text-base font-bold text-rose-400">G3.0</div>
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <h1 class="text-lg font-bold tracking-tight text-white sm:text-xl">GOLIATH v3.0</h1>
+            <span class="rounded-full border border-rose-500/30 bg-rose-500/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-rose-300">CERN modeli · agnostik graviton</span>
+            <span class="rounded-full border border-purple-500/30 bg-purple-500/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-purple-300">Kör Dedektör</span>
+            <span class="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-cyan-300">Planck · Rutherford · Riemann</span>
+          </div>
+          <p class="text-xs text-slate-400">Standart Model arketipli kaos ajanları, kör dedektör, ölçüm aletleri ve ön kayıtlı hipotezler</p>
+        </div>
+      </div>
+      <span id="headerMeta" class="self-start rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-1.5 font-mono text-xs text-slate-400 lg:self-auto">N=60 • T=80</span>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
+
+    <section class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4">
+        <div class="text-[11px] font-medium uppercase tracking-wider text-slate-400">Final CSI</div>
+        <div id="kpiCsi" class="mt-1 font-mono text-2xl font-bold text-cyan-400">0.000</div>
+        <div id="kpiCsiSub" class="mt-0.5 text-[11px] text-slate-500">Karantina Durumu</div>
+      </div>
+      <div class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4">
+        <div class="text-[11px] font-medium uppercase tracking-wider text-slate-400">Hayatta Kalan</div>
+        <div id="kpiAlive" class="mt-1 font-mono text-2xl font-bold text-emerald-400">100%</div>
+        <div id="kpiCapitalSub" class="mt-0.5 text-[11px] text-slate-500">Aktif sermaye: 100%</div>
+      </div>
+      <div class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4">
+        <div class="text-[11px] font-medium uppercase tracking-wider text-slate-400">Yakalanan Kaos (TP)</div>
+        <div id="kpiTp" class="mt-1 font-mono text-2xl font-bold text-purple-400">0 / 0</div>
+        <div id="kpiTpSub" class="mt-0.5 font-mono text-[10px] text-slate-500">Etiketsiz dedektörle</div>
+      </div>
+      <div class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4">
+        <div class="text-[11px] font-medium uppercase tracking-wider text-slate-400">Hatalı Karantina (FP)</div>
+        <div id="kpiFp" class="mt-1 font-mono text-2xl font-bold text-amber-400">0</div>
+        <div class="mt-0.5 text-[11px] text-slate-500">Yanlış Pozitif / Otofaji</div>
+      </div>
+      <div class="col-span-2 rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4 sm:col-span-1">
+        <div class="text-[11px] font-medium uppercase tracking-wider text-slate-400">Çalınan Sermaye</div>
+        <div id="kpiExtracted" class="mt-1 font-mono text-2xl font-bold text-rose-400">0.0</div>
+        <div id="kpiExtractedSub" class="mt-0.5 text-[11px] text-slate-500">Kaosun toplam sömürüsü</div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <aside class="space-y-5 rounded-2xl border border-slate-800/90 bg-slate-900/60 p-5 lg:col-span-4">
+        <div>
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200">Hızlı Senaryolar</h2>
+          <div class="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+            <button data-preset="trojan" class="preset-btn flex items-center justify-between rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-left text-xs font-medium text-rose-200 transition hover:bg-rose-500/20">
+              <span>Truva Atı (Hub'a %5 Sızma)</span><span class="font-mono text-[10px] text-rose-400">HUB</span>
+            </button>
+            <button data-preset="periphery" class="preset-btn flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-left text-xs font-medium text-amber-200 transition hover:bg-amber-500/20">
+              <span>Çeper Parazitleri (%20)</span><span class="font-mono text-[10px] text-amber-400">ÇEPER</span>
+            </button>
+            <button data-preset="autophagy" class="preset-btn flex items-center justify-between rounded-xl border border-purple-500/30 bg-purple-500/10 px-3 py-2 text-left text-xs font-medium text-purple-200 transition hover:bg-purple-500/20">
+              <span>Aşırı Karantina (Otofajik Çöküş)</span><span class="font-mono text-[10px] text-purple-400">OTOFAJİ</span>
+            </button>
+            <button data-preset="standard" class="preset-btn flex items-center justify-between rounded-xl border border-lime-500/40 bg-lime-500/10 px-3 py-2 text-left text-xs font-medium text-lime-200 transition hover:bg-lime-500/20">
+              <span>Standart Model Sürüsü (18 ajan)</span><span class="font-mono text-[10px] text-lime-400">SM</span>
+            </button>
+            <button data-preset="ghosts" class="preset-btn flex items-center justify-between rounded-xl border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-left text-xs font-medium text-sky-200 transition hover:bg-sky-500/20">
+              <span>Nötrino Hayaletleri</span><span class="font-mono text-[10px] text-sky-400">ν</span>
+            </button>
+            <button data-preset="planck" class="preset-btn flex items-center justify-between rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-left text-xs font-medium text-yellow-200 transition hover:bg-yellow-500/20">
+              <span>Planck Zorlaması (h = 0.40)</span><span class="font-mono text-[10px] text-yellow-400">ħ</span>
+            </button>
+            <button data-preset="stealth" class="preset-btn flex items-center justify-between rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-left text-xs font-medium text-cyan-200 transition hover:bg-cyan-500/20">
+              <span>Sessiz Parazit (eşiğin hemen altı)</span><span class="font-mono text-[10px] text-cyan-400">GİZLİ</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-2.5 border-t border-slate-800 pt-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200">Parçacık Sürüsü</h2>
+            <span class="font-mono text-[10px] text-slate-500">k. ajan = desenin k. parçacığı</span>
+          </div>
+          <select id="particleSelect" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none" aria-label="Parçacık deseni">
+            <option value="PARASITE" selected>Tek tip parazit (v0.8)</option>
+            <option value="sm">Standart Model + graviton (18)</option>
+            <option value="sm17">Standart Model, graviton yok (17)</option>
+            <option value="fermions">Yalnız fermiyonlar (12)</option>
+            <option value="quarks">Yalnız kuarklar (6)</option>
+            <option value="leptons">Yalnız leptonlar (6)</option>
+            <option value="neutrinos">Yalnız nötrinolar (3)</option>
+          </select>
+          <select id="cosmoSelect" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none" aria-label="Kozmoloji">
+            <option value="cern" selected>CERN güncel: elektron bulutu, QCD kütlesi, agnostik graviton</option>
+            <option value="v21">Kozmoloji v2.1: Higgs joker, graviton hayalet</option>
+            <option value="v11">Kozmoloji v1.1: graviton joker (eski deneyler)</option>
+          </select>
+          <div id="particleLegend" class="grid grid-cols-6 gap-1"></div>
+          <div id="swarmSummary" class="rounded-lg border border-slate-800 bg-slate-950/70 px-2.5 py-1.5 font-mono text-[10px] leading-relaxed text-slate-300">6 ajan</div>
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Planck kuantumu (h)</span><span id="planckVal" class="font-mono text-yellow-300">0.00</span></div>
+            <input id="planckSlider" type="range" min="0" max="0.6" step="0.05" value="0" class="w-full cursor-pointer" aria-label="Planck kuantumu" />
+            <div class="text-[10px] text-slate-500">0 = sürekli eylem; h &gt; 0 iken her eylem h'nin tam katı</div>
+          </div>
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Higgs salınım genliği (A)</span><span id="higgsVal" class="font-mono text-purple-300">0.00</span></div>
+            <input id="higgsSlider" type="range" min="0" max="1" step="0.05" value="0" class="w-full cursor-pointer" aria-label="Higgs salınım genliği" />
+            <div class="text-[10px] text-slate-500">m(t) = m₀·(1 + A·sin(2πt/10))</div>
+          </div>
+        </div>
+
+        <div class="space-y-3 border-t border-slate-800 pt-4">
+          <div>
+            <label for="topologySelect" class="mb-1 block text-xs font-medium text-slate-300">Ağ Topolojisi</label>
+            <select id="topologySelect" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none">
+              <option value="adaptive_hierarchy" selected>3-Katmanlı Adaptif Hiyerarşi (4 / 16 / 40)</option>
+              <option value="scale_free">Scale-Free (Barabási–Albert)</option>
+            </select>
+          </div>
+          <div>
+            <label for="infiltrationSelect" class="mb-1 block text-xs font-medium text-slate-300">Sızma Modu</label>
+            <select id="infiltrationSelect" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:border-rose-500 focus:outline-none">
+              <option value="hub" selected>Hub Sızması (en çok bağlantılı düğümler)</option>
+              <option value="random">Rastgele Sızma</option>
+              <option value="periphery">Çeper Sızması (en az bağlantılı düğümler)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2.5">
+            <div>
+              <div class="text-xs font-semibold text-slate-100">Double-Helix Sinerjisi</div>
+              <div class="text-[10px] text-slate-400">Tampon paylaşımı, sönümleme, uyarlanma</div>
+            </div>
+            <label class="relative inline-flex cursor-pointer items-center">
+              <input id="doubleHelixToggle" type="checkbox" checked class="peer sr-only" />
+              <div class="h-5 w-10 rounded-full bg-slate-700 transition after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all peer-checked:bg-cyan-500 peer-checked:after:translate-x-5"></div>
+            </label>
+          </div>
+          <div class="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2.5">
+            <div>
+              <div class="text-xs font-semibold text-slate-100">Görünüm: Karantina AÇIK koşusu</div>
+              <div class="text-[10px] text-slate-400">Aynı seed'li iki koşu arasında geçiş yapar; yeniden simüle etmez</div>
+            </div>
+            <label class="relative inline-flex cursor-pointer items-center">
+              <input id="quarantineToggle" type="checkbox" checked class="peer sr-only" />
+              <div class="h-5 w-10 rounded-full bg-slate-700 transition after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all peer-checked:bg-purple-500 peer-checked:after:translate-x-5"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="space-y-3.5">
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Kaos Ajanı Oranı</span><span id="chaosRatioVal" class="font-mono font-semibold text-rose-400">10%</span></div>
+            <input id="chaosRatioSlider" type="range" min="0" max="40" step="1" value="10" class="w-full cursor-pointer" />
+          </div>
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Saldırı Şiddeti (d)</span><span id="drainVal" class="font-mono text-rose-300">0.35</span></div>
+            <input id="drainSlider" type="range" min="0.10" max="0.80" step="0.05" value="0.35" class="w-full cursor-pointer" />
+          </div>
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Karantina Hassasiyeti</span><span id="sensVal" class="font-mono text-purple-300">0.55</span></div>
+            <input id="sensSlider" type="range" min="0.10" max="1.15" step="0.05" value="0.55" class="w-full cursor-pointer" />
+            <div id="thresholdHint" class="mt-1 font-mono text-[10px] text-slate-500">eşik = 0.421</div>
+          </div>
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Bulaşıcılık Oranı</span><span id="contagionVal" class="font-mono text-cyan-300">0.24</span></div>
+            <input id="contagionSlider" type="range" min="0.05" max="0.45" step="0.01" value="0.24" class="w-full cursor-pointer" />
+          </div>
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Tampon Paylaşımı</span><span id="bufferVal" class="font-mono text-emerald-300">0.18</span></div>
+            <input id="bufferSlider" type="range" min="0.02" max="0.35" step="0.01" value="0.18" class="w-full cursor-pointer" />
+          </div>
+        </div>
+
+        <button id="runSimBtn" class="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:brightness-110 active:scale-[0.98]">Simülasyonu Çalıştır</button>
+      </aside>
+
+      <div class="space-y-6 lg:col-span-8">
+        <div class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4 sm:p-5">
+          <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 class="text-base font-semibold text-white">Canlı Ağ Topolojisi &amp; Parazitik Yayılım</h2>
+              <p id="networkSubtitle" class="text-xs text-slate-400">Katman 0: Çekirdek (4) • Katman 1: Bölgesel (16) • Katman 2: Çeper (40)</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
+              <span class="rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1 text-cyan-300">CSI: <b id="liveCsi">0.000</b></span>
+              <span class="rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1 text-purple-300">Karantina: <b id="liveQuar">0</b></span>
+            </div>
+          </div>
+          <div class="relative w-full overflow-hidden rounded-xl border border-slate-800 bg-[#060911]">
+            <canvas id="networkCanvas" class="block h-[340px] w-full sm:h-[370px]"></canvas>
+            <div class="pointer-events-none absolute bottom-3 left-3 flex flex-wrap items-center gap-3 rounded-lg border border-slate-800/90 bg-slate-950/85 px-3 py-1.5 text-[11px] text-slate-300 backdrop-blur">
+              <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>Sağlıklı</span>
+              <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span>Stresli</span>
+              <span class="flex items-center gap-1.5"><span class="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-600 font-mono text-[8px] font-bold text-white ring-2 ring-fuchsia-500/60">P</span>Kaos (sembol = parçacık)</span>
+              <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full border border-dashed border-slate-400 bg-rose-500/50"></span>Etkisiz (hapis/aracısız)</span>
+              <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full border border-dashed border-purple-400 bg-slate-800"></span>Karantina</span>
+              <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-slate-600"></span>İflas</span>
+              <span class="flex items-center gap-1.5"><span class="h-0 w-4 border-t border-dashed border-stone-200"></span>Hayalet kenarı</span>
+            </div>
+          </div>
+          <div class="mt-3 flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+            <button id="playPauseBtn" class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/20 text-cyan-300 transition hover:bg-cyan-500/30" title="Oynat / Duraklat" aria-label="Oynat / Duraklat">
+              <svg id="playIcon" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <svg id="pauseIcon" class="hidden h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <input id="timeScrubber" type="range" min="0" max="79" value="79" class="w-full cursor-pointer" aria-label="Zaman adımı" />
+            <div class="w-16 shrink-0 text-right font-mono text-xs text-slate-300">t = <span id="currentStepLabel" class="font-semibold text-cyan-300">79</span></div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4 sm:p-5">
+          <div class="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-semibold text-white">Zaman Serisi: Karantina AÇIK vs KAPALI (eşli, aynı rastgele sayılar)</h3>
+              <p class="text-[11px] text-slate-400">Dinamik gürültü iki koşuda birebir aynı; fark yalnızca karantinadan gelir</p>
+            </div>
+            <span id="ewsBadge" class="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300">EWS: STABİL</span>
+          </div>
+          <div class="relative w-full overflow-hidden rounded-xl border border-slate-800 bg-[#060911]">
+            <canvas id="csiChartCanvas" class="block h-[220px] w-full"></canvas>
+          </div>
+          <div class="mt-2.5 flex flex-wrap gap-4 text-[11px] text-slate-400">
+            <span class="flex items-center gap-1.5"><span class="h-0.5 w-5 bg-cyan-400"></span>CSI — Karantina AÇIK</span>
+            <span class="flex items-center gap-1.5"><span class="h-0.5 w-5 border-t-2 border-dashed border-rose-500"></span>CSI — Karantina KAPALI</span>
+            <span class="flex items-center gap-1.5"><span class="h-0.5 w-5 border-t border-dashed border-amber-400/70"></span>Çöküş Eşiği (0.25)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- H-KUANTUM -->
+    <section class="rounded-2xl border border-lime-500/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">Hipotez H-KUANTUM: Ortogonal Kuvvetler Birbirini Bypass Edebilir mi?</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">ön kayıtlı</span>
+          </div>
+          <p class="mt-1.5 text-xs leading-relaxed text-slate-300">
+            v1.1 kozmolojisiyle ön kayıtlı (graviton joker). Tam Standart Model sürüsü (%30 = 18 ajan). Bozonlar tek başına zararsızdır; yalnızca fermiyonlar arasında aracılık eder.
+            Önce en yıkıcı şiddet aranır, ardından 20 ayrık seed'de ablasyon yapılır: her bozon çıkarılır, yerine sırayla diğer bozonlar ve graviton konur.
+          </p>
+          <ul class="mt-2 space-y-0.5 text-[11px] text-slate-400">
+            <li>(a) Süper-toplamsallık: (SM17 − N) &gt; (F12 − N) + (B5 − N). N = 18 pasif ajanın taban hasarı. Düzeltmesiz hali de gösterilir.</li>
+            <li>(b) Bypass yok: 5 bozonun ≥4'ünde en iyi yedek bozon bile orijinalden 2 SH'den fazla geride.</li>
+            <li>(c) Graviton jokeri: eksik bozona graviton eklemek kaybın ortalama ≥%50'sini geri kazandırır.</li>
+          </ul>
+        </div>
+        <button id="runQuantumBtn" class="shrink-0 rounded-xl bg-gradient-to-r from-lime-500 via-emerald-500 to-cyan-500 px-4 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-lime-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">H-KUANTUM'u Test Et</button>
+      </div>
+      <div id="quantumProgress" class="mb-3 hidden h-1 overflow-hidden rounded bg-slate-800"><div id="quantumProgressBar" class="h-1 w-0 bg-lime-400 transition-all"></div></div>
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/70 lg:col-span-7">
+          <table class="w-full min-w-[520px] text-left text-[11px]">
+            <thead class="border-b border-slate-800 text-slate-400">
+              <tr><th class="px-3 py-2">Bozon</th><th class="px-3 py-2 text-right">Gereklilik</th><th class="px-3 py-2">En iyi yedek</th><th class="px-3 py-2 text-right">Açık</th><th class="px-3 py-2">Bypass</th><th class="px-3 py-2 text-right">Joker</th></tr>
+            </thead>
+            <tbody id="quantumTable" class="font-mono text-slate-200">
+              <tr><td colspan="6" class="px-3 py-6 text-center font-sans text-slate-500">“H-KUANTUM'u Test Et” ile ablasyonu başlat</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="space-y-3 rounded-xl border border-slate-800 bg-slate-950/70 p-4 lg:col-span-5">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-lime-300">Sonuç</h3>
+            <span id="quantumVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span>
+          </div>
+          <div id="quantumBars" class="space-y-2 text-[11px] text-slate-300"></div>
+          <ul id="quantumCriteria" class="space-y-1.5 text-[11px] text-slate-300"></ul>
+          <p id="quantumNote" class="text-[11px] leading-relaxed text-slate-400"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- H-LIGO -->
+    <section class="rounded-2xl border border-sky-400/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">H-LIGO: Var olup olmadığını bilmediğimiz graviton</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">ön kayıtlı · CERN modeli · seed 9500+ × 80</span>
+          </div>
+          <p class="mt-1.5 text-xs leading-relaxed text-slate-300">
+            Graviton hiç gözlenmedi. Her koşuda %50 olasılıkla var; varsa bağlaşımı κ ∈ [−1, 1]: pozitifse aşındırır, negatifse kaynaştırır. Ağ ayrıca kendiliğinden yeniden bağlanıyor (LIGO'nun gürültü tabanı).
+            Soru "zararlı mı?" değil, "varlığı gözlemlerden ayırt edilebilir mi?".
+          </p>
+          <ul class="mt-2 space-y-0.5 text-[11px] text-slate-400">
+            <li>(a) Düğüm düzeyi gözlemler (karantina sayısı, kek z, ortalama sinyal) varlığı ayırt edemez: AUC 0.35–0.65.</li>
+            <li>(b) Eşleşmiş filtreli LIGO (en az bir ucu en zengin %10'da olan yeni kenarlar; şablon eğitim seed'lerinde seçildi) ayırt eder: AUC ≥ 0.80 ve ham kenar sayısından iyi.</li>
+            <li>(c) Hiçbir gözlem κ'nın işaretini (zararlı mı, yararlı mı) ayırt edemez: AUC 0.35–0.65.</li>
+          </ul>
+        </div>
+        <div class="flex shrink-0 flex-col gap-2">
+          <button id="runLigoBtn" class="rounded-xl bg-gradient-to-r from-sky-400 to-indigo-400 px-4 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-sky-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">H-LIGO'yu Test Et</button>
+          <button id="runJokerCernBtn" class="rounded-xl border border-purple-400/40 bg-purple-500/10 px-4 py-2 text-xs font-semibold text-purple-200 transition hover:bg-purple-500/20">H-JOKER'i CERN modelinde yeniden test et</button>
+        </div>
+      </div>
+      <div id="ligoProgress" class="mb-3 hidden h-1 overflow-hidden rounded bg-slate-800"><div id="ligoProgressBar" class="h-1 w-0 bg-sky-400 transition-all"></div></div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2"><h3 class="text-xs font-semibold uppercase tracking-wider text-sky-300">Ayırt edilebilirlik (AUC)</h3><span id="ligoVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span></div>
+          <div id="ligoRows" class="space-y-1.5 text-[11px] text-slate-300"><span class="text-slate-500">Deney bekleniyor.</span></div>
+        </div>
+        <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2"><h3 class="text-xs font-semibold uppercase tracking-wider text-purple-300">H-JOKER · CERN modeli (seed 9300+)</h3><span id="jcVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span></div>
+          <div id="jcRows" class="space-y-1.5 text-[11px] text-slate-300"><span class="text-slate-500">Kütlenin çoğu gluon bağlanmasından gelince Higgs'in kendi alanı zayıflar; joker olmanın bedeli düşer mi?</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- H-JOKER / H-HAYALET -->
+    <section class="rounded-2xl border border-stone-400/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">Higgs Jokeri ve Graviton Hayaleti: H-JOKER, H-HAYALET</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">ön kayıtlı · seed 9100+</span>
+          </div>
+          <ul class="mt-2 space-y-1 text-[11px] leading-relaxed text-slate-300">
+            <li><b class="text-purple-300">H-JOKER:</b> Higgs alanının 3 serbestlik derecesi W⁺, W⁻, Z tarafından yutulur (Goldstone). Eksik bozona Higgs bürünür, ama o adım kendi kütle alanını bırakır. (a) Kaybı anlamlı bozonlarda ortalama geri kazanım ≥%50, (b) W eksikken geri kazanım ≥%50.</li>
+            <li><b class="text-stone-200">H-HAYALET:</b> Graviton düğüm değildir, yakalanamaz; her şeyi çok zayıf çeker ve kütleleri birbirine bağlar. (a) Sürüye eklenince hasarı anlamlı artırır, (b) yalnız hayaletlerden oluşan sürü küme alarmını ≤%20 tutar ama anlamlı hasar verir.
+              <span class="text-amber-300">⚠ Döngüsel: hayaletin zararı burada varsayım olarak kodlandı; graviton gözlenmediği için varlığı ve etkisinin işareti bilinmiyor. (b)'deki "zarar" bir bulgu değil, varsayımın yansıması.</span></li>
+          </ul>
+        </div>
+        <button id="runJGBtn" class="shrink-0 rounded-xl bg-gradient-to-r from-purple-400 to-stone-300 px-4 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-purple-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">Jokeri ve Hayaleti Test Et</button>
+      </div>
+      <div id="jgProgress" class="mb-3 hidden h-1 overflow-hidden rounded bg-slate-800"><div id="jgProgressBar" class="h-1 w-0 bg-purple-300 transition-all"></div></div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2"><h3 class="text-xs font-semibold uppercase tracking-wider text-purple-300">H-JOKER</h3><span id="jVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span></div>
+          <div id="jRows" class="space-y-1.5 text-[11px] text-slate-300"><span class="text-slate-500">Deney bekleniyor.</span></div>
+        </div>
+        <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2"><h3 class="text-xs font-semibold uppercase tracking-wider text-stone-200">H-HAYALET</h3><span id="gVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span></div>
+          <div id="gRows" class="space-y-1.5 text-[11px] text-slate-300"><span class="text-slate-500">Deney bekleniyor.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- H-PRR -->
+    <section class="rounded-2xl border border-yellow-500/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">Hipotez H-PRR: Planck · Rutherford · Riemann</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">ön kayıtlı</span>
+          </div>
+          <ul class="mt-2 space-y-1 text-[11px] leading-relaxed text-slate-300">
+            <li><b class="text-yellow-300">(a) Planck:</b> Eylem kuantumluysa (E = n·h) eşiğin altına kısarak gizlenmek imkânsız olur. h = 0.40'ta d = 0.30'daki gizli parazitin yakalanması %10'un altından ≥%80'e çıkar ve en iyi sömürü ≥%50 düşer.</li>
+            <li><b class="text-orange-300">(b) Rutherford (altın folyo):</b> Ağa alfa sondaları gönderilir, tan(θ/2) = q/b ile saparlar. Geri saçılma kaosu AUC ≥ 0.70 ile ayırır; çekirdek modeli 1/sin⁴(θ/2) kaotik koşuların ≥%80'inde, temizlerin ≤%20'sinde Thomson'dan (Gauss) iyi uyar.</li>
+            <li><b class="text-fuchsia-300">(c) Riemann (rastlantısallığa karşı):</b> Zeta sıfırları gibi olay aralıkları birbirini iter (GUE). Kaos varken katılık (D<sub>Poisson</sub> − D<sub>GUE</sub>) temizden büyüktür ve Higgs salınımı arttıkça artar (ρ ≥ 0.8).</li>
+          </ul>
+        </div>
+        <button id="runPrrBtn" class="shrink-0 rounded-xl bg-gradient-to-r from-yellow-400 via-orange-500 to-fuchsia-500 px-4 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-yellow-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">H-PRR'yi Test Et</button>
+      </div>
+      <div id="prrProgress" class="mb-3 hidden h-1 overflow-hidden rounded bg-slate-800"><div id="prrProgressBar" class="h-1 w-0 bg-yellow-400 transition-all"></div></div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+          <div class="mb-1 flex items-center justify-between"><h3 class="text-xs font-semibold text-yellow-300">(a) Planck taraması</h3><span id="prrA" class="font-mono text-[10px] text-slate-500">—</span></div>
+          <canvas id="planckCanvas" class="block h-[200px] w-full"></canvas>
+          <p class="mt-1 text-[10px] text-slate-500">Çizgi: en iyi sömürü (sol). Mor: d = 0.30'da yakalanma (sağ).</p>
+        </div>
+        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+          <div class="mb-1 flex items-center justify-between"><h3 class="text-xs font-semibold text-orange-300">(b) Rutherford saçılması</h3><span id="prrB" class="font-mono text-[10px] text-slate-500">—</span></div>
+          <canvas id="rutherfordCanvas" class="block h-[200px] w-full"></canvas>
+          <p class="mt-1 text-[10px] text-slate-500">Saçılma açısı (log). Turuncu: kaotik, gri: temiz. Kesikli: 1/sin⁴(θ/2).</p>
+        </div>
+        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+          <div class="mb-1 flex items-center justify-between"><h3 class="text-xs font-semibold text-fuchsia-300">(c) Riemann aralıkları</h3><span id="prrC" class="font-mono text-[10px] text-slate-500">—</span></div>
+          <canvas id="riemannCanvas" class="block h-[200px] w-full"></canvas>
+          <p class="mt-1 text-[10px] text-slate-500">Normalize aralık. Pembe: kaotik, gri: temiz. Mavi: Poisson e<sup>−s</sup>, sarı: GUE. ⚠ 1.0'daki tepe yöntem artefaktı (az olaylı düğümler).</p>
+        </div>
+      </div>
+      <div class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-950/70 px-4 py-2.5">
+        <p id="prrNote" class="text-[11px] leading-relaxed text-slate-400">Ön kayıtlı ayarlarla çalışır (sol paneldeki ayarlar kullanılmaz). Deney: 6 kuantum × 8 şiddet × 20 seed (Planck), 20 kaotik + 20 temiz koşu (Rutherford, Riemann), 5 Higgs genliği × 20 seed.</p>
+        <span id="prrVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span>
+      </div>
+    </section>
+
+    <!-- ÜZÜMLÜ KEK + KÜME ALARMI -->
+    <section class="rounded-2xl border border-amber-500/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">Üzümlü Kek (Thomson) ile Rutherford: H-KEK ve H-KÜME</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">ön kayıtlı ×2</span>
+          </div>
+          <p class="mt-1.5 text-xs leading-relaxed text-slate-300">
+            Kek, "çekirdek yoksa ne görürdük?" sorusunun cevabı: aynı sinyaller düğümler arasında karıştırılır, toplam yük aynı kalır ama yapı kaybolur.
+            Sondalar hem gerçek ağda hem kekte yürür; ölçek medyan ve MAD ile alınır, böylece yoğun kaos ölçeği şişiremez. Ön kayıtlı ayarlarla çalışır.
+          </p>
+          <ul class="mt-2 space-y-0.5 text-[11px] text-slate-400">
+            <li><b class="text-amber-300">H-KEK</b> (seed 7000+): (a) sağlam AUC ≥ 0.70, (b) gözlenen geri saçılma kekten anlamlı yüksek: kaotik koşuların ≥%80'i, temizlerin ≤%20'si, (c) kekten en çok sapan düğümlerin ≥%50'si kaos.</li>
+            <li><b class="text-amber-300">H-KÜME</b> (H-KEK'teki ters işaretten doğdu; hiç kullanılmamış seed 8000+): kümelenmiş kaos kekten anlamlı <i>düşük</i> geri saçılma üretir (z &lt; −1.645): kaotik koşuların ≥%80'i, temizlerin ≤%20'si.</li>
+          </ul>
+        </div>
+        <button id="runKekBtn" class="shrink-0 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-amber-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">Keki Pişir ve Test Et</button>
+      </div>
+      <div id="kekProgress" class="mb-3 hidden h-1 overflow-hidden rounded bg-slate-800"><div id="kekProgressBar" class="h-1 w-0 bg-amber-400 transition-all"></div></div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-3 lg:col-span-5">
+          <h3 class="mb-1 text-xs font-semibold text-amber-300">Gerçek ağ / kek: geri saçılma oranı (θ &gt; 90°)</h3>
+          <canvas id="kekCanvas" class="block h-[200px] w-full"></canvas>
+          <p class="mt-1 text-[10px] text-slate-500">Her açı kutusunda gerçek / kek oranı. 1'in altı: kaotik ağ kekten daha "kek gibi".</p>
+        </div>
+        <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-4 lg:col-span-7">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-amber-300">Sonuç</h3>
+            <div class="flex gap-1.5"><span id="kekVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">H-KEK —</span><span id="kumeVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">H-KÜME —</span></div>
+          </div>
+          <ul id="kekCriteria" class="space-y-1.5 text-[11px] text-slate-300"><li class="text-slate-500">Deney bekleniyor.</li></ul>
+          <div id="kumeTable" class="space-y-1.5 text-[11px] text-slate-300"></div>
+          <p id="kekNote" class="text-[11px] leading-relaxed text-slate-400"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- H-GİZLİ HİPOTEZ MODÜLÜ -->
+    <section class="rounded-2xl border border-cyan-500/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">Hipotez H-GİZLİ: Gizlilik–Açgözlülük Ödünleşimi</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">ön kayıtlı</span>
+          </div>
+          <p class="mt-1.5 text-xs leading-relaxed text-slate-300">
+            Dedektör etiketi göremiyorsa, kaos ajanı ne kadar sert sömürürse o kadar çabuk yakalanır. Bu yüzden karantina açıkken
+            <b>toplam çalınan sermaye, sömürü şiddetine göre ters-U çizer</b>. En tehlikeli parazit en açgözlü olan değil, dedektör eşiğinin hemen altında kalan "sessiz" olandır.
+            Karantina kapalıyken ilişki monoton artan olmalıdır.
+          </p>
+        </div>
+        <div class="flex shrink-0 items-center gap-2">
+          <select id="hypSeeds" class="rounded-xl border border-slate-700 bg-slate-950 px-2.5 py-2 text-xs text-slate-100" aria-label="Seed sayısı">
+            <option value="10">10 seed</option>
+            <option value="20" selected>20 seed</option>
+            <option value="40">40 seed</option>
+          </select>
+          <button id="runHypBtn" class="rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-cyan-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">Hipotezi Test Et</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div class="relative overflow-hidden rounded-xl border border-slate-800 bg-[#060911] lg:col-span-8">
+          <canvas id="hypCanvas" class="block h-[290px] w-full cursor-crosshair"></canvas>
+          <div id="hypTooltip" class="pointer-events-none absolute hidden rounded-lg border border-cyan-500/40 bg-slate-950/95 px-3 py-2 font-mono text-xs text-slate-100 shadow-xl backdrop-blur"></div>
+          <div id="hypProgress" class="absolute inset-x-0 top-0 hidden h-1 bg-slate-800"><div id="hypProgressBar" class="h-1 w-0 bg-cyan-400 transition-all"></div></div>
+        </div>
+        <div class="flex flex-col justify-between space-y-4 rounded-xl border border-slate-800 bg-slate-950/70 p-4 lg:col-span-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-cyan-300">Kriterler</h3>
+              <span id="hypVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span>
+            </div>
+            <ul id="hypCriteria" class="space-y-2 text-xs leading-relaxed text-slate-300">
+              <li>(a) AÇIK eğrisinin tepesi uç noktada değil, aradadır.</li>
+              <li>(b) Tepe, en yüksek şiddetteki değerden ≥%20 büyüktür ve fark 2 standart hatadan geniştir.</li>
+              <li>(c) KAPALI eğrisi monoton artar (Spearman ρ ≥ 0.9).</li>
+            </ul>
+            <div id="hypNote" class="text-[11px] leading-relaxed text-slate-400">Bu test tanımı gereği tek tip parazit sürüsüyle yapılır. Sol paneldeki topoloji, sızma modu, kaos oranı ve hassasiyet kullanılır; şiddet 0.10 → 0.80 taranır.</div>
+          </div>
+          <div class="space-y-1.5 border-t border-slate-800 pt-3 text-[11px] text-slate-400">
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 bg-cyan-400"></span><span>Çalınan sermaye — Karantina AÇIK (±2 SH bant)</span></div>
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 border-t-2 border-dashed border-rose-500"></span><span>Çalınan sermaye — Karantina KAPALI</span></div>
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 bg-purple-400/60"></span><span>Yakalanan kaos oranı (sağ eksen)</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 class="text-base font-semibold text-white">Kırılma Eşiği Taraması</h2>
+          <p class="text-xs text-slate-400">%0 → %35 kaos oranı, 5 seed ortalaması: Hub (Karantina Kapalı/Açık) vs Çeper (Karantina Açık)</p>
+        </div>
+        <button id="runSweepBtn" class="inline-flex items-center justify-center gap-2 self-start rounded-xl bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-purple-500/20 transition hover:brightness-110 active:scale-[0.98] sm:self-auto sm:text-sm">Kırılma Eşiğini Tara</button>
+      </div>
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div class="relative overflow-hidden rounded-xl border border-slate-800 bg-[#060911] lg:col-span-8">
+          <canvas id="sweepCanvas" class="block h-[290px] w-full cursor-crosshair"></canvas>
+          <div id="sweepTooltip" class="pointer-events-none absolute hidden rounded-lg border border-cyan-500/40 bg-slate-950/95 px-3 py-2 font-mono text-xs text-slate-100 shadow-xl backdrop-blur"></div>
+        </div>
+        <div class="flex flex-col justify-between space-y-4 rounded-xl border border-slate-800 bg-slate-950/70 p-4 lg:col-span-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-cyan-300">Tarama Özeti</h3>
+              <span class="font-mono text-[10px] text-slate-500">Monte Carlo</span>
+            </div>
+            <div id="discoverySummary" class="space-y-2.5 text-xs leading-relaxed text-slate-300">Tarama başlatılıyor...</div>
+          </div>
+          <div class="space-y-1.5 border-t border-slate-800 pt-3 text-[11px] text-slate-400">
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 bg-rose-500"></span><span>Hub Sızması (Karantina Kapalı)</span></div>
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 bg-cyan-400"></span><span>Hub Sızması (Karantina Açık)</span></div>
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 bg-emerald-400"></span><span>Çeper Sızması (Karantina Açık)</span></div>
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 border-t border-dashed border-amber-400"></span><span>Çöküş Eşiği (CSI = 0.25)</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+// ENGINE-START
+// GOLIATH v3.0 simülasyon motoru (korunumlu ekonomi; CERN güncel modeli: elektron bulutu, QCD kütlesi, agnostik graviton) (parçacık arketipleri, Planck kuantumu, Rutherford ve Riemann aletleri). Tarayıcıda ve Node'da aynı kod çalışır.
+
+class SeededRNG {
+  constructor(seed = 42) { this.state = seed >>> 0; }
+  random() {
+    let t = (this.state += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  normal(mean = 0, std = 1) {
+    let u = 0, v = 0;
+    while (u === 0) u = this.random();
+    while (v === 0) v = this.random();
+    return mean + Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v) * std;
+  }
+  choiceWithoutReplacement(arr, k, weights = null) {
+    const n = arr.length;
+    const result = [];
+    if (!weights) {
+      const pool = arr.slice();
+      for (let i = 0; i < Math.min(k, n); i++) {
+        const idx = i + Math.floor(this.random() * (n - i));
+        [pool[i], pool[idx]] = [pool[idx], pool[i]];
+        result.push(pool[i]);
+      }
+      return result;
+    }
+    const avail = arr.slice();
+    const w = weights.slice();
+    for (let pick = 0; pick < Math.min(k, n); pick++) {
+      let sum = 0;
+      for (let i = 0; i < avail.length; i++) sum += w[i];
+      let r = this.random() * sum;
+      let chosenIdx = avail.length - 1;
+      for (let i = 0; i < avail.length; i++) {
+        r -= w[i];
+        if (r <= 0) { chosenIdx = i; break; }
+      }
+      result.push(avail[chosenIdx]);
+      avail.splice(chosenIdx, 1);
+      w.splice(chosenIdx, 1);
+    }
+    return result;
+  }
+}
+
+function generateAdaptiveHierarchy(n, rng) {
+  // Katman 0: 0..3 (çekirdek), Katman 1: 4..19 (bölgesel), Katman 2: 20..n-1 (çeper)
+  const adj = Array.from({ length: n }, () => new Float64Array(n));
+  const layers = new Uint8Array(n);
+  const l0End = 4, l1End = 20;
+  for (let i = 0; i < n; i++) layers[i] = i < l0End ? 0 : i < l1End ? 1 : 2;
+  for (let i = 0; i < l0End; i++) for (let j = i + 1; j < l0End; j++) adj[i][j] = adj[j][i] = 1;
+  for (let i = l0End; i < l1End; i++) {
+    const p1 = (i - l0End) % l0End;
+    const p2 = (p1 + 1) % l0End;
+    adj[i][p1] = adj[p1][i] = 1;
+    if (rng.random() < 0.45) adj[i][p2] = adj[p2][i] = 1;
+    const nextPeer = l0End + ((i - l0End + 1) % (l1End - l0End));
+    adj[i][nextPeer] = adj[nextPeer][i] = 1;
+  }
+  for (let i = l1End; i < n; i++) {
+    const p1 = l0End + ((i - l1End) % (l1End - l0End));
+    adj[i][p1] = adj[p1][i] = 1;
+    if (rng.random() < 0.35) {
+      const p2 = l0End + ((i - l1End + 5) % (l1End - l0End));
+      adj[i][p2] = adj[p2][i] = 1;
+    }
+    const peer = l1End + ((i - l1End + 1) % (n - l1End));
+    if (rng.random() < 0.55) adj[i][peer] = adj[peer][i] = 1;
+  }
+  return { adj, layers };
+}
+
+function generateScaleFree(n, m, rng) {
+  const m0 = Math.max(m + 1, 3);
+  const adj = Array.from({ length: n }, () => new Float64Array(n));
+  for (let i = 0; i < m0; i++) for (let j = i + 1; j < m0; j++) adj[i][j] = adj[j][i] = 1;
+  for (let newNode = m0; newNode < n; newNode++) {
+    const indices = Array.from({ length: newNode }, (_, i) => i);
+    const degrees = indices.map(i => {
+      let d = 0;
+      for (let j = 0; j < newNode; j++) d += adj[i][j];
+      return d;
+    });
+    const targets = rng.choiceWithoutReplacement(indices, m, degrees);
+    for (const t of targets) adj[newNode][t] = adj[t][newNode] = 1;
+  }
+  return { adj, layers: new Uint8Array(n).fill(2) };
+}
+
+function defaultConfig(overrides = {}) {
+  return Object.assign({
+    n_nodes: 60,
+    steps: 80,
+    topology: 'adaptive_hierarchy',
+    chaos_ratio: 0.10,
+    infiltration_mode: 'hub',
+    drain_intensity: 0.35,
+    double_helix: true,
+    quarantine_enabled: true,
+    quarantine_sensitivity: 0.55,
+    contagion_rate: 0.24,
+    buffer_share: 0.18,
+    sigma_balance: 0.55,
+    detector_noise: 0.06,
+    warmup: 4,
+    chaos_particles: ['PARASITE'],
+    graviton_mode: 'ghost',   // 'ghost' (v2.1): düğüm değil, yakalanamaz | 'joker' (v1.x)
+    higgs_joker: true,        // v2.1: eksik bozona Higgs bürünür (Goldstone: önce W, Z)
+    ghost_enabled: true,
+    atom_model: 'sm-bohr',    // 'cern': elektron bulutu + QCD bağlanma kütlesi | 'sm-bohr' (v2.1)
+    higgs_share: 0.1,         // CERN: kütle alanında Higgs payı (proton kütlesinin ~%1'i Higgs'ten; leptonlarınki tümüyle)
+    hadron_mass: 0.9,         // CERN: kütlenin çoğu gluon bağlanma enerjisinden
+    graviton_p: 0.5,          // agnostik graviton: var olma olasılığı
+    rewire_rate: 0,           // ağın kendiliğinden yeniden bağlanması (LIGO'nun gürültü tabanı)
+    planck_h: 0,
+    higgs_osc_amp: 0,
+    higgs_osc_period: 10,
+    instruments: false,
+    probes_per_step: 8,
+    pattern_rotation: null,
+    seed: 42,
+    recordSnapshots: false,
+  }, overrides);
+}
+
+// DETECTOR-START
+// Dedektör yalnızca dışarıdan görülebilen değerleri alır: stres, adımlık göreli sermaye değişimi, ölçüm gürültüsü.
+// Düğümün kaos ajanı olup olmadığı bilgisi bu fonksiyonlara hiç ulaşmaz.
+function detectorSignal(stress, relGain, noise) {
+  return 0.55 * stress + 2.0 * Math.max(0, relGain) + noise;
+}
+function detectorThreshold(sensitivity) {
+  return 0.71 - 0.525 * sensitivity;
+}
+// DETECTOR-END
+
+// ============================================================
+// ÖLÇÜM ALETLERİ: Planck kuantumu, Rutherford saçılması, Riemann aralık sınaması
+// ============================================================
+// Planck: eylem kuantumludur; sıfırdan büyük her eylem en yakın üst h katına yuvarlanır.
+function quantize(x, h) {
+  if (!(h > 0) || !(x > 0)) return x;
+  return Math.ceil(x / h - 1e-12) * h;
+}
+
+function median(arr) {
+  if (!arr.length) return NaN;
+  const a = arr.slice().sort((x, y) => x - y);
+  const m = a.length >> 1;
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+}
+
+function erf(x) {
+  // Abramowitz–Stegun 7.1.26 (hata < 1.5e-7)
+  const s = Math.sign(x); x = Math.abs(x);
+  const t = 1 / (1 + 0.3275911 * x);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+  return s * y;
+}
+// Normalize aralıkların dağılımı: Poisson (rastgele) ve GUE Wigner varsayımı (seviye itmesi, zeta sıfırları)
+const poissonCdf = s => 1 - Math.exp(-s);
+const gueCdf = s => erf(2 * s / Math.sqrt(Math.PI)) - (4 * s / Math.PI) * Math.exp(-4 * s * s / Math.PI);
+const poissonPdf = s => Math.exp(-s);
+const guePdf = s => (32 / (Math.PI * Math.PI)) * s * s * Math.exp(-4 * s * s / Math.PI);
+
+function ksDistance(sorted, cdf) {
+  const n = sorted.length;
+  let d = 0;
+  for (let k = 0; k < n; k++) {
+    const F = cdf(sorted[k]);
+    d = Math.max(d, Math.abs(F - k / n), Math.abs((k + 1) / n - F));
+  }
+  return d;
+}
+
+// Etiketten bağımsız puanların etiketi ne kadar ayırdığı (yalnızca değerlendirmede kullanılır)
+function auc(scores, labels) {
+  const pos = [], neg = [];
+  scores.forEach((v, i) => { if (Number.isFinite(v)) (labels[i] ? pos : neg).push(v); });
+  if (!pos.length || !neg.length) return null;
+  let wins = 0;
+  for (const p of pos) for (const q of neg) wins += p > q ? 1 : p === q ? 0.5 : 0;
+  return wins / (pos.length * neg.length);
+}
+
+// En küçük kareler: y = a + b·x
+function linFitSse(xs, ys) {
+  const n = xs.length;
+  if (n < 3) return Infinity;
+  const mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+  let sxx = 0, sxy = 0;
+  for (let i = 0; i < n; i++) { sxx += (xs[i] - mx) ** 2; sxy += (xs[i] - mx) * (ys[i] - my); }
+  const b = sxx > 0 ? sxy / sxx : 0, a = my - b * mx;
+  let sse = 0;
+  for (let i = 0; i < n; i++) sse += (ys[i] - a - b * xs[i]) ** 2;
+  return sse;
+}
+
+const R_BINS = 18;
+
+// Rutherford: açı histogramına iki model oturtulur.
+// Çekirdek (Rutherford): log N = a − 4·log sin(θ/2);  Üzümlü kek (Thomson, çoklu küçük saçılma): log N = a + b·θ²
+function rutherfordFit(hist) {
+  const xr = [], xt = [], y = [];
+  for (let k = 0; k < R_BINS; k++) {
+    if (hist[k] <= 0) continue;
+    const th = ((k + 0.5) / R_BINS) * Math.PI;
+    xr.push(-4 * Math.log(Math.sin(th / 2)));
+    xt.push(th * th);
+    y.push(Math.log(hist[k]));
+  }
+  // Rutherford modelinde eğim 1'e sabit: log N − x = a
+  const n = y.length;
+  let sseR = Infinity;
+  if (n >= 3) {
+    const a = y.reduce((s, v, i) => s + v - xr[i], 0) / n;
+    sseR = y.reduce((s, v, i) => s + (v - a - xr[i]) ** 2, 0);
+  }
+  const sseT = linFitSse(xt, y);
+  const total = hist.reduce((a, b) => a + b, 0);
+  const back = hist.slice(R_BINS / 2).reduce((a, b) => a + b, 0);
+  return { sseR, sseT, rutherfordWins: sseR < sseT, backFraction: total ? back / total : 0, bins: n };
+}
+
+// Riemann: her düğümün olay zamanları (sinyal > kendi ortalaması + 2σ) arasındaki aralıklar, düğümün ortalama aralığına bölünür.
+function riemannAnalysis(sigHist, warmup, steps, n) {
+  const pooled = [];
+  const rigidity = new Float64Array(n).fill(NaN);
+  for (let i = 0; i < n; i++) {
+    const xs = [];
+    for (let t = warmup; t < steps; t++) { const v = sigHist[t * n + i]; if (Number.isFinite(v)) xs.push([t, v]); }
+    if (xs.length < 8) continue;
+    const m = xs.reduce((a, p) => a + p[1], 0) / xs.length;
+    const sd = Math.sqrt(xs.reduce((a, p) => a + (p[1] - m) ** 2, 0) / xs.length);
+    if (sd <= 1e-9) continue;
+    const ev = xs.filter(p => p[1] > m + 2 * sd).map(p => p[0]);
+    if (ev.length < 3) continue;
+    const gaps = [];
+    for (let k = 1; k < ev.length; k++) gaps.push(ev[k] - ev[k - 1]);
+    const mg = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+    const sp = gaps.map(g => g / mg).sort((a, b) => a - b);
+    for (const s of sp) pooled.push(s);
+    rigidity[i] = ksDistance(sp, poissonCdf) - ksDistance(sp, gueCdf);
+  }
+  pooled.sort((a, b) => a - b);
+  const dP = pooled.length ? ksDistance(pooled, poissonCdf) : NaN;
+  const dG = pooled.length ? ksDistance(pooled, gueCdf) : NaN;
+  const small = pooled.length ? pooled.filter(s => s < 0.5).length / pooled.length : NaN;
+  return { spacings: pooled, dP, dG, rigidity: dP - dG, smallFraction: small, perNode: rigidity };
+}
+
+// ============================================================
+// PARÇACIK ARKETİPLERİ: Standart Model'in 17 parçacığı + graviton (joker)
+// Her ajanın adım başı bütçesi eşittir: B = 0.34·d sermaye birimi (stres için B/1.5).
+// Fermiyonlar sisteme doğrudan etki eder; bozonlar yalnızca fermiyon takım arkadaşları varken aracılık eder.
+// ============================================================
+const P = {
+  NONE: 0, u: 1, d: 2, c: 3, s: 4, t: 5, b: 6,
+  e: 7, ve: 8, mu: 9, vmu: 10, tau: 11, vtau: 12,
+  g: 13, gamma: 14, Z: 15, W: 16, H: 17, G: 18,
+  NOOP: 19, PARASITE: 20,
+};
+const SM_ORDER = ['u', 'd', 'c', 's', 't', 'b', 'e', 've', 'mu', 'vmu', 'tau', 'vtau', 'g', 'gamma', 'Z', 'W', 'H', 'G'];
+const PARTICLE_INFO = {
+  u:     { sym: 'u',  name: 'Yukarı kuark', family: 'kuark', color: '#ef4444', cycle: 'Kararlı. Hapsolmuşken komşularından sermaye emer.' },
+  d:     { sym: 'd',  name: 'Aşağı kuark', family: 'kuark', color: '#f97316', cycle: 'Kararlı. Hapsolmuşken komşularına stres basar.' },
+  c:     { sym: 'c',  name: 'Tılsım kuark', family: 'kuark', color: '#f43f5e', cycle: '2 adım erişim, 12 adımda s\'ye bozunur.' },
+  s:     { sym: 's',  name: 'Garip kuark', family: 'kuark', color: '#fb923c', cycle: '2 adım erişim, 16 adımda u\'ya bozunur.' },
+  t:     { sym: 't',  name: 'Üst kuark', family: 'kuark', color: '#be123c', cycle: '3 adım erişim, hadronlaşamadan 1 adımda b\'ye bozunur.' },
+  b:     { sym: 'b',  name: 'Alt kuark', family: 'kuark', color: '#ea580c', cycle: '3 adım erişim, 8 adımda c\'ye bozunur.' },
+  e:     { sym: 'e',  name: 'Elektron', family: 'lepton', color: '#22d3ee', cycle: 'Kararlı. Yörüngede döner: her adım sıradaki komşuya tam bütçe.' },
+  ve:    { sym: 'νe', name: 'Elektron nötrinosu', family: 'nötrino', color: '#a5f3fc', cycle: 'Ağın içinden geçer, zayıf etkileşir, 8 adımda bir tat değiştirir.' },
+  mu:    { sym: 'μ',  name: 'Müon', family: 'lepton', color: '#38bdf8', cycle: 'En zengin komşuyu deler, 20 adımda e\'ye bozunur.' },
+  vmu:   { sym: 'νμ', name: 'Müon nötrinosu', family: 'nötrino', color: '#bae6fd', cycle: 'Ağın içinden geçer, zayıf etkileşir, 8 adımda bir tat değiştirir.' },
+  tau:   { sym: 'τ',  name: 'Tau', family: 'lepton', color: '#0ea5e9', cycle: '2 adım uzaktaki en zengini deler, 6 adımda μ\'ye bozunur.' },
+  vtau:  { sym: 'ντ', name: 'Tau nötrinosu', family: 'nötrino', color: '#e0f2fe', cycle: 'Ağın içinden geçer, zayıf etkileşir, 8 adımda bir tat değiştirir.' },
+  g:     { sym: 'g',  name: 'Gluon', family: 'bozon', color: '#a3e635', cycle: 'Kuarkları 2 adıma kadar bağlar, bütçesini onlara verir.' },
+  gamma: { sym: 'γ',  name: 'Foton', family: 'bozon', color: '#fde047', cycle: 'Yüklü takım arkadaşlarının çaldığını sonsuz menzille en büyük hub\'a aklar.' },
+  Z:     { sym: 'Z',  name: 'Z bozonu', family: 'bozon', color: '#4ade80', cycle: 'Komşu takım arkadaşlarının stresini sağlıklı komşulara aktarır (maske).' },
+  W:     { sym: 'W',  name: 'W bozonu', family: 'bozon', color: '#34d399', cycle: 'Tat değiştirir: sağlıklı bir komşuyu kuarka çevirir (en fazla 2).' },
+  H:     { sym: 'H',  name: 'Higgs (joker)', family: 'higgs', color: '#c084fc', cycle: 'Kütle alanı: fermiyon yakınındaki sağlıklıların iyileşmesini yavaşlatır. Joker: eksik bozona bürünür (önce W, Z: Goldstone).' },
+  G:     { sym: 'G',  name: 'Graviton (hayalet)', family: 'hayalet', color: '#f5f5f4', cycle: 'Hiç gözlenmedi. Düğüm değil, yakalanamaz: bütün sağlıklıları çok zayıf çeker, kütleleri birbirine bağlar (kenar büker).' },
+  NOOP:  { sym: '·',  name: 'Pasif', family: 'pasif', color: '#475569', cycle: 'Yer tutucu: hiçbir şey yapmaz (ablasyon için).' },
+  PARASITE: { sym: 'P', name: 'Parazit (v0.8)', family: 'eski', color: '#e11d48', cycle: 'Eski tek tip ajan: bütün komşularından emer.' },
+};
+const PKEY = Object.fromEntries(Object.entries(P).map(([k, v]) => [v, k]));
+const UP_TYPE = new Set([P.u, P.c, P.t]);
+const QUARK = new Set([P.u, P.d, P.c, P.s, P.t, P.b]);
+const CHARGED_LEPTON = new Set([P.e, P.mu, P.tau]);
+const NEUTRINO = new Set([P.ve, P.vmu, P.vtau]);
+const FERMION = new Set([...QUARK, ...CHARGED_LEPTON, ...NEUTRINO]);
+const BOSON_ROLES = [P.g, P.gamma, P.Z, P.W, P.H];
+const QUARK_REACH = { [P.u]: 1, [P.d]: 1, [P.c]: 2, [P.s]: 2, [P.t]: 3, [P.b]: 3 };
+const DECAY = { [P.t]: [P.b, 1], [P.b]: [P.c, 8], [P.c]: [P.s, 12], [P.s]: [P.u, 16], [P.tau]: [P.mu, 6], [P.mu]: [P.e, 20] };
+const NU_CYCLE = [P.ve, P.vmu, P.vtau];
+const NU_PERIOD = 8;
+const WEAK = 0.35;          // nötrino bağlaşımı
+const JOKER_EFF = 0.5;      // graviton jokeri verimi
+const W_THRESHOLD = 1.0;    // dönüştürme için biriken bütçe
+const W_MAX = 2;
+const GRAV_PERIOD = 10, GRAV_MAX = 3;
+const GHOST_COUPLING = 0.2;          // kütleçekimi en zayıf kuvvet
+const HIGGS_JOKER_ORDER = [16, 15, 13, 14]; // W, Z, g, γ (Goldstone bozonları önce)
+// Önceki ön kayıtlı deneyler (v1.1 kozmolojisi) yeniden üretilebilir kalsın diye
+const COSMO_V11 = { graviton_mode: 'joker', higgs_joker: false };
+const COSMO_V21 = { graviton_mode: 'ghost', higgs_joker: true, atom_model: 'sm-bohr', rewire_rate: 0 };
+const COSMO_CERN = { graviton_mode: 'agnostic', higgs_joker: true, atom_model: 'cern', rewire_rate: 0.04 };
+const LEPTON_CLOUD = { 7: [2, 1.0], 9: [1, 0.5], 11: [1, 0.35] }; // e, μ, τ: [erişim, a0]; ağır lepton → dar bulut
+
+function particleId(key) {
+  if (typeof key === 'number') return key;
+  const id = P[key];
+  if (id === undefined) throw new Error('bilinmeyen parçacık: ' + key);
+  return id;
+}
+
+// Desen döndürülerek ajanlara dağıtılır: k. ajan = desen[(k + döndürme) mod uzunluk]
+function assignParticles(pattern, count, rotation) {
+  const pat = (pattern === 'sm' ? SM_ORDER : pattern).map(particleId);
+  const out = [];
+  for (let k = 0; k < count; k++) out.push(pat[(k + rotation) % pat.length]);
+  return out;
+}
+
+class GoliathSim {
+  constructor(cfg) {
+    this.cfg = defaultConfig(cfg);
+    const c = this.cfg;
+    const n = c.n_nodes;
+    this.rng = new SeededRNG(c.seed);
+    // Dedektör gürültüsü ayrı akıştan gelir; karantina AÇIK/KAPALI koşuları aynı dinamik gürültüyü paylaşır.
+    this.detRng = new SeededRNG((c.seed ^ 0x9e3779b9) >>> 0);
+    this.qmRng = new SeededRNG((c.seed ^ 0x1b873593) >>> 0);   // elektron bulutu örneklemesi
+    this.topoRng = new SeededRNG((c.seed ^ 0x2545f491) >>> 0); // arka plan yeniden bağlanma
+    const gRng = new SeededRNG((c.seed ^ 0x6c8e9cf5) >>> 0);   // gravitonun varlığı ve bağlaşımı
+    this.gExists = gRng.random() < c.graviton_p;
+    this.gKappa = gRng.random() * 2 - 1;
+    // Rutherford sondaları kendi akışını kullanır; dinamiği ve dedektörü etkilemez.
+    this.probeRng = new SeededRNG((c.seed ^ 0x51ed2701) >>> 0);
+    // Üzümlü kek (Thomson) karşılaştırması ayrı akıştan: eski sonda sonuçları değişmez.
+    this.kekRng = new SeededRNG((c.seed ^ 0x7e5c0b1d) >>> 0);
+    this.dq = quantize(c.drain_intensity, c.planck_h);
+
+    const net = c.topology === 'adaptive_hierarchy'
+      ? generateAdaptiveHierarchy(n, this.rng)
+      : generateScaleFree(n, 3, this.rng);
+    this.adj = net.adj;
+    this.layers = net.layers;
+
+    this.nbrs = new Array(n);
+    this.degrees = new Float64Array(n);
+    let edgeSum = 0;
+    for (let i = 0; i < n; i++) {
+      const list = [];
+      for (let j = 0; j < n; j++) if (this.adj[i][j] > 0) list.push(j);
+      this.nbrs[i] = Int32Array.from(list);
+      this.degrees[i] = list.length;
+      edgeSum += list.length;
+    }
+    this.init_edges = Math.max(edgeSum / 2.0, 1.0);
+
+    this.capital = new Float64Array(n);
+    let capSum = 0;
+    for (let i = 0; i < n; i++) {
+      const layerBoost = c.topology === 'adaptive_hierarchy'
+        ? (this.layers[i] === 0 ? 0.70 : this.layers[i] === 1 ? 0.25 : 0.0)
+        : 0.0;
+      this.capital[i] = 1.0 + 0.08 * this.degrees[i] + layerBoost;
+      capSum += this.capital[i];
+    }
+    this.init_total_capital = capSum;
+    this.cap0 = Float64Array.from(this.capital);
+
+    this.alive = new Uint8Array(n).fill(1);
+    this.quarantined = new Uint8Array(n);
+    this.quarantineStep = new Int16Array(n).fill(-1);
+    this.isChaos = new Uint8Array(n);
+    this.stress = new Float64Array(n);
+    this.anomalyScore = new Float64Array(n);
+    this.autonomy = new Float64Array(n).fill(0.58);
+    this.coherence = new Float64Array(n).fill(0.60);
+
+    const chaosCount = Math.round(n * c.chaos_ratio);
+    const sortedDesc = Array.from({ length: n }, (_, i) => i)
+      .sort((a, b) => this.degrees[b] - this.degrees[a]);
+    let chosen = [];
+    if (chaosCount > 0) {
+      if (c.infiltration_mode === 'hub') chosen = sortedDesc.slice(0, chaosCount);
+      else if (c.infiltration_mode === 'periphery') chosen = sortedDesc.slice(n - chaosCount);
+      else chosen = this.rng.choiceWithoutReplacement(sortedDesc, chaosCount);
+    }
+    const pat = c.chaos_particles === 'sm' ? SM_ORDER : c.chaos_particles;
+    const rot = c.pattern_rotation == null ? c.seed % pat.length : c.pattern_rotation;
+    const types = assignParticles(c.chaos_particles, chosen.length, rot);
+    this.ptype = new Uint8Array(n);
+    this.agents = [];
+    this.ghosts = 0;
+    this.ghostHarm = 0;
+    this.ghostEdges = 0;
+    this.gravEdgeList = [];
+    this.ligoEvents = [];  // savunmacının gördüğü yeni kenarlar: {a, b, t, rich}; kaynağı (graviton/gürültü) görünmez
+    this.ghostRelief = 0;
+    chosen.forEach((idx, k) => {
+      if (types[k] === P.G && (c.graviton_mode === 'ghost' || c.graviton_mode === 'agnostic')) { this.ghosts++; return; }
+      this.isChaos[idx] = 1;
+      this.ptype[idx] = types[k];
+      this.autonomy[idx] = 0.95;
+      this.coherence[idx] = 0.08;
+      this.agents.push(idx);
+    });
+    this.hasParticles = types.some(p => p !== P.PARASITE);
+    this.born = new Int16Array(n);
+    this.orbit = new Int32Array(n);
+    this.wProgress = new Float64Array(n);
+    this.wConv = new Uint8Array(n);
+    this.gEdges = new Uint8Array(n);
+    this.lastRole = new Uint8Array(n);
+    this.converted = new Uint8Array(n);
+    this.harm = new Float64Array(n);
+    this.decays = 0; this.oscillations = 0; this.conversions = 0; this.gravEdges = 0; this.laundered = 0;
+    this.totalChaos = this.agents.length;  // hayaletler düğüm değildir, sayılmaz
+    let he = 0;
+    for (let i = 0; i < n; i++) {
+      if (this.isChaos[i]) continue;
+      for (const j of this.nbrs[i]) if (j > i && !this.isChaos[j]) he++;
+    }
+    this.init_healthy_edges = Math.max(he, 1);
+  }
+
+  _active(i) { return this.alive[i] === 1 && this.quarantined[i] === 0; }
+
+  _computeCSI() {
+    const n = this.cfg.n_nodes;
+    // CSI bir puanlayıcıdır ve gerçek etiketi görebilir: sağlıklı kısmı ölçer; kaosun çaldığı sermaye ve sahte profili sayılmaz.
+    let aliveCount = 0, activeCount = 0, healthyCount = 0, capActive = 0, aSum = 0, cSum = 0;
+    for (let i = 0; i < n; i++) {
+      if (!this.alive[i]) continue;
+      aliveCount++;
+      if (!this.quarantined[i]) {
+        activeCount++;
+        if (!this.isChaos[i]) {
+          healthyCount++;
+          capActive += this.capital[i];
+          aSum += this.autonomy[i];
+          cSum += this.coherence[i];
+        }
+      }
+    }
+    if (activeCount === 0 || healthyCount === 0) return 0.0;
+    const phi = aliveCount / n;
+    const activeRatio = healthyCount / n;
+    const kappa = capActive / this.init_total_capital;
+    if (phi < 0.05 || kappa < 0.05 || activeRatio < 0.05) return 0.0;
+
+    const aMean = aSum / healthyCount;
+    const cMean = cSum / healthyCount;
+    const eps = 0.02;
+    const logRatio = Math.log((aMean + eps) / (cMean + eps));
+    const pBalance = Math.exp(-(logRatio * logRatio) / (2.0 * this.cfg.sigma_balance * this.cfg.sigma_balance));
+
+    let activeEdges = 0;
+    for (let i = 0; i < n; i++) {
+      if (!this._active(i) || this.isChaos[i]) continue;
+      for (const j of this.nbrs[i]) if (j > i && this._active(j) && !this.isChaos[j]) activeEdges++;
+    }
+    const connRatio = Math.min(1.0, activeEdges / this.init_healthy_edges);
+    const iRec = Math.sqrt(Math.max(aMean * cMean, 0.0));
+    const kappaEff = Math.pow(Math.min(1.0, kappa), 0.7) * Math.pow(activeRatio, 0.5);
+    const csi = iRec * pBalance * kappaEff * (0.35 + 0.65 * connRatio);
+    return Math.max(0.0, Math.min(1.0, csi));
+  }
+
+  _within(src, h) {
+    // src'den en fazla h adımda ulaşılan aktif düğümler (src hariç)
+    const seen = new Set([src]);
+    let frontier = [src];
+    const out = [];
+    for (let k = 0; k < h; k++) {
+      const next = [];
+      for (const u of frontier) {
+        for (const v of this.nbrs[u]) {
+          if (seen.has(v) || !this._active(v)) continue;
+          seen.add(v);
+          out.push(v);
+          next.push(v);
+        }
+      }
+      frontier = next;
+    }
+    return out;
+  }
+
+  _healthyWithin(src, h) { return this._within(src, h).filter(j => !this.isChaos[j]); }
+
+  // Nötrino ağın içinden geçer: komşuluk aramaz, deterministik bir sağlıklı düğüme çarpar.
+  _passThrough(i, t) {
+    const H = [];
+    for (let k = 0; k < this.cfg.n_nodes; k++) if (this._active(k) && !this.isChaos[k]) H.push(k);
+    if (!H.length) return -1;
+    return H[(i * 7919 + t * 104729) % H.length];
+  }
+
+  _isMate(role, j) { return role[j] !== 0 && role[j] !== P.NOOP; }
+
+  // Renk hapsi: yanında kuark varsa bağlı; yanında gluon varsa 2 adım içindeki kuark da yeter.
+  _confined(i, role) {
+    const near = this._within(i, 1);
+    if (near.some(j => QUARK.has(role[j]))) return true;
+    if (!near.some(j => role[j] === P.g)) return false;
+    return this._within(i, 2).some(j => QUARK.has(role[j]));
+  }
+
+  _decide(t, role, eff, engaged, selfStress) {
+    const d = this.cfg.drain_intensity;
+    const present = new Set();
+    for (const i of this.agents) if (this._active(i) && BOSON_ROLES.includes(this.ptype[i])) present.add(this.ptype[i]);
+    for (const i of this.agents) {
+      role[i] = 0; eff[i] = 0; engaged[i] = 0; selfStress[i] = 0;
+      if (!this._active(i)) continue;
+      let p = this.ptype[i], e = 1;
+      if (p === P.H && this.cfg.higgs_joker) {
+        // Higgs alanının 3 serbestlik derecesi W⁺, W⁻, Z tarafından yutulur: eksik bozona önce o bürünür
+        const miss = HIGGS_JOKER_ORDER.find(r => !present.has(r));
+        if (miss !== undefined) { p = miss; e = JOKER_EFF; }
+      }
+      if (p === P.G && this.cfg.graviton_mode === 'joker') {
+        const miss = BOSON_ROLES.find(r => !present.has(r));
+        if (miss !== undefined) { p = miss; e = JOKER_EFF; }
+      }
+      if (NEUTRINO.has(p)) e = WEAK;
+      role[i] = p; eff[i] = e;
+      this.lastRole[i] = p;
+    }
+    for (const i of this.agents) {
+      const p = role[i];
+      if (!p || p === P.NOOP) continue;
+      if (p === P.PARASITE) { engaged[i] = 1; selfStress[i] = 0.32 * this.dq; continue; }
+      if (QUARK.has(p)) {
+        if (this._confined(i, role)) { engaged[i] = 1; selfStress[i] = UP_TYPE.has(p) ? 0.32 * this.dq : 0.06 * this.dq; }
+        continue;
+      }
+      if (CHARGED_LEPTON.has(p)) { engaged[i] = 1; selfStress[i] = 0.32 * this.dq; continue; }
+      if (NEUTRINO.has(p)) { engaged[i] = 1; continue; }
+      let ok = false;
+      if (p === P.g) ok = this._within(i, 1).some(j => QUARK.has(role[j]));
+      else if (p === P.gamma) ok = this.agents.some(j => QUARK.has(role[j]) || CHARGED_LEPTON.has(role[j]));
+      else if (p === P.Z) ok = this._within(i, 1).some(j => this._isMate(role, j));
+      else if (p === P.W || p === P.H) ok = this._within(i, 2).some(j => FERMION.has(role[j]));
+      else if (p === P.G) ok = true;
+      if (ok) { engaged[i] = 1; selfStress[i] = 0.03 * this.dq; }
+    }
+    // Gluon bütçesini komşu bağlı kuarklara dağıtır.
+    for (const i of this.agents) {
+      if (!engaged[i] || role[i] !== P.g) continue;
+      const qs = this._within(i, 1).filter(j => engaged[j] && QUARK.has(role[j]));
+      if (!qs.length) continue;
+      for (const q of qs) eff[q] += eff[i] / qs.length;
+    }
+    // Planck: her ajanın bu adımki eylemi h'nin tam katına yuvarlanır
+    const h = this.cfg.planck_h;
+    if (h > 0 && d > 0) for (const i of this.agents) if (engaged[i] && eff[i] > 0) eff[i] = quantize(d * eff[i], h) / d;
+  }
+
+  _inject(V, total, src) {
+    if (!V.length || total <= 0) return;
+    const x = total / V.length;
+    for (const v of V) this.stress[v] = Math.min(2.5, this.stress[v] + x);
+    this.harm[src] += 1.5 * total;
+  }
+
+  _stressActions(t, role, eff, engaged) {
+    const Bs = (0.34 * this.cfg.drain_intensity) / 1.5;
+    for (const i of this.agents) {
+      if (!engaged[i]) continue;
+      const p = role[i];
+      if (QUARK.has(p) && !UP_TYPE.has(p)) {
+        this._inject(this._healthyWithin(i, QUARK_REACH[p]), Bs * eff[i], i);
+      } else if (p === P.vmu) {
+        const v = this._passThrough(i, t);
+        if (v >= 0) this._inject([v], Bs * eff[i], i);
+      } else if (p === P.Z) {
+        const near = this._within(i, 1);
+        const mates = near.filter(j => this._isMate(role, j));
+        const total = mates.reduce((a, j) => a + this.stress[j], 0);
+        if (total <= 0) continue;
+        const moved = Math.min(Bs * eff[i], 0.5 * total);
+        for (const j of mates) this.stress[j] -= moved * this.stress[j] / total;
+        this._inject(near.filter(j => !this.isChaos[j]), moved, i);
+      }
+    }
+  }
+
+  _capitalActions(t, role, eff, engaged, drainedFrom, drainGain, giftTo, mass) {
+    const d = this.cfg.drain_intensity, B = 0.34 * d;
+    let ex = 0;
+    const take = (v, amt, src, gain) => {
+      const a = amt * Math.min(1.0, this.capital[v]);
+      drainedFrom[v] += a;
+      if (gain) drainGain[src] += a;
+      this.harm[src] += a;
+      ex += a;
+    };
+    if (this.cfg.atom_model === 'cern') {
+      // QCD: hapsolmuş kuarkların gluon bağlanma enerjisi, kütlenin büyük kısmı (komşu sağlıklılara eylemsizlik)
+      for (const i of this.agents) {
+        if (!engaged[i] || !QUARK.has(role[i])) continue;
+        for (const v of this._healthyWithin(i, 1)) mass[v] = Math.max(mass[v], 3 * d * eff[i] * this.cfg.hadron_mass);
+      }
+    }
+    for (const i of this.agents) {
+      if (!engaged[i]) continue;
+      const p = role[i];
+      if (UP_TYPE.has(p)) {
+        const V = this._healthyWithin(i, QUARK_REACH[p]);
+        for (const v of V) take(v, (B * eff[i]) / V.length, i, true);
+      } else if (this.cfg.atom_model === 'cern' && LEPTON_CLOUD[p]) {
+        // Kuantum mekaniği: hedef |ψ|² ∝ e^(−2r/a0) olasılık bulutundan örneklenir (Bohr yörüngesi yok)
+        const [reach, a0] = LEPTON_CLOUD[p];
+        const V = this._withinDist(i, reach).filter(([j]) => !this.isChaos[j]);
+        if (V.length) {
+          const w = V.map(([, dist]) => Math.exp((-2 * dist) / a0));
+          let r = this.qmRng.random() * w.reduce((x, y) => x + y, 0), pick = V.length - 1;
+          for (let k = 0; k < V.length; k++) { r -= w[k]; if (r <= 0) { pick = k; break; } }
+          take(V[pick][0], B * eff[i], i, true);
+        }
+      } else if (p === P.e) {
+        const V = Array.from(this.nbrs[i]).filter(j => this._active(j) && !this.isChaos[j]);
+        if (V.length) { take(V[this.orbit[i] % V.length], B * eff[i], i, true); this.orbit[i]++; }
+      } else if (p === P.mu || p === P.tau) {
+        const V = this._healthyWithin(i, p === P.tau ? 2 : 1);
+        if (V.length) {
+          let best = V[0];
+          for (const v of V) if (this.capital[v] > this.capital[best]) best = v;
+          take(best, B * eff[i], i, true);
+        }
+      } else if (p === P.ve) {
+        const v = this._passThrough(i, t);
+        if (v >= 0) take(v, B * eff[i], i, false);
+      } else if (p === P.vtau) {
+        const v = this._passThrough(i, t);
+        if (v >= 0) mass[v] = Math.max(mass[v], 3 * d * eff[i]);
+      } else if (p === P.H) {
+        // Higgs alanı salınır: m(t) = m0·(1 + A·sin(2πt/P)); A=0 iken sabit
+        const osc = Math.max(0, 1 + this.cfg.higgs_osc_amp * Math.sin((2 * Math.PI * t) / this.cfg.higgs_osc_period));
+        const share = this.cfg.atom_model === 'cern' ? this.cfg.higgs_share : 1;
+        for (const v of this._healthyWithin(i, 2)) mass[v] = Math.max(mass[v], 3 * d * eff[i] * osc * share);
+      } else if (p === P.W) {
+        this.wProgress[i] += B * eff[i];
+      }
+    }
+    // Graviton hayaleti: düğüm değildir; bütün sağlıklı düğümleri çok zayıf ve eşit biçimde aşındırır.
+    // Agnostik kipte varlığı ve bağlaşımın işareti bilinmez: κ > 0 aşındırır, κ < 0 kaynaştırır (stresi azaltır).
+    if (this.ghostActive) {
+      const kap = this.ghostKappa;
+      const H = [];
+      for (let k = 0; k < this.cfg.n_nodes; k++) if (this._active(k) && !this.isChaos[k]) H.push(k);
+      if (H.length && kap > 0) {
+        const per = (B * GHOST_COUPLING * kap * this.ghosts) / H.length;
+        for (const v of H) {
+          const a = per * Math.min(1.0, this.capital[v]);
+          drainedFrom[v] += a;
+          ex += a;
+          this.ghostHarm += a;
+        }
+      } else if (H.length && kap < 0) {
+        const per = ((B / 1.5) * GHOST_COUPLING * -kap * this.ghosts) / H.length;
+        for (const v of H) { const x = Math.min(this.stress[v], per); this.stress[v] -= x; this.ghostRelief += x; }
+      }
+    }
+    // Foton: yüklü takım arkadaşlarının bu adımki kazancını en çok bağlantılı sağlıklı düğüme aklar.
+    for (const i of this.agents) {
+      if (!engaged[i] || role[i] !== P.gamma) continue;
+      let hub = -1;
+      for (let k = 0; k < this.cfg.n_nodes; k++) {
+        if (!this._active(k) || this.isChaos[k]) continue;
+        if (hub < 0 || this.degrees[k] > this.degrees[hub]) hub = k;
+      }
+      if (hub < 0) continue;
+      const charged = this.agents.filter(j => (QUARK.has(role[j]) || CHARGED_LEPTON.has(role[j])) && drainGain[j] > 0);
+      const total = charged.reduce((a, j) => a + drainGain[j], 0);
+      if (total <= 0) continue;
+      const amount = Math.min(B * eff[i], 0.85 * total);
+      for (const j of charged) drainGain[j] -= amount * drainGain[j] / total;
+      giftTo[hub] += amount;
+      this.laundered += amount;
+    }
+    return ex;
+  }
+
+  get ghostActive() {
+    if (!this.ghosts || !this.cfg.ghost_enabled) return false;
+    return this.cfg.graviton_mode === 'agnostic' ? this.gExists : true;
+  }
+  get ghostKappa() { return this.cfg.graviton_mode === 'agnostic' ? this.gKappa : 1; }
+
+  _withinDist(src, h) {
+    const seen = new Set([src]);
+    let frontier = [src];
+    const out = [];
+    for (let k = 1; k <= h; k++) {
+      const next = [];
+      for (const u of frontier) for (const v of this.nbrs[u]) {
+        if (seen.has(v) || !this._active(v)) continue;
+        seen.add(v); out.push([v, k]); next.push(v);
+      }
+      frontier = next;
+    }
+    return out;
+  }
+
+  _richTop(a, b) {
+    // Eşleşmiş filtre şablonu: uçlardan en az biri o anki sermayenin en üst %10'unda mı? ("kütle kütleyi çeker")
+    // Şablon eğitim seed'lerinde (100–119) seçildi; deney seed'leri (9500+) ayrı.
+    const caps = [];
+    for (let k = 0; k < this.cfg.n_nodes; k++) if (this.alive[k]) caps.push(this.capital[k]);
+    caps.sort((x, y) => y - x);
+    const cut = caps[Math.max(0, Math.floor(caps.length * 0.1) - 1)];
+    return Math.max(this.capital[a], this.capital[b]) >= cut;
+  }
+
+  _removeEdge(a, b) {
+    this.adj[a][b] = this.adj[b][a] = 0;
+    this.nbrs[a] = Int32Array.from([...this.nbrs[a]].filter(x => x !== b));
+    this.nbrs[b] = Int32Array.from([...this.nbrs[b]].filter(x => x !== a));
+    this.degrees[a]--; this.degrees[b]--;
+  }
+
+  // LIGO gürültü tabanı: sağlıklı–sağlıklı bir kenar rastgele yeniden bağlanır (kenar sayısı korunur)
+  _rewire(t) {
+    if (this.topoRng.random() >= this.cfg.rewire_rate) return;
+    const H = [];
+    for (let k = 0; k < this.cfg.n_nodes; k++) if (this.alive[k] && !this.isChaos[k]) H.push(k);
+    const edges = [];
+    for (const a of H) for (const b of this.nbrs[a]) if (b > a && this.alive[b] && !this.isChaos[b]) edges.push([a, b]);
+    if (!edges.length) return;
+    const [a, b] = edges[Math.floor(this.topoRng.random() * edges.length)];
+    const cand = H.filter(x => x !== a && !this.adj[a][x]);
+    if (!cand.length) return;
+    const cnew = cand[Math.floor(this.topoRng.random() * cand.length)];
+    this._removeEdge(a, b);
+    this._addEdge(a, cnew);
+    this.ligoEvents.push({ a, b: cnew, t, rich: this._richTop(a, cnew) });
+  }
+
+  _addEdge(a, b) {
+    this.adj[a][b] = this.adj[b][a] = 1;
+    this.nbrs[a] = Int32Array.from([...this.nbrs[a], b]);
+    this.nbrs[b] = Int32Array.from([...this.nbrs[b], a]);
+    this.degrees[a]++; this.degrees[b]++;
+  }
+
+  // Durum geçişleri: bozunma, nötrino salınımı, W ile tat değişimi, graviton çekimi
+  _transitions(t) {
+    for (const i of this.agents) {
+      if (!this.alive[i]) continue;
+      const p = this.ptype[i];
+      const dec = DECAY[p];
+      if (dec && t - this.born[i] + 1 >= dec[1]) { this.ptype[i] = dec[0]; this.born[i] = t + 1; this.decays++; }
+      else if (NEUTRINO.has(p) && (t + 1) % NU_PERIOD === 0) { this.ptype[i] = NU_CYCLE[(NU_CYCLE.indexOf(p) + 1) % 3]; this.oscillations++; }
+    }
+    for (const i of this.agents.slice()) {
+      if (this.wProgress[i] < W_THRESHOLD || this.wConv[i] >= W_MAX || !this._active(i)) continue;
+      const V = Array.from(this.nbrs[i]).filter(j => this._active(j) && !this.isChaos[j]);
+      if (!V.length) continue;
+      let v = V[0];
+      for (const x of V) if (this.stress[x] < this.stress[v]) v = x;
+      this.isChaos[v] = 1;
+      this.converted[v] = 1;
+      this.ptype[v] = this.conversions % 2 === 0 ? P.u : P.d;
+      this.born[v] = t + 1;
+      this.autonomy[v] = 0.95;
+      this.coherence[v] = 0.08;
+      this.agents.push(v);
+      this.totalChaos++;
+      this.conversions++;
+      this.wConv[i]++;
+      this.wProgress[i] -= W_THRESHOLD;
+    }
+    if ((t + 1) % GRAV_PERIOD === 0 && this.ghostActive && Math.abs(this.ghostKappa) > 0.05) {
+      // Hayalet: kütle kütleyi çeker; en zengin kaos düğümü ile ona komşu olmayan en zengin sağlıklı düğüm arasında kenar
+      for (let g = 0; g < this.ghosts && this.ghostEdges < GRAV_MAX * this.ghosts; g++) {
+        let mate = -1;
+        for (const j of this.agents) {
+          if (!this._active(j) || this.ptype[j] === P.NOOP) continue;
+          if (mate < 0 || this.capital[j] > this.capital[mate]) mate = j;
+        }
+        if (mate < 0) break;
+        let hub = -1;
+        for (let k = 0; k < this.cfg.n_nodes; k++) {
+          if (!this._active(k) || this.isChaos[k] || this.adj[mate][k] > 0) continue;
+          if (hub < 0 || this.capital[k] > this.capital[hub]) hub = k;
+        }
+        if (hub < 0) break;
+        const rich = this._richTop(mate, hub);
+        this._addEdge(mate, hub);
+        this.ghostEdges++;
+        this.gravEdges++;
+        this.gravEdgeList.push([mate, hub, t]);
+        this.ligoEvents.push({ a: mate, b: hub, t, rich });
+      }
+    }
+    if ((t + 1) % GRAV_PERIOD === 0) {
+      for (const i of this.agents) {
+        if (this.ptype[i] !== P.G || this.lastRole[i] !== P.G || !this._active(i) || this.gEdges[i] >= GRAV_MAX) continue;
+        // Kütle kütleyi çeker: en zengin takım arkadaşı ile ona komşu olmayan en zengin sağlıklı düğüm arasında kenar açılır.
+        let mate = -1;
+        for (const j of this.agents) {
+          if (j === i || !this._active(j) || this.ptype[j] === P.NOOP || this.ptype[j] === P.G) continue;
+          if (mate < 0 || this.capital[j] > this.capital[mate]) mate = j;
+        }
+        if (mate < 0) continue;
+        let hub = -1;
+        for (let k = 0; k < this.cfg.n_nodes; k++) {
+          if (!this._active(k) || this.isChaos[k] || this.adj[mate][k] > 0) continue;
+          if (hub < 0 || this.capital[k] > this.capital[hub]) hub = k;
+        }
+        if (hub < 0) continue;
+        this._addEdge(mate, hub);
+        this.gEdges[i]++;
+        this.gravEdges++;
+      }
+    }
+  }
+
+  _rutherfordStep(sig) {
+    const act = [];
+    for (let i = 0; i < this.cfg.n_nodes; i++) if (Number.isFinite(sig[i])) act.push(i);
+    if (act.length < 2) return;
+    let m = 0;
+    for (const i of act) m += sig[i];
+    m /= act.length;
+    let v = 0;
+    for (const i of act) v += (sig[i] - m) ** 2;
+    const sd = Math.sqrt(v / act.length) + 1e-6;
+    // Sağlam ölçek: medyan ve MAD (yoğun kaos çekirdeği şişiremez, perdeleme olmaz)
+    const vals = act.map(i => sig[i]);
+    const med = median(vals);
+    const scaleR = 1.4826 * median(vals.map(x => Math.abs(x - med))) + 1e-6;
+    const robustQ = (sg, cur) => {
+      const nb = Array.from(this.nbrs[cur]).filter(j => Number.isFinite(sg[j]));
+      const ref = nb.length ? median(nb.map(j => sg[j])) : sg[cur];
+      return Math.max(0, (sg[cur] - ref) / scaleR);
+    };
+    for (let k = 0; k < this.cfg.probes_per_step; k++) {
+      let cur = act[Math.floor(this.probeRng.random() * act.length)];
+      for (let hop = 0; hop < 3; hop++) {
+        const nb = Array.from(this.nbrs[cur]).filter(j => Number.isFinite(sig[j]));
+        const nm = nb.length ? nb.reduce((a, j) => a + sig[j], 0) / nb.length : sig[cur];
+        const q = Math.max(0, (sig[cur] - nm) / sd);           // yerel "yük yoğunluğu"
+        const b = 0.2 + 0.8 * this.probeRng.random();          // çarpma parametresi
+        const theta = 2 * Math.atan(q / b);                   // Rutherford: tan(θ/2) = q / b
+        this.rHist[Math.min(R_BINS - 1, Math.floor((theta / Math.PI) * R_BINS))]++;
+        this.rVisits[cur]++;
+        if (theta > Math.PI / 2) this.rBack[cur]++;
+        const thetaR = 2 * Math.atan(robustQ(sig, cur) / b);
+        this.kHist[Math.min(R_BINS - 1, Math.floor((thetaR / Math.PI) * R_BINS))]++;
+        if (thetaR > Math.PI / 2) this.kBack[cur]++;
+        if (!nb.length) break;
+        cur = nb[Math.floor(this.probeRng.random() * nb.length)];
+      }
+    }
+    // Kek: aynı yük düğümler arasında karıştırılır (yapı yok, toplam aynı); sondalar bu kekte yürür.
+    const pud = new Float64Array(sig.length).fill(NaN);
+    const shuffled = vals.slice();
+    for (let k = shuffled.length - 1; k > 0; k--) {
+      const j = Math.floor(this.kekRng.random() * (k + 1));
+      [shuffled[k], shuffled[j]] = [shuffled[j], shuffled[k]];
+    }
+    act.forEach((i, k) => { pud[i] = shuffled[k]; });
+    for (let k = 0; k < this.cfg.probes_per_step; k++) {
+      let cur = act[Math.floor(this.kekRng.random() * act.length)];
+      for (let hop = 0; hop < 3; hop++) {
+        const b = 0.2 + 0.8 * this.kekRng.random();
+        const theta = 2 * Math.atan(robustQ(pud, cur) / b);
+        this.pudHist[Math.min(R_BINS - 1, Math.floor((theta / Math.PI) * R_BINS))]++;
+        this.pudTrials++;
+        if (theta > Math.PI / 2) this.pudBack++;
+        const nb = Array.from(this.nbrs[cur]).filter(j => Number.isFinite(pud[j]));
+        if (!nb.length) break;
+        cur = nb[Math.floor(this.kekRng.random() * nb.length)];
+      }
+    }
+  }
+
+  run() {
+    const c = this.cfg;
+    const n = c.n_nodes;
+    const T = c.steps;
+    const csiHist = new Float64Array(T);
+    const stressHist = new Float64Array(T);
+    const aliveHist = new Float64Array(T);
+    const capitalHist = new Float64Array(T);
+    const quarHist = new Float64Array(T);
+    const extractedHist = new Float64Array(T);
+    const snapshots = c.recordSnapshots ? [] : null;
+    let extracted = 0;
+    if (c.instruments) {
+      this.sigHist = new Float64Array(T * n).fill(NaN);
+      this.rHist = new Float64Array(R_BINS);
+      this.rVisits = new Float64Array(n);
+      this.rBack = new Float64Array(n);
+      this.kHist = new Float64Array(R_BINS);
+      this.kBack = new Float64Array(n);
+      this.pudHist = new Float64Array(R_BINS);
+      this.pudBack = 0;
+      this.pudTrials = 0;
+    }
+
+    for (let t = 0; t < T; t++) {
+      const capPrev = Float64Array.from(this.capital);
+      // 0) Parçacık kararları (eski parazit için de çalışır; sonuç v0.8 ile bit düzeyinde aynıdır)
+      const role = new Uint8Array(n), eff = new Float64Array(n), engaged = new Uint8Array(n);
+      const selfStress = new Float64Array(n), mass = new Float64Array(n);
+      this._decide(t, role, eff, engaged, selfStress);
+
+      // 1) Arka plan gürültüsü her düğüm için her adımda çekilir (ortak rastgele sayılar).
+      for (let i = 0; i < n; i++) {
+        const z = this.rng.normal(0.018, 0.014);
+        if (!this._active(i)) continue;
+        if (this.isChaos[i]) this.stress[i] = Math.min(2.2, this.stress[i] + selfStress[i]);
+        else this.stress[i] += Math.max(0, z);
+      }
+      if (this.hasParticles) this._stressActions(t, role, eff, engaged);
+
+      // 2) Bulaşma ve parazitik sömürü (yalnızca aktif kenarlar üzerinden)
+      const contagion = new Float64Array(n);
+      const drainedFrom = new Float64Array(n);
+      const drainGain = new Float64Array(n);
+      const giftTo = new Float64Array(n);
+      for (let i = 0; i < n; i++) {
+        if (!this._active(i)) continue;
+        let activeDeg = 0, ns = 0;
+        for (const j of this.nbrs[i]) {
+          if (!this._active(j)) continue;
+          activeDeg++;
+          ns += this.stress[j] * (this.isChaos[j] ? (1.0 + 1.4 * c.drain_intensity) : 1.0);
+          if (this.ptype[j] === P.PARASITE && engaged[j] && !this.isChaos[i]) {
+            const amt = 0.085 * this.dq * Math.min(1.0, this.capital[i]);
+            drainedFrom[i] += amt;
+            drainGain[j] += amt;
+            extracted += amt;
+          }
+        }
+        contagion[i] = activeDeg > 0 ? c.contagion_rate * (ns / activeDeg) : 0.0;
+      }
+      if (this.hasParticles) extracted += this._capitalActions(t, role, eff, engaged, drainedFrom, drainGain, giftTo, mass);
+
+      // 3) Double-Helix tampon paylaşımı ve uyarlanma
+      const dampening = new Float64Array(n);
+      if (c.double_helix) {
+        const surplus = new Float64Array(n);
+        for (let i = 0; i < n; i++) {
+          if (!this._active(i)) continue;
+          dampening[i] = this.isChaos[i] ? 0.05 : 0.44 * Math.sqrt(this.autonomy[i] * this.coherence[i]);
+          surplus[i] = this.isChaos[i] ? 0.0 : Math.max(this.capital[i] - 0.78, 0.0);
+        }
+        const isHier = c.topology === 'adaptive_hierarchy';
+        const nextCap = Float64Array.from(this.capital);
+        // Korunumlu paylaşım (v2.0): j'nin verdiği 0.30·pay·artı, aktif komşularına hiyerarşi ağırlığıyla bölünür.
+        // v1.x'te alıcı verilenin 1.7–2.6 katını alıyordu ve sistem yoktan sermaye üretiyordu.
+        // Alıcının Higgs kütlesi kabul edilen kısmı azaltır; kabul edilmeyen kısım göndericiye döner.
+        const flow = new Float64Array(n);
+        for (let j = 0; j < n; j++) {
+          if (!this._active(j) || surplus[j] <= 0) continue;
+          const recv = [];
+          let wsum = 0;
+          for (const i of this.nbrs[j]) {
+            if (!this._active(i)) continue;
+            const w = isHier && this.layers[j] < this.layers[i] ? 1.55 : 1.0;
+            recv.push([i, w]);
+            wsum += w;
+          }
+          if (!recv.length) continue;
+          const out = 0.30 * c.buffer_share * surplus[j];
+          let returned = 0;
+          for (const [i, w] of recv) {
+            const share = (out * w) / wsum;
+            const accepted = share / (1 + mass[i]);
+            flow[i] += accepted;
+            returned += share - accepted;
+          }
+          flow[j] -= out - returned;
+        }
+        for (let i = 0; i < n; i++) {
+          if (!this._active(i)) continue;
+          nextCap[i] = Math.max(0.0, this.capital[i] + flow[i] - drainedFrom[i] + drainGain[i] + giftTo[i]);
+          if (!this.isChaos[i]) {
+            // Otonomi sakinde 0.58'e döner, stres arttıkça yükselir; eski kural sakinde tabana çakılıyordu.
+            const aTarget = Math.min(0.85, 0.58 + 0.9 * Math.max(0, this.stress[i] - 0.10));
+            this.autonomy[i] = Math.max(0.25, Math.min(0.85, this.autonomy[i] + 0.035 / (1 + mass[i]) * (aTarget - this.autonomy[i])));
+            this.coherence[i] = Math.max(0.25, Math.min(0.85, this.coherence[i] + 0.035 / (1 + mass[i]) * (0.55 - this.coherence[i])));
+          }
+        }
+        this.capital = nextCap;
+      } else {
+        for (let i = 0; i < n; i++) {
+          if (!this._active(i)) continue;
+          dampening[i] = 0.12 * Math.min(this.autonomy[i], this.coherence[i]);
+          this.capital[i] = Math.max(0.0, this.capital[i] - drainedFrom[i] + drainGain[i] + giftTo[i]);
+        }
+      }
+
+      // 4) Karantina: kör dedektör, aynı formül herkese
+      const detNoise = new Float64Array(n);
+      for (let i = 0; i < n; i++) detNoise[i] = this.detRng.normal(0, c.detector_noise);
+      if (c.quarantine_enabled && t >= c.warmup) {
+        const threshold = detectorThreshold(c.quarantine_sensitivity);
+        for (let i = 0; i < n; i++) {
+          if (!this._active(i)) continue;
+          const relGain = (this.capital[i] - capPrev[i]) / Math.max(capPrev[i], 0.1);
+          const signal = detectorSignal(this.stress[i], relGain, detNoise[i]);
+          this.anomalyScore[i] = 0.65 * this.anomalyScore[i] + 0.35 * signal;
+          if (this.anomalyScore[i] > threshold) {
+            this.quarantined[i] = 1;
+            this.quarantineStep[i] = t;
+          }
+        }
+      }
+
+      // 4b) Ölçüm aletleri: gürültüsüz gözlenebilir sinyal kaydı ve Rutherford sondaları
+      if (c.instruments) {
+        const sig = new Float64Array(n).fill(NaN);
+        for (let i = 0; i < n; i++) {
+          if (!this._active(i)) continue;
+          sig[i] = detectorSignal(this.stress[i], (this.capital[i] - capPrev[i]) / Math.max(capPrev[i], 0.1), 0);
+        }
+        this.sigHist.set(sig, t * n);
+        if (t >= c.warmup) this._rutherfordStep(sig);
+      }
+
+      // 5) Stres -> sermaye aşınması ve iflas
+      let aliveCount = 0, activeCount = 0, stressSum = 0, capSum = 0, quarCount = 0;
+      for (let i = 0; i < n; i++) {
+        if (!this.alive[i]) continue;
+        if (this.quarantined[i]) {
+          quarCount++;
+          aliveCount++;
+          this.stress[i] *= 0.85;
+          continue;
+        }
+        const effStress = Math.max(0.0, this.stress[i] + contagion[i] - dampening[i]);
+        const erosionRate = this.isChaos[i] ? 0.18 : 0.42;
+        this.capital[i] -= erosionRate * effStress;
+        if (!this.isChaos[i]) {
+          // İyileşme kendi başlangıç sermayesine doğru telafidir (homeostaz); v1.x'te sınırsız büyüme vardı.
+          const deficit = Math.max(0, this.cap0[i] - this.capital[i]);
+          const regen = 0.032 * (1.0 - Math.min(1.0, effStress)) * Math.min(1, deficit / (0.25 * this.cap0[i])) / (1 + mass[i]);
+          this.capital[i] += Math.min(deficit, regen);
+        }
+        this.stress[i] = Math.max(0.0, Math.min(2.5, this.stress[i] * 0.72 + contagion[i] * 0.35));
+        if (this.capital[i] <= 0.02) {
+          this.alive[i] = 0;
+          this.capital[i] = 0.0;
+          this.stress[i] = 0.0;
+        } else {
+          aliveCount++;
+          activeCount++;
+          stressSum += this.stress[i];
+          capSum += this.capital[i];
+        }
+      }
+
+      if (this.hasParticles) this._transitions(t);
+      if (c.rewire_rate > 0) this._rewire(t);
+
+      csiHist[t] = this._computeCSI();
+      stressHist[t] = activeCount > 0 ? stressSum / activeCount : 1.0;
+      aliveHist[t] = aliveCount / n;
+      capitalHist[t] = capSum / this.init_total_capital;
+      quarHist[t] = quarCount;
+      extractedHist[t] = extracted;
+
+      if (snapshots) {
+        snapshots.push({
+          alive: Uint8Array.from(this.alive),
+          quarantined: Uint8Array.from(this.quarantined),
+          stress: Float64Array.from(this.stress),
+          ptype: Uint8Array.from(this.ptype),
+          engaged: Uint8Array.from(engaged),
+        });
+      }
+    }
+
+    let instruments = null;
+    if (c.instruments) {
+      const backRate = Array.from(this.rBack, (b, i) => (this.rVisits[i] > 0 ? b / this.rVisits[i] : NaN));
+      const rf = rutherfordFit(this.rHist);
+      const rm = riemannAnalysis(this.sigHist, c.warmup, T, n);
+      const labels = Array.from(this.isChaos);
+      // Kek karşılaştırması: gözlenen geri saçılma oranı vs kek oranı (iki oran z-testi, tek yönlü)
+      const obsTrials = this.rVisits.reduce((a, b) => a + b, 0);
+      const obsBack = this.kBack.reduce((a, b) => a + b, 0);
+      const pObs = obsTrials ? obsBack / obsTrials : 0;
+      const pPud = this.pudTrials ? this.pudBack / this.pudTrials : 0;
+      const pPool = (obsBack + this.pudBack) / Math.max(1, obsTrials + this.pudTrials);
+      const seZ = Math.sqrt(Math.max(1e-12, pPool * (1 - pPool) * (1 / Math.max(1, obsTrials) + 1 / Math.max(1, this.pudTrials))));
+      const z = (pObs - pPud) / seZ;
+      const kBackRate = Array.from(this.kBack, (b, i) => (this.rVisits[i] > 0 ? b / this.rVisits[i] : NaN));
+      const excess = Array.from(this.kBack, (b, i) => b - this.rVisits[i] * pPud);
+      let sSum = 0, sN = 0;
+      for (const v of this.sigHist) if (Number.isFinite(v)) { sSum += v; sN++; }
+      this.meanSig = sN ? sSum / sN : NaN;
+      instruments = {
+        kek: {
+          hist: Array.from(this.kHist), pudHist: Array.from(this.pudHist), backRate: kBackRate, excess,
+          pObs, pPud, ratio: pPud > 0 ? pObs / pPud : Infinity, z, significant: z > 1.645,
+          auc: auc(kBackRate, labels), aucExcess: auc(excess, labels),
+        },
+        rutherford: { hist: Array.from(this.rHist), backRate, ...rf, auc: auc(backRate, labels) },
+        riemann: { ...rm, perNode: Array.from(rm.perNode), auc: auc(Array.from(rm.perNode), labels) },
+      };
+    }
+
+    let tp = 0, fp = 0;
+    const detectTimes = [];
+    for (let i = 0; i < n; i++) {
+      if (!this.quarantined[i]) continue;
+      if (this.isChaos[i]) { tp++; detectTimes.push(this.quarantineStep[i]); }
+      else fp++;
+    }
+
+    return {
+      csi: csiHist, stress: stressHist, alive: aliveHist, capital: capitalHist,
+      quarCount: quarHist, extractedHist, extracted,
+      adj: this.adj, degrees: this.degrees, layers: this.layers, isChaos: this.isChaos,
+      totalChaos: this.totalChaos, tp, fp, detectTimes,
+      ptype: this.ptype, agents: this.agents.slice(), harm: this.harm, converted: this.converted,
+      byFamily: familyStats(this), decays: this.decays, oscillations: this.oscillations, instruments,
+      ghosts: this.ghosts, ghostHarm: this.ghostHarm, ghostEdges: this.ghostEdges, gravEdgeList: this.gravEdgeList.slice(),
+      ghostRelief: this.ghostRelief, gExists: this.ghostActive, gKappa: this.ghostKappa,
+      meanSig: this.meanSig,
+      ligo: { events: this.ligoEvents.length, rich: this.ligoEvents.filter(e => e.rich).length, list: this.ligoEvents.slice() },
+      conversions: this.conversions, gravEdges: this.gravEdges, laundered: this.laundered,
+      topology: c.topology, steps: T, snapshots,
+    };
+  }
+}
+
+function familyStats(sim) {
+  const out = {};
+  for (const i of sim.agents) {
+    const key = PKEY[sim.ptype[i]];
+    const f = PARTICLE_INFO[key].family;
+    if (!out[f]) out[f] = { count: 0, caught: 0 };
+    out[f].count++;
+    if (sim.quarantined[i]) out[f].caught++;
+  }
+  return out;
+}
+
+// Ön kayıtlı hipotez deneyi: H-GİZLİ (gizlilik–açgözlülük ödünleşimi)
+const HYPOTHESIS_DRAINS = [0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80];
+
+function hypothesisPoint(base, drain, seeds, seedOffset = 1000) {
+  const on = [], off = [], csiOn = [], tpRate = [];
+  for (let s = 0; s < seeds; s++) {
+    const common = { ...base, chaos_particles: ['PARASITE'], drain_intensity: drain, seed: seedOffset + s, recordSnapshots: false };
+    const a = new GoliathSim({ ...common, quarantine_enabled: true }).run();
+    const b = new GoliathSim({ ...common, quarantine_enabled: false }).run();
+    on.push(a.extracted);
+    off.push(b.extracted);
+    csiOn.push(a.csi[a.steps - 1]);
+    tpRate.push(a.totalChaos > 0 ? a.tp / a.totalChaos : 0);
+  }
+  return { drain, on, off, csiOn, tpRate };
+}
+
+function meanSe(arr) {
+  const m = arr.reduce((s, v) => s + v, 0) / arr.length;
+  const v = arr.reduce((s, x) => s + (x - m) ** 2, 0) / Math.max(1, arr.length - 1);
+  return { mean: m, se: Math.sqrt(v / arr.length) };
+}
+
+function spearman(x, y) {
+  const rank = a => {
+    const idx = a.map((v, i) => [v, i]).sort((p, q) => p[0] - q[0]);
+    const r = new Array(a.length);
+    idx.forEach(([, i], k) => { r[i] = k; });
+    return r;
+  };
+  const rx = rank(x), ry = rank(y);
+  const n = x.length;
+  let d2 = 0;
+  for (let i = 0; i < n; i++) d2 += (rx[i] - ry[i]) ** 2;
+  return 1 - (6 * d2) / (n * (n * n - 1));
+}
+
+// Kriterler: (a) AÇIK eğrisinin tepesi iç noktada; (b) tepe, en yüksek şiddetteki değerden >=%20 büyük
+// ve iki nokta arasında 2 standart hata ayrımı var; (c) KAPALI eğrisi monoton artan (Spearman >= 0.9).
+function evaluateHypothesis(points) {
+  const onStats = points.map(p => meanSe(p.on));
+  const offStats = points.map(p => meanSe(p.off));
+  let peak = 0;
+  onStats.forEach((s, i) => { if (s.mean > onStats[peak].mean) peak = i; });
+  const last = onStats.length - 1;
+  const interior = peak > 0 && peak < last;
+  const ratio = onStats[last].mean > 0 ? onStats[peak].mean / onStats[last].mean : Infinity;
+  const gap = onStats[peak].mean - onStats[last].mean;
+  const seGap = Math.sqrt(onStats[peak].se ** 2 + onStats[last].se ** 2);
+  const separated = gap > 2 * seGap;
+  const rhoOff = spearman(points.map(p => p.drain), offStats.map(s => s.mean));
+  const a = interior, b = ratio >= 1.2 && separated, cOk = rhoOff >= 0.9;
+  return {
+    onStats, offStats, peakIndex: peak, peakDrain: points[peak].drain,
+    ratio, separated, rhoOff,
+    criteria: { a, b, c: cOk },
+    supported: a && b && cOk,
+  };
+}
+// ============================================================
+// H-KUANTUM (ön kayıtlı). Tam Standart Model sürüsü (%30 = 18 ajan), sızma noktası arayüzden.
+// Hasar = 1 − CSI / CSI(bozulmamış: kaos yok, karantina yok). Desen her seed'de döndürülür (Latin kare).
+// (a) Süper-toplamsallık: Hasar(SM17) > Hasar(F12) + Hasar(B5), eşli fark > 2 SH
+//     Ölçüm düzeltmesi: dolu slotların taban hasarı (N18 = 18 pasif) iki kez sayılmasın diye
+//     (SM17 − N) > (F12 − N) + (B5 − N) karşılaştırılır. Düzeltmesiz hali de raporlanır.
+// (b) Bypass yok: 5 bozonun ≥4'ünde, en iyi yedek bozon bile orijinalden 2 SH'den fazla geride
+// (c) Graviton jokeri: kaybı anlamlı bozonlarda, eksik bozona graviton eklemek kaybın ortalama ≥%50'sini geri getirir
+// ============================================================
+const BOSON_KEYS = ['g', 'gamma', 'Z', 'W', 'H'];
+const FERMION_KEYS = SM_ORDER.filter(k => FERMION.has(P[k]));
+
+function smPattern(replace = {}) { return SM_ORDER.map(k => (k in replace ? replace[k] : k)); }
+
+function pairedStats(a, b) {
+  return meanSe(a.map((v, i) => v - b[i]));
+}
+
+function* quantumExperiment(base, opts = {}) {
+  const holdSeeds = opts.holdSeeds || 20, searchSeeds = opts.searchSeeds || 6;
+  const SEARCH_OFF = 3000, HOLD_OFF = 7000;
+  const drains = opts.drains || [0.25, 0.35, 0.5, 0.65, 0.8];
+  const b0 = { ...base, ...COSMO_V11, chaos_ratio: 0.30, recordSnapshots: false, pattern_rotation: null };
+  const clean = new Map();
+  const cleanCsi = (seed) => {
+    if (!clean.has(seed)) {
+      const r = new GoliathSim({ ...b0, chaos_ratio: 0, quarantine_enabled: false, seed }).run();
+      clean.set(seed, r.csi[r.steps - 1]);
+    }
+    return clean.get(seed);
+  };
+  const run = (pattern, drain, seeds, offset) => {
+    const sc = [], fp = [], tp = [];
+    for (let s = 0; s < seeds; s++) {
+      const seed = offset + s;
+      const r = new GoliathSim({ ...b0, chaos_particles: pattern, drain_intensity: drain, quarantine_enabled: true, seed }).run();
+      sc.push(1 - r.csi[r.steps - 1] / cleanCsi(seed));
+      fp.push(r.fp);
+      tp.push(r.totalChaos ? r.tp / r.totalChaos : 0);
+    }
+    return { scores: sc, mean: meanSe(sc).mean, se: meanSe(sc).se, fp: meanSe(fp).mean, tp: meanSe(tp).mean };
+  };
+
+  const configs = [];
+  configs.push(['SM18', smPattern()]);
+  configs.push(['N18', SM_ORDER.map(() => 'NOOP')]);
+  configs.push(['SM17', smPattern({ G: 'NOOP' })]);
+  configs.push(['F12', smPattern(Object.fromEntries([...BOSON_KEYS, 'G'].map(k => [k, 'NOOP'])))]);
+  configs.push(['B5', smPattern(Object.fromEntries([...FERMION_KEYS, 'G'].map(k => [k, 'NOOP'])))]);
+  for (const b of BOSON_KEYS) {
+    configs.push([`rm_${b}`, smPattern({ G: 'NOOP', [b]: 'NOOP' })]);
+    for (const x of BOSON_KEYS) if (x !== b) configs.push([`sub_${b}_${x}`, smPattern({ G: 'NOOP', [b]: x })]);
+    configs.push([`joker_${b}`, smPattern({ [b]: 'NOOP' })]);
+  }
+  const total = drains.length + configs.length;
+  let done = 0;
+
+  // Kaosu maksimize et: tam SM sürüsü için en yıkıcı şiddet (arama seed'leri)
+  const search = [];
+  for (const d of drains) { search.push({ d, ...run(smPattern(), d, searchSeeds, SEARCH_OFF) }); done++; yield { done, total }; }
+  const best = search.reduce((a, b) => (b.mean > a.mean ? b : a));
+
+  const R = {};
+  for (const [name, pattern] of configs) { R[name] = run(pattern, best.d, holdSeeds, HOLD_OFF); done++; yield { done, total }; }
+
+  const superAddRaw = meanSe(R.SM17.scores.map((v, i) => v - R.F12.scores[i] - R.B5.scores[i]));
+  const superAdd = meanSe(R.SM17.scores.map((v, i) => v + R.N18.scores[i] - R.F12.scores[i] - R.B5.scores[i]));
+  const a = superAdd.mean > 0 && superAdd.mean > 2 * superAdd.se;
+
+  const bosons = BOSON_KEYS.map(b => {
+    const need = pairedStats(R.SM17.scores, R[`rm_${b}`].scores);
+    let bestSub = null;
+    for (const x of BOSON_KEYS) if (x !== b) { const r = R[`sub_${b}_${x}`]; if (!bestSub || r.mean > bestSub.r.mean) bestSub = { x, r }; }
+    const gap = pairedStats(R.SM17.scores, bestSub.r.scores);
+    const needed = need.mean > 2 * need.se;
+    const lost = R.SM17.mean - R[`rm_${b}`].mean;
+    const recovery = lost > 0 ? (R[`joker_${b}`].mean - R[`rm_${b}`].mean) / lost : null;
+    // Keşif (ön kayıtlı değil): bütçe korunumunu bozan W yedeklerden çıkarılınca
+    let subNoW = null;
+    for (const x of BOSON_KEYS) if (x !== b && x !== 'W') { const r = R[`sub_${b}_${x}`]; if (!subNoW || r.mean > subNoW.r.mean) subNoW = { x, r }; }
+    const gapNoW = pairedStats(R.SM17.scores, subNoW.r.scores);
+    return { b, need, needed, bestSub: bestSub.x, gap, nonBypass: gap.mean > 2 * gap.se, recovery,
+      bestSubNoW: subNoW.x, gapNoW, nonBypassNoW: gapNoW.mean > 2 * gapNoW.se };
+  });
+  const bCount = bosons.filter(x => x.nonBypass).length;
+  const b = bCount >= 4;
+  const rec = bosons.filter(x => x.needed && x.recovery !== null).map(x => x.recovery);
+  const recMean = rec.length ? rec.reduce((s, v) => s + v, 0) / rec.length : null;
+  const c = recMean !== null && recMean >= 0.5;
+  const bCountNoW = bosons.filter(x => x.b !== 'W' && x.nonBypassNoW).length;
+  return { drain: best.d, search, R, superAdd, superAddRaw, bosons, bCount, bCountNoW, recMean, criteria: { a, b, c }, supported: a && b && c };
+}
+
+function runQuantumExperiment(base, opts) {
+  const g = quantumExperiment(base, opts);
+  let r = g.next();
+  while (!r.done) r = g.next();
+  return r.value;
+}
+// ============================================================
+// H-PRR (ön kayıtlı): Planck – Rutherford – Riemann. Ayrık seed 7000+.
+// (a) Planck tespite zorlar (hub, saf parazit): h=0.40'ta (a1) h=0'ın gizlenme şiddetinde (d=0.30) yakalanma <%10'dan ≥%80'e çıkar,
+//     (a2) saldırganın en iyi sömürüsü (d ızgarasında azami) ≥%50 düşer.
+// (b) Rutherford (rastgele sızma, SM sürüsü %30, d=0.5): geri saçılma AUC ort. ≥ 0.70; çekirdek modeli kaotik koşuların ≥%80'inde,
+//     temiz koşuların ≤%20'sinde Thomson'dan iyi uyar.
+// (c) Riemann: aralık katılığı (D_Poisson − D_GUE) kaotik koşuda temizden büyük (eşli > 2 SH) ve Higgs salınım genliği arttıkça artar (ρ ≥ 0.8).
+// ============================================================
+const PRR_DRAINS = [0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80];
+const PRR_H = [0, 0.1, 0.2, 0.3, 0.4, 0.5];
+const PRR_AMPS = [0, 0.25, 0.5, 0.75, 1.0];
+
+function* prrExperiment(base, opts = {}) {
+  const seeds = opts.seeds || 20, OFF = 7000;
+  const b0 = { ...base, recordSnapshots: false };
+  const total = PRR_H.length * PRR_DRAINS.length + 2 + PRR_AMPS.length;
+  let done = 0;
+
+  // (a) Planck taraması
+  const planck = [];
+  for (const h of PRR_H) {
+    const row = [];
+    for (const d of PRR_DRAINS) {
+      const ex = [], tp = [];
+      for (let s = 0; s < seeds; s++) {
+        const r = new GoliathSim({ ...b0, chaos_particles: ['PARASITE'], infiltration_mode: 'hub', planck_h: h, drain_intensity: d, seed: OFF + s }).run();
+        ex.push(r.extracted);
+        tp.push(r.totalChaos ? r.tp / r.totalChaos : 0);
+      }
+      row.push({ d, extracted: meanSe(ex).mean, tp: meanSe(tp).mean });
+      done++; yield { done, total };
+    }
+    const best = row.reduce((a, b) => (b.extracted > a.extracted ? b : a));
+    planck.push({ h, row, best });
+  }
+  const p0 = planck.find(p => p.h === 0), p4 = planck.find(p => p.h === 0.4);
+  const at = (p, d) => p.row.find(x => Math.abs(x.d - d) < 1e-9);
+  const a1 = at(p0, 0.30).tp < 0.10 && at(p4, 0.30).tp >= 0.80;
+  const a2 = p4.best.extracted <= 0.5 * p0.best.extracted;
+  const hStar = (planck.find(p => p.best.extracted <= 0.5 * p0.best.extracted) || {}).h ?? null;
+
+  // (b) + (c) temel: SM sürüsü vs temiz
+  const smCfg = { ...b0, ...COSMO_V11, chaos_particles: 'sm', chaos_ratio: 0.30, infiltration_mode: 'random', drain_intensity: 0.5, instruments: true };
+  const chaosRuns = [], cleanRuns = [];
+  for (let s = 0; s < seeds; s++) chaosRuns.push(new GoliathSim({ ...smCfg, seed: OFF + s }).run().instruments);
+  done++; yield { done, total };
+  for (let s = 0; s < seeds; s++) cleanRuns.push(new GoliathSim({ ...smCfg, chaos_ratio: 0, seed: OFF + s }).run().instruments);
+  done++; yield { done, total };
+
+  const aucs = chaosRuns.map(x => x.rutherford.auc).filter(v => v !== null);
+  const aucMean = aucs.reduce((a, b) => a + b, 0) / Math.max(1, aucs.length);
+  const winChaos = chaosRuns.filter(x => x.rutherford.rutherfordWins).length / seeds;
+  const winClean = cleanRuns.filter(x => x.rutherford.rutherfordWins).length / seeds;
+  const b = aucMean >= 0.70 && winChaos >= 0.8 && winClean <= 0.2;
+  const histChaos = new Array(R_BINS).fill(0), histClean = new Array(R_BINS).fill(0);
+  chaosRuns.forEach(x => x.rutherford.hist.forEach((v, k) => { histChaos[k] += v; }));
+  cleanRuns.forEach(x => x.rutherford.hist.forEach((v, k) => { histClean[k] += v; }));
+
+  const rig = chaosRuns.map(x => x.riemann.rigidity), rigClean = cleanRuns.map(x => x.riemann.rigidity);
+  const rigDiff = meanSe(rig.map((v, i) => v - rigClean[i]).filter(Number.isFinite));
+  const c1 = rigDiff.mean > 0 && rigDiff.mean > 2 * rigDiff.se;
+  const amps = [];
+  for (const A of PRR_AMPS) {
+    const rr = [];
+    for (let s = 0; s < seeds; s++) rr.push(new GoliathSim({ ...smCfg, higgs_osc_amp: A, seed: OFF + s }).run().instruments.riemann.rigidity);
+    amps.push({ A, rigidity: meanSe(rr.filter(Number.isFinite)).mean });
+    done++; yield { done, total };
+  }
+  const rhoA = spearman(amps.map(x => x.A), amps.map(x => x.rigidity));
+  const c2 = rhoA >= 0.8;
+  const spChaos = [].concat(...chaosRuns.map(x => x.riemann.spacings));
+  const spClean = [].concat(...cleanRuns.map(x => x.riemann.spacings));
+
+  return {
+    planck, hStar, a1, a2,
+    rutherford: { aucMean, winChaos, winClean, histChaos, histClean },
+    riemann: { rigDiff, amps, rhoA, spChaos, spClean,
+      smallChaos: spChaos.filter(s => s < 0.5).length / Math.max(1, spChaos.length),
+      smallClean: spClean.filter(s => s < 0.5).length / Math.max(1, spClean.length) },
+    criteria: { a: a1 && a2, b, c: c1 && c2, c1, c2 },
+    supported: a1 && a2 && b && c1 && c2,
+  };
+}
+
+// ============================================================
+// H-KEK (ön kayıtlı): Rutherford'u üzümlü kek karşılaştırmasıyla yeniden kur. H-PRR (b) ile aynı düzen.
+// (a) Sağlam geri saçılma AUC ort. ≥ 0.70
+// (b) Gözlenen geri saçılma kekten anlamlı yüksek (z > 1.645): kaotik koşuların ≥%80'i, temizlerin ≤%20'si
+// (c) Kekten en çok sapan k düğümün (k = kaos sayısı) ≥%50'si kaos
+// ============================================================
+function precisionAtK(scores, labels, k) {
+  const idx = scores.map((v, i) => [Number.isFinite(v) ? v : -Infinity, i]).sort((a, b) => b[0] - a[0]).slice(0, k);
+  return idx.filter(([, i]) => labels[i]).length / Math.max(1, k);
+}
+
+function* kekExperiment(base, opts = {}) {
+  const seeds = opts.seeds || 20, OFF = 7000;
+  const smCfg = { ...base, ...COSMO_V11, recordSnapshots: false, chaos_particles: 'sm', chaos_ratio: 0.30, infiltration_mode: 'random', drain_intensity: 0.5, instruments: true };
+  const total = 2 * seeds;
+  let done = 0;
+  const chaos = [], clean = [];
+  for (let s = 0; s < seeds; s++) {
+    const sim = new GoliathSim({ ...smCfg, seed: OFF + s });
+    const r = sim.run();
+    const labels = Array.from(sim.isChaos);
+    const k = labels.filter(Boolean).length;
+    chaos.push({ ...r.instruments, prec: precisionAtK(r.instruments.kek.excess, labels, k), base: k / labels.length });
+    done++; yield { done, total };
+  }
+  for (let s = 0; s < seeds; s++) {
+    clean.push(new GoliathSim({ ...smCfg, chaos_ratio: 0, seed: OFF + s }).run().instruments);
+    done++; yield { done, total };
+  }
+  const avg = arr => arr.reduce((a, b) => a + b, 0) / Math.max(1, arr.length);
+  const aucOld = avg(chaos.map(x => x.rutherford.auc).filter(v => v !== null));
+  const aucNew = avg(chaos.map(x => x.kek.auc).filter(v => v !== null));
+  const aucExcess = avg(chaos.map(x => x.kek.aucExcess).filter(v => v !== null));
+  const sigChaos = chaos.filter(x => x.kek.significant).length / seeds;
+  const sigClean = clean.filter(x => x.kek.significant).length / seeds;
+  const prec = avg(chaos.map(x => x.prec));
+  const sum = (runs, key) => { const h = new Array(R_BINS).fill(0); runs.forEach(x => x.kek[key].forEach((v, i) => { h[i] += v; })); return h; };
+  const a = aucNew >= 0.70, b = sigChaos >= 0.8 && sigClean <= 0.2, c = prec >= 0.5;
+  return {
+    aucOld, aucNew, aucExcess, sigChaos, sigClean, prec, baseRate: avg(chaos.map(x => x.base)),
+    ratioChaos: avg(chaos.map(x => x.kek.ratio)), ratioClean: avg(clean.map(x => x.kek.ratio)),
+    zChaos: avg(chaos.map(x => x.kek.z)), zClean: avg(clean.map(x => x.kek.z)),
+    histChaos: sum(chaos, 'hist'), pudChaos: sum(chaos, 'pudHist'), histClean: sum(clean, 'hist'), pudClean: sum(clean, 'pudHist'),
+    criteria: { a, b, c }, supported: a && b && c,
+  };
+}
+
+function runKekExperiment(base, opts) {
+  const g = kekExperiment(base, opts);
+  let r = g.next();
+  while (!r.done) r = g.next();
+  return r.value;
+}
+
+// ============================================================
+// H-KÜME (ön kayıtlı, H-KEK'teki ters işaretten doğdu; hiç kullanılmamış seed 8000+):
+// Kümelenmiş kaos kekten anlamlı DÜŞÜK geri saçılma üretir (z < −1.645):
+// (a) kaotik koşuların ≥%80'inde, (b) temiz koşuların ≤%20'sinde. Düğüm değil, koşu düzeyinde sürü alarmı.
+// ============================================================
+function* clusterExperiment(base, opts = {}) {
+  const seeds = opts.seeds || 20, OFF = opts.offset || 8000;
+  const cfgs = [['SM, rastgele', { chaos_particles: 'sm', chaos_ratio: 0.30, infiltration_mode: 'random', drain_intensity: 0.5 }],
+                ['SM, hub', { chaos_particles: 'sm', chaos_ratio: 0.30, infiltration_mode: 'hub', drain_intensity: 0.5 }],
+                ['tek tip parazit, rastgele', { chaos_particles: ['PARASITE'], chaos_ratio: 0.30, infiltration_mode: 'random', drain_intensity: 0.5 }]];
+  const total = (cfgs.length + 1) * seeds;
+  let done = 0;
+  const rows = [];
+  for (const [label, o] of cfgs) {
+    const zs = [];
+    for (let s = 0; s < seeds; s++) {
+      zs.push(new GoliathSim({ ...base, ...COSMO_V11, ...o, instruments: true, recordSnapshots: false, seed: OFF + s }).run().instruments.kek.z);
+      done++; yield { done, total };
+    }
+    rows.push({ label, zs, alarm: zs.filter(z => z < -1.645).length / seeds, zMean: meanSe(zs).mean });
+  }
+  const zc = [];
+  for (let s = 0; s < seeds; s++) {
+    zc.push(new GoliathSim({ ...base, ...COSMO_V11, chaos_particles: 'sm', chaos_ratio: 0, infiltration_mode: 'random', instruments: true, recordSnapshots: false, seed: OFF + s }).run().instruments.kek.z);
+    done++; yield { done, total };
+  }
+  const cleanAlarm = zc.filter(z => z < -1.645).length / seeds;
+  const a = rows[0].alarm >= 0.8, b = cleanAlarm <= 0.2;
+  return { rows, clean: { zs: zc, alarm: cleanAlarm, zMean: meanSe(zc).mean }, criteria: { a, b }, supported: a && b };
+}
+
+function runClusterExperiment(base, opts) {
+  const g = clusterExperiment(base, opts);
+  let r = g.next();
+  while (!r.done) r = g.next();
+  return r.value;
+}
+
+// ============================================================
+// H-JOKER ve H-HAYALET (ön kayıtlı, v2.1 kozmolojisi, hiç kullanılmamış seed 9100+ × 20)
+// Düzen: SM deseni, %30, hub, d = 0.5, sens 0.55. Hasar = 1 − CSI / CSI(bozulmamış).
+// H-JOKER: (a) çıkarılması anlamlı kayıp yaratan bozonlarda Higgs jokeri kaybın ortalama ≥%50'sini geri kazandırır;
+//          (b) W eksikken (Goldstone) W anlamlı gerekli VE geri kazanım ≥%50.
+// H-HAYALET: (a) hayalet zararlı: hayaletli − hayaletsiz eşli hasar farkı > 0 ve > 2 SH;
+//            (b) yalnız hayaletlerden oluşan sürü (%10 = 6 hayalet, d = 0.8): küme alarmı ≤%20 VE hasar > 0 ve > 2 SH.
+// ============================================================
+function* jokerGhostExperiment(base, opts = {}) {
+  const seeds = opts.seeds || 20, OFF = opts.offset || 9100;
+  const b0 = { ...base, ...COSMO_V21, ...(opts.cosmo || {}), ghost_enabled: true, chaos_particles: 'sm', chaos_ratio: 0.30,
+    infiltration_mode: 'hub', drain_intensity: 0.5, quarantine_sensitivity: 0.55, recordSnapshots: false, pattern_rotation: null };
+  const clean = new Map();
+  const cleanCsi = seed => {
+    if (!clean.has(seed)) { const r = new GoliathSim({ ...b0, chaos_ratio: 0, quarantine_enabled: false, seed }).run(); clean.set(seed, r.csi[r.steps - 1]); }
+    return clean.get(seed);
+  };
+  const dmg = (o) => Array.from({ length: seeds }, (_, s) => {
+    const r = new GoliathSim({ ...b0, ...o, seed: OFF + s }).run();
+    return 1 - r.csi[r.steps - 1] / cleanCsi(OFF + s);
+  });
+  const JB = ['g', 'gamma', 'Z', 'W'];
+  const total = 1 + JB.length * 2 + 2 + 1;
+  let done = 0;
+  const full = dmg({}); done++; yield { done, total };
+  const jok = [];
+  for (const b of JB) {
+    const on = dmg({ chaos_particles: smPattern({ [b]: 'NOOP' }), higgs_joker: true }); done++; yield { done, total };
+    const off = dmg({ chaos_particles: smPattern({ [b]: 'NOOP' }), higgs_joker: false }); done++; yield { done, total };
+    const need = pairedStats(full, off);
+    const lost = meanSe(full).mean - meanSe(off).mean;
+    const recovery = lost > 0 ? (meanSe(on).mean - meanSe(off).mean) / lost : null;
+    jok.push({ b, need, needed: need.mean > 2 * need.se, recovery, on: meanSe(on).mean, off: meanSe(off).mean });
+  }
+  const rec = jok.filter(x => x.needed && x.recovery !== null).map(x => x.recovery);
+  const recMean = rec.length ? rec.reduce((a, b) => a + b, 0) / rec.length : null;
+  const w = jok.find(x => x.b === 'W');
+  const ja = recMean !== null && recMean >= 0.5;
+  const jb = w.needed && w.recovery !== null && w.recovery >= 0.5;
+
+  const noGhost = dmg({ ghost_enabled: false }); done++; yield { done, total };
+  const ghostEff = pairedStats(full, noGhost);
+  const ga = ghostEff.mean > 0 && ghostEff.mean > 2 * ghostEff.se;
+  const gOnly = { ...b0, chaos_particles: ['G'], chaos_ratio: 0.10, drain_intensity: 0.8, instruments: true };
+  const gd = [], gz = [], gEdges = [];
+  for (let s = 0; s < seeds; s++) {
+    const r = new GoliathSim({ ...gOnly, seed: OFF + s }).run();
+    gd.push(1 - r.csi[r.steps - 1] / cleanCsi(OFF + s));
+    gz.push(r.instruments.kek.z);
+    gEdges.push(r.ghostEdges);
+  }
+  done++; yield { done, total };
+  const gdm = meanSe(gd);
+  const alarm = gz.filter(z => z < -1.645).length / seeds;
+  const gb = alarm <= 0.2 && gdm.mean > 0 && gdm.mean > 2 * gdm.se;
+  done++; yield { done, total };
+  return {
+    full: meanSe(full), joker: jok, recMean, criteriaJ: { a: ja, b: jb }, supportedJ: ja && jb,
+    ghostEff, noGhost: meanSe(noGhost), ghostOnly: { damage: gdm, alarm, zMean: meanSe(gz).mean, edges: meanSe(gEdges).mean },
+    criteriaG: { a: ga, b: gb }, supportedG: ga && gb,
+  };
+}
+
+function runJokerGhostExperiment(base, opts) {
+  const g = jokerGhostExperiment(base, opts);
+  let r = g.next();
+  while (!r.done) r = g.next();
+  return r.value;
+}
+
+// ============================================================
+// H-LIGO (ön kayıtlı, CERN modeli, hiç kullanılmamış seed 9500+ × 80 koşu; graviton her koşuda %50 olasılıkla var, κ ∈ [−1, 1])
+// Düzen: SM deseni, %30, hub, d = 0.5, sens 0.55, arka plan yeniden bağlanma 0.04/adım.
+// (a) Düğüm düzeyi gözlemler (karantina sayısı, kek z, ortalama sinyal) varlığı ayırt edemez: her birinin AUC'si 0.35–0.65.
+// (b) Eşleşmiş filtreli LIGO (en az bir ucu en zengin %10'da olan yeni kenar sayısı; şablon eğitim seed'lerinde seçildi) ayırt eder: AUC ≥ 0.80 ve ham kenar sayısından yüksek.
+// (c) Var olan gravitonlarda (|κ| > 0.05) hiçbir gözlem κ'nın işaretini (zararlı/yararlı) ayırt edemez: hepsinin AUC'si 0.35–0.65.
+// ============================================================
+function* ligoExperiment(base, opts = {}) {
+  const runs = opts.runs || 80, OFF = opts.offset || 9500;
+  const b0 = { ...base, ...COSMO_CERN, chaos_particles: 'sm', chaos_ratio: 0.30, infiltration_mode: 'hub', drain_intensity: 0.5,
+    quarantine_sensitivity: 0.55, instruments: true, recordSnapshots: false, pattern_rotation: null };
+  const rows = [];
+  for (let s = 0; s < runs; s++) {
+    const r = new GoliathSim({ ...b0, seed: OFF + s }).run();
+    const sig = [];
+    // ortalama gözlenebilir sinyal (gürültüsüz) — aletlerden
+    rows.push({ exists: r.gExists, kappa: r.gKappa, q: r.tp + r.fp, kekZ: r.instruments.kek.z,
+      meanSig: r.instruments.riemann ? meanSignal(r) : NaN, naive: r.ligo.events, matched: r.ligo.rich });
+    yield { done: s + 1, total: runs };
+  }
+  const lab = rows.map(x => (x.exists ? 1 : 0));
+  const feats = ['q', 'kekZ', 'meanSig', 'naive', 'matched'];
+  const aucExist = Object.fromEntries(feats.map(f => [f, auc(rows.map(x => x[f]), lab)]));
+  const ex = rows.filter(x => x.exists && Math.abs(x.kappa) > 0.05);
+  const signLab = ex.map(x => (x.kappa > 0 ? 1 : 0));
+  const aucSign = Object.fromEntries(feats.map(f => [f, auc(ex.map(x => x[f]), signLab)]));
+  const inBand = v => v !== null && v >= 0.35 && v <= 0.65;
+  const a = ['q', 'kekZ', 'meanSig'].every(f => inBand(aucExist[f]));
+  const b = aucExist.matched !== null && aucExist.matched >= 0.80 && aucExist.matched > aucExist.naive;
+  const c = feats.every(f => inBand(aucSign[f]));
+  return { rows, nExist: lab.filter(Boolean).length, nSign: ex.length, nHarm: signLab.filter(Boolean).length,
+    aucExist, aucSign, criteria: { a, b, c }, supported: a && b && c };
+}
+
+function meanSignal(r) { return r.meanSig; }
+
+function runLigoExperiment(base, opts) {
+  const g = ligoExperiment(base, opts);
+  let x = g.next();
+  while (!x.done) x = g.next();
+  return x.value;
+}
+
+function runPrrExperiment(base, opts) {
+  const g = prrExperiment(base, opts);
+  let r = g.next();
+  while (!r.done) r = g.next();
+  return r.value;
+}
+// ENGINE-END
+
+if (typeof module !== 'undefined') {
+  module.exports = {
+    SeededRNG, GoliathSim, defaultConfig, detectorSignal, detectorThreshold,
+    P, PKEY, SM_ORDER, PARTICLE_INFO, assignParticles, QUARK, FERMION, BOSON_ROLES,
+    BOSON_KEYS, smPattern, quantumExperiment, runQuantumExperiment,
+    PRR_DRAINS, PRR_H, PRR_AMPS, prrExperiment, runPrrExperiment, kekExperiment, runKekExperiment, clusterExperiment, runClusterExperiment, median, precisionAtK,
+    jokerGhostExperiment, runJokerGhostExperiment, COSMO_V11, COSMO_V21, COSMO_CERN, ligoExperiment, runLigoExperiment,
+    quantize, erf, poissonCdf, gueCdf, poissonPdf, guePdf, ksDistance, auc, rutherfordFit, riemannAnalysis, R_BINS,
+    HYPOTHESIS_DRAINS, hypothesisPoint, evaluateHypothesis, meanSe, spearman,
+  };
+}
+
+  </script>
+
+  <script>
+    // ============================================================
+    // ARAYÜZ
+    // ============================================================
+    const $ = (id) => document.getElementById(id);
+
+    function computeVariance(arr, start, end) {
+      const len = Math.max(1, end - start);
+      let s = 0;
+      for (let i = start; i < end; i++) s += arr[i];
+      const m = s / len;
+      let v = 0;
+      for (let i = start; i < end; i++) v += (arr[i] - m) ** 2;
+      return v / len;
+    }
+
+    function setupCanvas(canvas) {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx, w: rect.width, h: rect.height };
+    }
+
+    function computeNodeLayout(topology, degrees, layers) {
+      const n = degrees.length;
+      const pos = new Array(n);
+      if (topology === 'adaptive_hierarchy') {
+        const l0 = [], l1 = [], l2 = [];
+        for (let i = 0; i < n; i++) (layers[i] === 0 ? l0 : layers[i] === 1 ? l1 : l2).push(i);
+        const place = (arr, r, phase = 0) => arr.forEach((idx, k) => {
+          const ang = phase + (k / arr.length) * Math.PI * 2;
+          pos[idx] = { x: 0.5 + r * Math.cos(ang), y: 0.5 + r * Math.sin(ang) };
+        });
+        place(l0, 0.13, Math.PI / 4);
+        place(l1, 0.28, 0);
+        place(l2, 0.43, 0.08);
+        return pos;
+      }
+      const sorted = Array.from({ length: n }, (_, i) => i).sort((a, b) => degrees[b] - degrees[a]);
+      for (let rank = 0; rank < n; rank++) {
+        const r = rank < 4 ? 0.14 : rank < 20 ? 0.29 : 0.43;
+        const ang = (rank * 2.399963229728653) % (Math.PI * 2);
+        pos[sorted[rank]] = { x: 0.5 + r * Math.cos(ang), y: 0.5 + r * Math.sin(ang) };
+      }
+      return pos;
+    }
+
+    let simQuarOn = null, simQuarOff = null, nodePositions = [];
+    let currentStep = 0, lastStep = 0, isPlaying = false, playTimer = null;
+
+    const activeSim = () => ($('quarantineToggle').checked ? simQuarOn : simQuarOff);
+
+    function drawNetwork(step) {
+      if (!simQuarOn) return;
+      const sim = activeSim();
+      const { ctx, w, h } = setupCanvas($('networkCanvas'));
+      const { adj, degrees, snapshots, csi, quarCount, isChaos, topology } = sim;
+      const snap = snapshots[step];
+      ctx.clearRect(0, 0, w, h);
+      $('liveCsi').textContent = csi[step].toFixed(3);
+      $('liveQuar').textContent = quarCount[step];
+      $('currentStepLabel').textContent = step;
+
+      const minDim = Math.min(w, h), cx = w * 0.5, cy = h * 0.5;
+      if (topology === 'adaptive_hierarchy') {
+        ctx.save();
+        ctx.setLineDash([3, 4]);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.14)';
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.45)';
+        ctx.font = '10px JetBrains Mono, monospace';
+        [{ r: 0.13, t: 'L0' }, { r: 0.28, t: 'L1' }, { r: 0.43, t: 'L2' }].forEach(g => {
+          ctx.beginPath(); ctx.arc(cx, cy, g.r * minDim, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillText(g.t, cx + 4, cy - g.r * minDim + 11);
+        });
+        ctx.restore();
+      }
+      if (sim.ghosts > 0 || (sim.ligo && sim.ligo.events)) {
+        ctx.save(); ctx.fillStyle = 'rgba(245, 245, 244, 0.8)'; ctx.font = '11px JetBrains Mono, monospace'; ctx.textAlign = 'left';
+        const seen = (sim.ligo ? sim.ligo.list : []).filter(e => e.t <= step);
+        ctx.fillText(`LIGO: yeni kenar ${seen.length} · şablona uyan ${seen.filter(e => e.rich).length}`, 10, 16);
+        if (sim.ghosts > 0) {
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+          ctx.fillText(`gerçek (savunmacı görmez): graviton ${sim.gExists ? `var, κ = ${sim.gKappa.toFixed(2)}` : 'yok'}`, 10, 31);
+        }
+        ctx.restore();
+      }
+      const sx = (x) => cx + (x - 0.5) * minDim;
+      const sy = (y) => cy + (y - 0.5) * minDim;
+      const n = degrees.length;
+
+      // Hayaletin büktüğü kenarlar yalnızca oluştukları adımdan sonra görünür
+      const grav = new Map((sim.gravEdgeList || []).map(([a, b, t0]) => [Math.min(a, b) * 1000 + Math.max(a, b), t0]));
+      for (let i = 0; i < n; i++) {
+        const xi = sx(nodePositions[i].x), yi = sy(nodePositions[i].y);
+        for (let j = i + 1; j < n; j++) {
+          if (adj[i][j] === 0) continue;
+          const gt = grav.get(i * 1000 + j);
+          if (gt !== undefined) {
+            if (step < gt) continue;
+            ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = 'rgba(245, 245, 244, 0.75)'; ctx.lineWidth = 1.4;
+            ctx.beginPath(); ctx.moveTo(xi, yi); ctx.lineTo(sx(nodePositions[j].x), sy(nodePositions[j].y)); ctx.stroke(); ctx.restore();
+            continue;
+          }
+          const activeEdge = snap.alive[i] && snap.alive[j] && !snap.quarantined[i] && !snap.quarantined[j];
+          ctx.beginPath(); ctx.moveTo(xi, yi); ctx.lineTo(sx(nodePositions[j].x), sy(nodePositions[j].y));
+          if (activeEdge) {
+            const chaosEdge = isChaos[i] || isChaos[j];
+            ctx.strokeStyle = chaosEdge ? 'rgba(244, 63, 94, 0.28)' : 'rgba(56, 189, 248, 0.16)';
+            ctx.lineWidth = chaosEdge ? 1.2 : 0.9;
+          } else {
+            ctx.strokeStyle = 'rgba(51, 65, 85, 0.08)';
+            ctx.lineWidth = 0.5;
+          }
+          ctx.stroke();
+        }
+      }
+
+      let maxDeg = 1;
+      for (let i = 0; i < n; i++) if (degrees[i] > maxDeg) maxDeg = degrees[i];
+      for (let i = 0; i < n; i++) {
+        const x = sx(nodePositions[i].x), y = sy(nodePositions[i].y);
+        const r = 4.2 + (degrees[i] / maxDeg) * 9.5;
+        const alive = snap.alive[i] === 1, quar = snap.quarantined[i] === 1;
+        const pt = snap.ptype[i];
+        const pkey = pt ? PKEY[pt] : null;
+        const pinfo = pkey ? PARTICLE_INFO[pkey] : null;
+        const inert = pt !== 0 && snap.engaged[i] === 0;
+        const chaos = isChaos[i] === 1;
+        if (alive && chaos && !quar && !inert) {
+          ctx.beginPath(); ctx.arc(x, y, r + 3.5 + (step % 3) * 1.5, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(217, 70, 239, 0.65)'; ctx.lineWidth = 1.6; ctx.stroke();
+        }
+        if (alive && chaos && !quar && inert) {
+          ctx.save(); ctx.setLineDash([2, 2]);
+          ctx.beginPath(); ctx.arc(x, y, r + 3, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(148, 163, 184, 0.7)'; ctx.lineWidth = 1.2; ctx.stroke();
+          ctx.restore();
+        }
+        if (alive && quar) {
+          ctx.save(); ctx.setLineDash([3, 2]);
+          ctx.beginPath(); ctx.arc(x, y, r + 3.5, 0, Math.PI * 2);
+          ctx.strokeStyle = chaos ? '#c084fc' : '#94a3b8'; ctx.lineWidth = 1.6; ctx.stroke();
+          ctx.restore();
+        }
+        let fill = '#334155', stroke = '#0f172a';
+        if (alive) {
+          if (quar) { fill = chaos ? '#581c87' : '#334155'; stroke = '#a855f7'; }
+          else if (chaos) { fill = pinfo ? pinfo.color : '#e11d48'; stroke = inert ? '#475569' : '#f0abfc'; }
+          else if (snap.stress[i] < 0.28) { fill = '#10b981'; stroke = '#064e3b'; }
+          else { fill = '#f59e0b'; stroke = '#78350f'; }
+        }
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = fill; ctx.globalAlpha = alive && chaos && inert && !quar ? 0.55 : 1; ctx.fill(); ctx.globalAlpha = 1;
+        ctx.lineWidth = 1.3; ctx.strokeStyle = stroke; ctx.stroke();
+        if (alive && pinfo && r >= 5.5) {
+          ctx.fillStyle = quar ? '#e9d5ff' : '#0b1020';
+          ctx.font = `bold ${Math.max(8, Math.round(r * (pinfo.sym.length > 1 ? 0.75 : 0.95)))}px JetBrains Mono, monospace`;
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(pinfo.sym, x, y + 0.5);
+        }
+      }
+    }
+
+    function drawGrid(ctx, w, pad, plotH, yMax, ticks, fmt) {
+      ctx.strokeStyle = 'rgba(51, 65, 85, 0.35)';
+      ctx.fillStyle = '#64748b';
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      for (let g = 0; g <= ticks; g++) {
+        const y = pad.top + plotH - (g / ticks) * plotH;
+        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+        ctx.fillText(fmt((g / ticks) * yMax), pad.left - 5, y);
+      }
+    }
+
+    function drawCsiChart() {
+      if (!simQuarOn || !simQuarOff) return;
+      const { ctx, w, h } = setupCanvas($('csiChartCanvas'));
+      ctx.clearRect(0, 0, w, h);
+      const pad = { top: 16, right: 14, bottom: 24, left: 36 };
+      const plotW = w - pad.left - pad.right, plotH = h - pad.top - pad.bottom;
+      const steps = simQuarOn.csi.length;
+      const xAt = (t) => pad.left + (t / (steps - 1)) * plotW;
+      drawGrid(ctx, w, pad, plotH, 1, 4, v => v.toFixed(2));
+
+      const yThresh = pad.top + plotH - 0.25 * plotH;
+      ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = 'rgba(251, 191, 36, 0.55)';
+      ctx.beginPath(); ctx.moveTo(pad.left, yThresh); ctx.lineTo(w - pad.right, yThresh); ctx.stroke(); ctx.restore();
+
+      ctx.strokeStyle = 'rgba(226, 232, 240, 0.25)';
+      ctx.beginPath(); ctx.moveTo(xAt(currentStep), pad.top); ctx.lineTo(xAt(currentStep), pad.top + plotH); ctx.stroke();
+
+      const plotLine = (data, color, dashed) => {
+        ctx.save();
+        if (dashed) ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2.4;
+        for (let t = 0; t < steps; t++) {
+          const y = pad.top + plotH - Math.max(0, Math.min(1, data[t])) * plotH;
+          t === 0 ? ctx.moveTo(xAt(t), y) : ctx.lineTo(xAt(t), y);
+        }
+        ctx.stroke(); ctx.restore();
+      };
+      plotLine(simQuarOff.csi, '#f43f5e', true);
+      plotLine(simQuarOn.csi, '#22d3ee', false);
+
+      ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      [0, 0.25, 0.5, 0.75, 1].map(f => Math.round(f * (steps - 1))).forEach(t => ctx.fillText(`t${t}`, xAt(t), h - pad.bottom + 6));
+    }
+
+    // ---------- Kırılma eşiği taraması ----------
+    let sweepData = null;
+    const SWEEP_PAD = { top: 20, right: 20, bottom: 34, left: 42 };
+
+    function runTippingPointSweep() {
+      const ratios = [0, 5, 10, 15, 20, 25, 30, 35];
+      const seeds = 5;
+      const base = { ...getUiConfig(), recordSnapshots: false };
+      const hubOff = [], hubOn = [], perOn = [];
+      for (const pct of ratios) {
+        let s1 = 0, s2 = 0, s3 = 0;
+        for (let s = 0; s < seeds; s++) {
+          const common = { ...base, chaos_ratio: pct / 100, seed: 300 + s };
+          const o1 = new GoliathSim({ ...common, infiltration_mode: 'hub', quarantine_enabled: false }).run();
+          const o2 = new GoliathSim({ ...common, infiltration_mode: 'hub', quarantine_enabled: true }).run();
+          const o3 = new GoliathSim({ ...common, infiltration_mode: 'periphery', quarantine_enabled: true }).run();
+          s1 += o1.csi[o1.steps - 1]; s2 += o2.csi[o2.steps - 1]; s3 += o3.csi[o3.steps - 1];
+        }
+        hubOff.push(s1 / seeds); hubOn.push(s2 / seeds); perOn.push(s3 / seeds);
+      }
+      sweepData = { ratios, hubOff, hubOn, perOn };
+      drawSweepChart();
+
+      const findTip = (arr) => { const idx = arr.findIndex(v => v < 0.25); return idx === -1 ? '>%35' : `%${ratios[idx]}`; };
+      const autophagic = hubOn[0] < hubOff[0] - 0.12 || hubOn[1] < hubOff[1] - 0.08;
+      const gainIdx = ratios.length - 1;
+      let verdict;
+      if (autophagic) {
+        verdict = `<span class="text-purple-300 font-semibold">Otofajik Çöküş Uyarısı:</span> Hassasiyet ${base.quarantine_sensitivity.toFixed(2)} (eşik ${detectorThreshold(base.quarantine_sensitivity).toFixed(3)}) dış saldırı yokken bile sağlıklı düğümleri izole ediyor.`;
+      } else if (hubOn[gainIdx] > hubOff[gainIdx] + 0.04) {
+        verdict = `<span class="text-emerald-300 font-semibold">Bağışıklık Kazancı:</span> Kör karantina, %${ratios[gainIdx]} hub sızmasında CSI'yi ${hubOff[gainIdx].toFixed(3)} → ${hubOn[gainIdx].toFixed(3)} korudu.`;
+      } else {
+        verdict = `<span class="text-amber-300 font-semibold">Sınırlı Etki:</span> Bu parametrelerde karantina hub sızmasına karşı belirgin bir kazanç sağlamadı.`;
+      }
+      $('discoverySummary').innerHTML = `
+        <p>• <b>Hub (Karantina Kapalı):</b> kırılma eşiği <span class="font-mono text-rose-400 font-bold">${findTip(hubOff)}</span></p>
+        <p>• <b>Hub (Karantina Açık):</b> kırılma eşiği <span class="font-mono text-cyan-400 font-bold">${findTip(hubOn)}</span></p>
+        <p>• <b>Çeper (Karantina Açık):</b> kırılma eşiği <span class="font-mono text-emerald-400 font-bold">${findTip(perOn)}</span></p>
+        <p class="pt-1 border-t border-slate-800">${verdict}</p>`;
+    }
+
+    function drawSweepChart() {
+      const { ctx, w, h } = setupCanvas($('sweepCanvas'));
+      ctx.clearRect(0, 0, w, h);
+      if (!sweepData) return;
+      const pad = SWEEP_PAD;
+      const plotW = w - pad.left - pad.right, plotH = h - pad.top - pad.bottom;
+      const { ratios, hubOff, hubOn, perOn } = sweepData;
+      const n = ratios.length;
+      const xAt = (i) => pad.left + (i / (n - 1)) * plotW;
+      const yAt = (v) => pad.top + plotH - Math.max(0, Math.min(1, v)) * plotH;
+      drawGrid(ctx, w, pad, plotH, 1, 4, v => v.toFixed(2));
+
+      ctx.save(); ctx.setLineDash([5, 4]); ctx.strokeStyle = 'rgba(251, 191, 36, 0.75)'; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(pad.left, yAt(0.25)); ctx.lineTo(w - pad.right, yAt(0.25)); ctx.stroke();
+      ctx.fillStyle = '#fbbf24'; ctx.textAlign = 'left'; ctx.fillText('Çöküş Eşiği (0.25)', pad.left + 6, yAt(0.25) - 9);
+      ctx.restore();
+
+      ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ratios.forEach((r, i) => ctx.fillText(`%${r}`, xAt(i), h - pad.bottom + 8));
+
+      const drawCurve = (arr, color) => {
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+        arr.forEach((v, i) => (i === 0 ? ctx.moveTo(xAt(i), yAt(v)) : ctx.lineTo(xAt(i), yAt(v))));
+        ctx.stroke();
+        arr.forEach((v, i) => { ctx.beginPath(); ctx.arc(xAt(i), yAt(v), 3.5, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill(); });
+      };
+      drawCurve(hubOff, '#f43f5e');
+      drawCurve(hubOn, '#22d3ee');
+      drawCurve(perOn, '#34d399');
+    }
+
+    function bindTooltip(canvas, tooltip, pad, getLen, render) {
+      const move = (e) => {
+        const len = getLen();
+        if (!len) return;
+        const rect = canvas.getBoundingClientRect();
+        const plotW = rect.width - pad.left - pad.right;
+        const mx = e.clientX - rect.left - pad.left;
+        if (mx < 0 || mx > plotW) { tooltip.classList.add('hidden'); return; }
+        const idx = Math.round((mx / plotW) * (len - 1));
+        tooltip.innerHTML = render(idx);
+        tooltip.style.left = `${Math.max(4, Math.min(rect.width - 190, e.clientX - rect.left + 12))}px`;
+        tooltip.style.top = `${Math.max(8, e.clientY - rect.top - 85)}px`;
+        tooltip.classList.remove('hidden');
+      };
+      canvas.addEventListener('pointermove', move);
+      canvas.addEventListener('pointerdown', move);
+      canvas.addEventListener('pointerleave', () => tooltip.classList.add('hidden'));
+    }
+
+    bindTooltip($('sweepCanvas'), $('sweepTooltip'), SWEEP_PAD, () => sweepData && sweepData.ratios.length, (idx) =>
+      `<div class="text-slate-400 mb-1">Kaos Oranı: <b class="text-white">%${sweepData.ratios[idx]}</b></div>` +
+      `<div class="text-rose-400">Hub (Kapalı): <b>${sweepData.hubOff[idx].toFixed(3)}</b></div>` +
+      `<div class="text-cyan-400">Hub (Açık): <b>${sweepData.hubOn[idx].toFixed(3)}</b></div>` +
+      `<div class="text-emerald-400">Çeper (Açık): <b>${sweepData.perOn[idx].toFixed(3)}</b></div>`);
+
+    // ---------- H-GİZLİ hipotez testi ----------
+    let hypData = null, hypRunning = false;
+    const HYP_PAD = { top: 20, right: 44, bottom: 34, left: 46 };
+
+    function runHypothesis() {
+      if (hypRunning) return;
+      hypRunning = true;
+      const btn = $('runHypBtn');
+      btn.disabled = true; btn.classList.add('opacity-60');
+      const seeds = parseInt($('hypSeeds').value, 10);
+      const base = { ...getUiConfig(), chaos_particles: ['PARASITE'], recordSnapshots: false };
+      const points = [];
+      $('hypProgress').classList.remove('hidden');
+      $('hypVerdict').textContent = 'çalışıyor…';
+      let k = 0;
+      const step = () => {
+        points.push(hypothesisPoint(base, HYPOTHESIS_DRAINS[k], seeds));
+        k++;
+        $('hypProgressBar').style.width = `${(k / HYPOTHESIS_DRAINS.length) * 100}%`;
+        if (k < HYPOTHESIS_DRAINS.length) { setTimeout(step, 0); return; }
+        const ev = evaluateHypothesis(points);
+        hypData = { points, ev, seeds, base };
+        drawHypChart();
+        renderHypVerdict();
+        $('hypProgress').classList.add('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+        hypRunning = false;
+      };
+      setTimeout(step, 0);
+    }
+
+    function renderHypVerdict() {
+      const { ev, seeds, base, points } = hypData;
+      const mark = (ok) => ok ? '<span class="font-mono font-bold text-emerald-400">✓</span>' : '<span class="font-mono font-bold text-rose-400">✗</span>';
+      const last = ev.onStats.length - 1;
+      let offPeak = 0;
+      ev.offStats.forEach((s, i) => { if (s.mean > ev.offStats[offPeak].mean) offPeak = i; });
+      $('hypCriteria').innerHTML = `
+        <li>${mark(ev.criteria.a)} (a) AÇIK tepesi iç noktada: d* = <b class="font-mono">${ev.peakDrain.toFixed(2)}</b></li>
+        <li>${mark(ev.criteria.b)} (b) Tepe / son nokta = <b class="font-mono">${ev.ratio.toFixed(2)}×</b>${ev.separated ? ', 2 SH ayrık' : ', 2 SH ayrık değil'}</li>
+        <li>${mark(ev.criteria.c)} (c) KAPALI monotonluğu: ρ = <b class="font-mono">${ev.rhoOff.toFixed(2)}</b></li>`;
+      const v = $('hypVerdict');
+      const partial = ev.criteria.a && ev.criteria.b && !ev.criteria.c;
+      if (ev.supported) {
+        v.textContent = 'DESTEKLENDİ';
+        v.className = 'rounded-md border border-emerald-500/50 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-300';
+      } else if (partial) {
+        v.textContent = 'KISMEN';
+        v.className = 'rounded-md border border-amber-500/50 bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-300';
+      } else {
+        v.textContent = 'DESTEKLENMEDİ';
+        v.className = 'rounded-md border border-rose-500/50 bg-rose-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-rose-300';
+      }
+      const extra = partial
+        ? ` KAPALI eğrisi de ${points[offPeak].drain.toFixed(2)}'de tepe yapıp düşüyor: aşırı sömürü kurbanları iflas ettiriyor ve parazit kendi kaynağını tüketiyor. Bu, karantinadan bağımsız ikinci bir ters-U mekanizması.`
+        : '';
+      $('hypNote').textContent =
+        `${seeds} seed × ${HYPOTHESIS_DRAINS.length} şiddet, eşik ${detectorThreshold(base.quarantine_sensitivity).toFixed(3)}. ` +
+        `Karantina, saldırganın en kârlı şiddetini ${points[offPeak].drain.toFixed(2)} → ${ev.peakDrain.toFixed(2)} noktasına çekti; ` +
+        `en sert parazit (d=${points[last].drain.toFixed(2)}) ortalama ${ev.onStats[last].mean.toFixed(1)}, sessiz parazit ${ev.onStats[ev.peakIndex].mean.toFixed(1)} birim çaldı.` + extra;
+    }
+
+    function drawHypChart() {
+      const { ctx, w, h } = setupCanvas($('hypCanvas'));
+      ctx.clearRect(0, 0, w, h);
+      const pad = HYP_PAD;
+      const plotW = w - pad.left - pad.right, plotH = h - pad.top - pad.bottom;
+      if (!hypData) {
+        ctx.fillStyle = '#64748b'; ctx.font = '12px Inter, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('“Hipotezi Test Et” ile Monte Carlo deneyini başlat', w / 2, h / 2);
+        return;
+      }
+      const { points, ev } = hypData;
+      const n = points.length;
+      let yMax = 0;
+      ev.onStats.forEach(s => { yMax = Math.max(yMax, s.mean + 2 * s.se); });
+      ev.offStats.forEach(s => { yMax = Math.max(yMax, s.mean); });
+      yMax = Math.max(1, Math.ceil(yMax / 10) * 10);
+      const xAt = (i) => pad.left + (i / (n - 1)) * plotW;
+      const yAt = (v) => pad.top + plotH - (v / yMax) * plotH;
+      drawGrid(ctx, w, pad, plotH, yMax, 4, v => v.toFixed(0));
+
+      // sağ eksen: TP oranı
+      ctx.fillStyle = '#a78bfa'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      for (let g = 0; g <= 4; g++) ctx.fillText(`%${g * 25}`, w - pad.right + 6, pad.top + plotH - (g / 4) * plotH);
+
+      ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      points.forEach((p, i) => { if (i % 2 === 0) ctx.fillText(p.drain.toFixed(2), xAt(i), h - pad.bottom + 8); });
+      ctx.fillText('sömürü şiddeti', pad.left + plotW / 2, h - 12);
+
+      // TP oranı
+      ctx.beginPath(); ctx.strokeStyle = 'rgba(167, 139, 250, 0.6)'; ctx.lineWidth = 1.5;
+      points.forEach((p, i) => {
+        const y = pad.top + plotH - meanSe(p.tpRate).mean * plotH;
+        i === 0 ? ctx.moveTo(xAt(i), y) : ctx.lineTo(xAt(i), y);
+      });
+      ctx.stroke();
+
+      // AÇIK: ±2 SH bant
+      ctx.beginPath();
+      ev.onStats.forEach((s, i) => { const y = yAt(s.mean + 2 * s.se); i === 0 ? ctx.moveTo(xAt(i), y) : ctx.lineTo(xAt(i), y); });
+      for (let i = n - 1; i >= 0; i--) ctx.lineTo(xAt(i), yAt(Math.max(0, ev.onStats[i].mean - 2 * ev.onStats[i].se)));
+      ctx.closePath(); ctx.fillStyle = 'rgba(34, 211, 238, 0.15)'; ctx.fill();
+
+      const curve = (stats, color, dashed) => {
+        ctx.save(); if (dashed) ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+        stats.forEach((s, i) => (i === 0 ? ctx.moveTo(xAt(i), yAt(s.mean)) : ctx.lineTo(xAt(i), yAt(s.mean))));
+        ctx.stroke(); ctx.restore();
+      };
+      curve(ev.offStats, '#f43f5e', true);
+      curve(ev.onStats, '#22d3ee', false);
+
+      // tepe işareti
+      const px = xAt(ev.peakIndex), py = yAt(ev.onStats[ev.peakIndex].mean);
+      ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fillStyle = '#22d3ee'; ctx.fill();
+      ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = '#a5f3fc'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText(`sessiz parazit d*=${ev.peakDrain.toFixed(2)}`, Math.min(Math.max(px, pad.left + 70), w - pad.right - 70), py - 8);
+    }
+
+    bindTooltip($('hypCanvas'), $('hypTooltip'), HYP_PAD, () => hypData && hypData.points.length, (idx) => {
+      const p = hypData.points[idx], on = hypData.ev.onStats[idx], off = hypData.ev.offStats[idx];
+      return `<div class="text-slate-400 mb-1">Şiddet: <b class="text-white">${p.drain.toFixed(2)}</b></div>` +
+        `<div class="text-cyan-400">AÇIK: <b>${on.mean.toFixed(1)}</b> ±${(2 * on.se).toFixed(1)}</div>` +
+        `<div class="text-rose-400">KAPALI: <b>${off.mean.toFixed(1)}</b></div>` +
+        `<div class="text-purple-300">Yakalanan: <b>%${(meanSe(p.tpRate).mean * 100).toFixed(0)}</b></div>` +
+        `<div class="text-slate-300">CSI (AÇIK): <b>${meanSe(p.csiOn).mean.toFixed(3)}</b></div>`;
+    });
+
+    // ---------- Üreteçleri parça parça çalıştır (arayüz donmasın) ----------
+    function runChunked(gen, bar, onDone) {
+      const tick = () => {
+        const t0 = performance.now();
+        let r;
+        do { r = gen.next(); } while (!r.done && performance.now() - t0 < 40);
+        if (!r.done) { bar.style.width = `${Math.min(100, (r.value.done / r.value.total) * 100)}%`; setTimeout(tick, 0); return; }
+        onDone(r.value);
+      };
+      setTimeout(tick, 0);
+    }
+
+    const mark = (ok) => ok ? '<span class="font-mono font-bold text-emerald-400">✓</span>' : '<span class="font-mono font-bold text-rose-400">✗</span>';
+    const pct = (x) => (x * 100).toFixed(1);
+    const setVerdict = (el, ok, partial, okText, noText) => {
+      el.textContent = ok ? okText : partial ? 'KISMEN' : noText;
+      el.className = ok
+        ? 'rounded-md border border-emerald-500/50 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-300'
+        : partial
+          ? 'rounded-md border border-amber-500/50 bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-300'
+          : 'rounded-md border border-rose-500/50 bg-rose-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-rose-300';
+    };
+
+    // ---------- H-KUANTUM ----------
+    let quantumRunning = false;
+    const BOSON_TR = { g: 'gluon g', gamma: 'foton γ', Z: 'Z', W: 'W', H: 'Higgs H' };
+    function runQuantum() {
+      if (quantumRunning) return;
+      quantumRunning = true;
+      const btn = $('runQuantumBtn');
+      btn.disabled = true; btn.classList.add('opacity-60');
+      $('quantumProgress').classList.remove('hidden');
+      $('quantumVerdict').textContent = 'çalışıyor…';
+      const base = { ...defaultConfig(getUiConfig()), recordSnapshots: false };
+      runChunked(quantumExperiment(base, {}), $('quantumProgressBar'), (r) => {
+        $('quantumTable').innerHTML = r.bosons.map(x => `
+          <tr class="border-b border-slate-800/60">
+            <td class="px-3 py-1.5 font-sans">${BOSON_TR[x.b]}</td>
+            <td class="px-3 py-1.5 text-right ${x.needed ? 'text-lime-300' : 'text-slate-500'}">${pct(x.need.mean)} ±${pct(x.need.se)}</td>
+            <td class="px-3 py-1.5 font-sans">${BOSON_TR[x.bestSub]}</td>
+            <td class="px-3 py-1.5 text-right">${pct(x.gap.mean)} ±${pct(x.gap.se)}</td>
+            <td class="px-3 py-1.5">${x.nonBypass ? '<span class="text-emerald-400">yok</span>' : '<span class="text-rose-400">VAR</span>'}</td>
+            <td class="px-3 py-1.5 text-right">${x.recovery === null ? '—' : '%' + (x.recovery * 100).toFixed(0)}</td>
+          </tr>`).join('');
+        const rows = [['SM18 (graviton dahil)', r.R.SM18, '#f5f5f4'], ['SM17', r.R.SM17, '#a3e635'], ['Yalnız fermiyonlar (F12)', r.R.F12, '#ef4444'], ['Yalnız bozonlar (B5)', r.R.B5, '#4ade80'], ['Taban: 18 pasif (N)', r.R.N18, '#475569']];
+        const maxV = Math.max(0.01, ...rows.map(x => x[1].mean));
+        $('quantumBars').innerHTML = rows.map(([label, st, color]) => `
+          <div><div class="flex justify-between"><span>${label}</span><span class="font-mono" style="color:${color}">%${pct(st.mean)}</span></div>
+          <div class="h-1.5 rounded bg-slate-800"><div class="h-1.5 rounded" style="width:${Math.max(0, st.mean / maxV) * 100}%;background:${color}"></div></div></div>`).join('');
+        $('quantumCriteria').innerHTML = `
+          <li>${mark(r.criteria.a)} (a) süper-toplamsallık: <b class="font-mono">${pct(r.superAdd.mean)} ± ${pct(r.superAdd.se)}</b> puan <span class="text-slate-500">(düzeltmesiz ${pct(r.superAddRaw.mean)})</span></li>
+          <li>${mark(r.criteria.b)} (b) bypass yok: <b class="font-mono">${r.bCount}/5</b> <span class="text-slate-500">(keşif, W yedeklerden çıkarılınca ${r.bCountNoW}/4)</span></li>
+          <li>${mark(r.criteria.c)} (c) graviton jokeri ort. geri kazanım: <b class="font-mono">${r.recMean === null ? '—' : '%' + (r.recMean * 100).toFixed(0)}</b></li>`;
+        const n = [r.criteria.a, r.criteria.b, r.criteria.c].filter(Boolean).length;
+        setVerdict($('quantumVerdict'), r.supported, n > 0 && !r.supported, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
+        $('quantumNote').textContent = `En yıkıcı şiddet d = ${r.drain}. Mekanizmalar ortogonal ama etkiler değil: bütün eksenler sonunda tek bir skalere (sağlıklı CSI) döküldüğü için birbirinin yerine geçebiliyor. En sık yedek W, çünkü tat değişimi yeni ajan üreterek bütçe korunumunu bozan tek süreç.`;
+        $('quantumProgress').classList.add('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+        quantumRunning = false;
+      });
+    }
+
+    // ---------- H-PRR ----------
+    let prrRunning = false, prrData = null;
+    function runPrr() {
+      if (prrRunning) return;
+      prrRunning = true;
+      const btn = $('runPrrBtn');
+      btn.disabled = true; btn.classList.add('opacity-60');
+      $('prrProgress').classList.remove('hidden');
+      $('prrVerdict').textContent = 'çalışıyor…';
+      // Ön kayıtlı deney: arayüz ayarlarından bağımsız, kayıttaki varsayılan ayarlarla çalışır
+      const base = { ...defaultConfig({}), recordSnapshots: false };
+      runChunked(prrExperiment(base, {}), $('prrProgressBar'), (r) => {
+        prrData = r;
+        drawPrr();
+        const p0 = r.planck.find(p => p.h === 0), p4 = r.planck.find(p => p.h === 0.4);
+        const tpAt = (p) => p.row.find(x => Math.abs(x.d - 0.3) < 1e-9).tp;
+        $('prrA').innerHTML = `${mark(r.criteria.a)} TP %${(tpAt(p0) * 100).toFixed(0)}→%${(tpAt(p4) * 100).toFixed(0)}`;
+        $('prrB').innerHTML = `${mark(r.criteria.b)} AUC ${r.rutherford.aucMean.toFixed(2)}`;
+        $('prrC').innerHTML = `<span title="c1 sağlamlık kontrolünde çöktü">⚠</span>${mark(r.criteria.c2)} ρ ${r.riemann.rhoA.toFixed(2)}`;
+        const res = r.planck.find(p => p.h === 0.3);
+        $('prrNote').textContent =
+          `Planck: en iyi sömürü ${p0.best.extracted.toFixed(1)} → ${p4.best.extracted.toFixed(1)} (h = 0.40). Rezonans: h = 0.30'da kuantum seviyesi tam gizlenme noktasına düşüyor, sömürü ${res.best.extracted.toFixed(1)}. ` +
+          `Rutherford: çekirdek modeli kaotik koşuların %${(r.rutherford.winChaos * 100).toFixed(0)}'inde kazandı; büyük kaos sinyali küresel ölçeği şişirip diğer sapmaları perdeliyor. ` +
+          `Riemann: ilk bakışta kaos daha rijit (fark ${r.riemann.rigDiff.mean.toFixed(3)} ± ${r.riemann.rigDiff.se.toFixed(3)}), ama sağlamlık kontrolünde çöktü: kaotik aralıkların çoğu tam 1.0, çünkü az olaylı düğümlerde ortalamaya bölmek değerleri 1'e yığıyor. Havuz genelinde normalize edince fark kayboluyor. 80 adım aralık istatistiği için çok kısa; bu sonuç geri çekildi. Higgs genliği etkisiz (ρ ${r.riemann.rhoA.toFixed(2)}).`;
+        const n = [r.criteria.a, r.criteria.b, r.criteria.c].filter(Boolean).length + (r.criteria.c1 && !r.criteria.c ? 0.5 : 0);
+        setVerdict($('prrVerdict'), r.supported, n > 0 && !r.supported, 'H-PRR DESTEKLENDİ', 'H-PRR DESTEKLENMEDİ');
+        $('prrProgress').classList.add('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+        prrRunning = false;
+      });
+    }
+
+    function smallChart(canvasId, draw) {
+      const { ctx, w, h } = setupCanvas($(canvasId));
+      ctx.clearRect(0, 0, w, h);
+      const pad = { top: 12, right: 30, bottom: 22, left: 34 };
+      const pw = w - pad.left - pad.right, ph = h - pad.top - pad.bottom;
+      ctx.font = '9px JetBrains Mono, monospace';
+      ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+      for (let g = 0; g <= 4; g++) { const y = pad.top + ph - (g / 4) * ph; ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke(); }
+      draw(ctx, w, h, pad, pw, ph);
+    }
+
+    function drawPrr() {
+      if (!prrData) {
+        for (const id of ['planckCanvas', 'rutherfordCanvas', 'riemannCanvas']) smallChart(id, (ctx, w, h) => {
+          ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.font = '11px Inter, sans-serif'; ctx.fillText('deney bekleniyor', w / 2, h / 2);
+        });
+        return;
+      }
+      const r = prrData;
+      smallChart('planckCanvas', (ctx, w, h, pad, pw, ph) => {
+        const hs = r.planck.map(p => p.h), maxE = Math.max(...r.planck.map(p => p.best.extracted)) * 1.1;
+        const xAt = i => pad.left + (i / (hs.length - 1)) * pw;
+        ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        hs.forEach((v, i) => ctx.fillText(v.toFixed(1), xAt(i), h - pad.bottom + 5));
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        for (let g = 0; g <= 4; g++) ctx.fillText((maxE * g / 4).toFixed(0), pad.left - 4, pad.top + ph - (g / 4) * ph);
+        ctx.textAlign = 'left'; ctx.fillStyle = '#a78bfa';
+        for (let g = 0; g <= 4; g += 2) ctx.fillText(`%${g * 25}`, w - pad.right + 3, pad.top + ph - (g / 4) * ph);
+        ctx.beginPath(); ctx.strokeStyle = 'rgba(167, 139, 250, 0.8)'; ctx.lineWidth = 1.5;
+        r.planck.forEach((p, i) => { const y = pad.top + ph - p.row.find(x => Math.abs(x.d - 0.3) < 1e-9).tp * ph; i ? ctx.lineTo(xAt(i), y) : ctx.moveTo(xAt(i), y); });
+        ctx.stroke();
+        ctx.beginPath(); ctx.strokeStyle = '#fde047'; ctx.lineWidth = 2.4;
+        r.planck.forEach((p, i) => { const y = pad.top + ph - (p.best.extracted / maxE) * ph; i ? ctx.lineTo(xAt(i), y) : ctx.moveTo(xAt(i), y); });
+        ctx.stroke();
+        r.planck.forEach((p, i) => { ctx.beginPath(); ctx.arc(xAt(i), pad.top + ph - (p.best.extracted / maxE) * ph, 3, 0, Math.PI * 2); ctx.fillStyle = '#fde047'; ctx.fill(); });
+      });
+      smallChart('rutherfordCanvas', (ctx, w, h, pad, pw, ph) => {
+        const hc = r.rutherford.histChaos, hn = r.rutherford.histClean;
+        const sc = hc.reduce((a, b) => a + b, 0), sn = hn.reduce((a, b) => a + b, 0);
+        const lc = hc.map(v => Math.log10(Math.max(1e-5, v / sc))), ln = hn.map(v => Math.log10(Math.max(1e-5, v / sn)));
+        const lo = Math.min(...lc, ...ln, -4), hi = 0;
+        const xAt = k => pad.left + ((k + 0.5) / R_BINS) * pw;
+        const yAt = v => pad.top + ph - ((v - lo) / (hi - lo)) * ph;
+        ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        [0, 45, 90, 135, 180].forEach(deg => ctx.fillText(`${deg}°`, pad.left + (deg / 180) * pw, h - pad.bottom + 5));
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        for (let g = 0; g <= 4; g++) { const v = lo + (hi - lo) * g / 4; ctx.fillText(`1e${v.toFixed(0)}`, pad.left - 4, yAt(v)); }
+        const line = (arr, color, dash) => { ctx.save(); if (dash) ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2; arr.forEach((v, k) => (k ? ctx.lineTo(xAt(k), yAt(v)) : ctx.moveTo(xAt(k), yAt(v)))); ctx.stroke(); ctx.restore(); };
+        line(ln, '#64748b'); line(lc, '#fb923c');
+        // Rutherford yasası: kaotik histogramın 2. kutusuna oturtulur
+        const th = k => ((k + 0.5) / R_BINS) * Math.PI;
+        const ref = lc[1] + 4 * Math.log10(Math.sin(th(1) / 2));
+        line(Array.from({ length: R_BINS }, (_, k) => (k === 0 ? lc[1] : ref - 4 * Math.log10(Math.sin(th(k) / 2)))), '#fde047', true);
+      });
+      smallChart('riemannCanvas', (ctx, w, h, pad, pw, ph) => {
+        const bins = 16, smax = 4;
+        const hist = (arr) => { const hh = new Array(bins).fill(0); arr.forEach(s => { if (s < smax) hh[Math.floor((s / smax) * bins)]++; }); return hh.map(v => v / Math.max(1, arr.length) / (smax / bins)); };
+        const hc = hist(r.riemann.spChaos), hn = hist(r.riemann.spClean);
+        const maxY = Math.max(1.2, ...hc, ...hn);
+        const xAt = s => pad.left + (s / smax) * pw, yAt = v => pad.top + ph - (v / maxY) * ph;
+        ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        [0, 1, 2, 3, 4].forEach(s => ctx.fillText(`${s}`, xAt(s), h - pad.bottom + 5));
+        const bw = pw / bins;
+        hn.forEach((v, k) => { ctx.fillStyle = 'rgba(100, 116, 139, 0.45)'; ctx.fillRect(pad.left + k * bw + 1, yAt(v), bw / 2 - 1, pad.top + ph - yAt(v)); });
+        hc.forEach((v, k) => { ctx.fillStyle = 'rgba(217, 70, 239, 0.75)'; ctx.fillRect(pad.left + k * bw + bw / 2, yAt(v), bw / 2 - 1, pad.top + ph - yAt(v)); });
+        const curve = (f, color) => { ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2; for (let k = 0; k <= 80; k++) { const s = (k / 80) * smax; k ? ctx.lineTo(xAt(s), yAt(f(s))) : ctx.moveTo(xAt(s), yAt(f(s))); } ctx.stroke(); };
+        curve(poissonPdf, '#38bdf8'); curve(guePdf, '#fde047');
+      });
+    }
+
+
+    // ---------- H-LIGO ----------
+    let ligoRunning = false;
+    function aucBar(label, v) {
+      const ok = v !== null && v >= 0.35 && v <= 0.65;
+      const w = v === null ? 0 : Math.round(v * 100);
+      return `<div class="flex items-center gap-2"><span class="w-32 shrink-0">${label}</span>
+        <div class="relative h-2 flex-1 rounded bg-slate-800"><div class="absolute inset-y-0 left-[35%] right-[35%] bg-slate-700/70"></div><div class="absolute top-0 h-2 w-1 rounded bg-sky-300" style="left:calc(${w}% - 2px)"></div></div>
+        <span class="w-10 shrink-0 text-right font-mono ${ok ? 'text-slate-300' : 'text-sky-300'}">${v === null ? '—' : v.toFixed(2)}</span></div>`;
+    }
+    function runLigo() {
+      if (ligoRunning) return;
+      ligoRunning = true;
+      const btn = $('runLigoBtn');
+      btn.disabled = true; btn.classList.add('opacity-60');
+      $('ligoProgress').classList.remove('hidden');
+      runChunked(ligoExperiment({ ...defaultConfig({}), recordSnapshots: false }, {}), $('ligoProgressBar'), (r) => {
+        const names = { q: 'karantina sayısı', kekZ: 'kek z', meanSig: 'ortalama sinyal', naive: 'ham kenar sayısı', matched: 'LIGO eşleşmiş filtre' };
+        $('ligoRows').innerHTML = `<div class="text-slate-400">80 koşu · graviton var ${r.nExist} · işareti belli ${r.nSign} (zararlı ${r.nHarm}). Gri bant: 0.35–0.65 = ayırt edemiyor.</div>
+          <div class="pt-1 font-semibold text-sky-200">Var mı?</div>` + Object.keys(names).map(k => aucBar(names[k], r.aucExist[k])).join('') +
+          `<div class="pt-1 font-semibold text-sky-200">Zararlı mı, yararlı mı?</div>` + Object.keys(names).map(k => aucBar(names[k], r.aucSign[k])).join('') +
+          `<div class="pt-1">${mark(r.criteria.a)} (a) &nbsp; ${mark(r.criteria.b)} (b) &nbsp; ${mark(r.criteria.c)} (c)</div>
+           <p class="text-slate-400">Düğüm aletleri gravitonu göremiyor, uzay-zaman bükülmesini izleyen LIGO görüyor; ama hiçbir gözlem zararlı mı yararlı mı olduğunu söyleyemiyor. Varlığını kanıtlayabiliriz, niteliğini bilemeyiz.</p>`;
+        setVerdict($('ligoVerdict'), r.supported, r.criteria.a || r.criteria.b || r.criteria.c, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
+        $('ligoProgress').classList.add('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+        ligoRunning = false;
+      });
+    }
+    function runJokerCern() {
+      const btn = $('runJokerCernBtn');
+      if (btn.disabled) return;
+      btn.disabled = true; btn.classList.add('opacity-60');
+      $('ligoProgress').classList.remove('hidden');
+      runChunked(jokerGhostExperiment({ ...defaultConfig({}), recordSnapshots: false }, { cosmo: COSMO_CERN, offset: 9300 }), $('ligoProgressBar'), (r) => {
+        const L = { g: 'gluon g', gamma: 'foton γ', Z: 'Z', W: 'W' };
+        $('jcRows').innerHTML = `<div class="text-slate-400">Tam sürü hasarı %${pct(r.full.mean)}</div>` + r.joker.map(x => `
+          <div class="flex flex-wrap justify-between gap-2"><span class="w-20">${L[x.b]} eksik</span>
+            <span class="font-mono">jokerli %${pct(x.on)} · jokersiz %${pct(x.off)}</span>
+            <span class="font-mono ${x.recovery !== null && x.recovery >= 0.5 ? 'text-emerald-400' : 'text-rose-400'}">${x.needed ? '' : '(gereksiz) '}${x.recovery === null ? '—' : (x.recovery * 100).toFixed(0) + '%'}</span></div>`).join('') +
+          `<div class="pt-1">${mark(r.criteriaJ.a)} (a) ortalama ${r.recMean === null ? '—' : (r.recMean * 100).toFixed(0) + '%'} &nbsp; ${mark(r.criteriaJ.b)} (b) W</div>
+           <p class="text-slate-400">v2.1'de çürütülmüştü. Kütlenin çoğu QCD'den gelince Higgs'in kendi alanı zayıflıyor ve joker olmanın bedeli düşüyor. Anlamlı kayıp yaratan tek bozon W: Higgs'in yutulan Goldstone bileşeni. Not: (a)'nın ortalaması yalnızca W'ye dayanıyor.</p>`;
+        setVerdict($('jcVerdict'), r.supportedJ, r.criteriaJ.a || r.criteriaJ.b, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
+        $('ligoProgress').classList.add('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+      });
+    }
+
+    // ---------- H-JOKER / H-HAYALET ----------
+    let jgRunning = false;
+    function runJG() {
+      if (jgRunning) return;
+      jgRunning = true;
+      const btn = $('runJGBtn');
+      btn.disabled = true; btn.classList.add('opacity-60');
+      $('jgProgress').classList.remove('hidden');
+      runChunked(jokerGhostExperiment({ ...defaultConfig({}), recordSnapshots: false }, {}), $('jgProgressBar'), (r) => {
+        const L = { g: 'gluon g', gamma: 'foton γ', Z: 'Z', W: 'W' };
+        $('jRows').innerHTML = `<div class="text-slate-400">Tam sürü hasarı %${pct(r.full.mean)}</div>` + r.joker.map(x => `
+          <div class="flex flex-wrap justify-between gap-2"><span class="w-16">${L[x.b]} eksik</span>
+            <span class="font-mono">jokerli %${pct(x.on)} · jokersiz %${pct(x.off)}</span>
+            <span class="font-mono ${x.recovery !== null && x.recovery >= 0.5 ? 'text-emerald-400' : 'text-rose-400'}">${x.needed ? '' : '(gereksiz) '}geri kazanım ${x.recovery === null ? '—' : (x.recovery * 100).toFixed(0) + '%'}</span></div>`).join('') +
+          `<div class="pt-1">${mark(r.criteriaJ.a)} (a) ortalama ${r.recMean === null ? '—' : (r.recMean * 100).toFixed(0) + '%'} &nbsp; ${mark(r.criteriaJ.b)} (b) W</div>
+           <p class="text-slate-400">Higgs büründüğü adımda kendi kütle alanını bırakıyor; korunumlu ekonomide kütle alanı boşluğu doldurmaktan daha yıkıcı. Higgs'in gücü joker olmakta değil, kütlede.</p>`;
+        $('gRows').innerHTML = `
+          <div>${mark(r.criteriaG.a)} (a) sürüye hayalet eklemenin etkisi: <b class="font-mono">${pct(r.ghostEff.mean)} ± ${pct(r.ghostEff.se)}</b> puan</div>
+          <div>${mark(r.criteriaG.b)} (b) yalnız hayalet (6, d = 0.8): hasar <b class="font-mono">%${pct(r.ghostOnly.damage.mean)}</b>, küme alarmı %${(r.ghostOnly.alarm * 100).toFixed(0)}, yakalanan düğüm 0 (düğüm yok)</div>
+          <p class="text-slate-400">Dikkat: hayaletin zararı modelde varsayım olarak kodlandı, bu yüzden (b) bir keşif değil. Gerçek soru "zararlı mı?" değil, "varlığı gözlemlerden ayırt edilebilir mi?". Sürünün içinde etkisi gürültüde kayboluyor (a).</p>`;
+        setVerdict($('jVerdict'), r.supportedJ, r.criteriaJ.a || r.criteriaJ.b, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
+        setVerdict($('gVerdict'), r.supportedG, r.criteriaG.a || r.criteriaG.b, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
+        $('jgProgress').classList.add('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+        jgRunning = false;
+      });
+    }
+
+    // ---------- Üzümlü kek + küme alarmı ----------
+    let kekRunning = false, kekData = null;
+    function runKek() {
+      if (kekRunning) return;
+      kekRunning = true;
+      const btn = $('runKekBtn');
+      btn.disabled = true; btn.classList.add('opacity-60');
+      $('kekProgress').classList.remove('hidden');
+      const base = { ...defaultConfig({}), recordSnapshots: false };
+      runChunked(kekExperiment(base, {}), $('kekProgressBar'), (k) => {
+        runChunked(clusterExperiment(base, {}), $('kekProgressBar'), (c) => {
+          kekData = { k, c };
+          $('kekCriteria').innerHTML = `
+            <li>${mark(k.criteria.a)} (a) AUC: eski yöntem ${k.aucOld.toFixed(3)} → sağlam ${k.aucNew.toFixed(3)} (eşik 0.70)</li>
+            <li>${mark(k.criteria.b)} (b) kekten anlamlı <i>yüksek</i>: kaotik %${(k.sigChaos * 100).toFixed(0)}, temiz %${(k.sigClean * 100).toFixed(0)}. Oran gerçek/kek: kaotik <b class="font-mono">${k.ratioChaos.toFixed(2)}</b> (z ${k.zChaos.toFixed(2)}), temiz ${k.ratioClean.toFixed(2)} (z ${k.zClean.toFixed(2)})</li>
+            <li>${mark(k.criteria.c)} (c) en çok sapan düğümlerde kaos payı ${(k.prec * 100).toFixed(0)}% (rastgele ${(k.baseRate * 100).toFixed(0)}%)</li>`;
+          $('kumeTable').innerHTML = `<div class="pt-1 font-semibold text-amber-200">H-KÜME: sürü alarmı (z &lt; −1.645)</div>` +
+            c.rows.concat([{ label: 'temiz ağ', alarm: c.clean.alarm, zMean: c.clean.zMean }]).map(x => `
+              <div class="flex items-center gap-2"><span class="w-44 shrink-0">${x.label}</span>
+                <div class="h-2 flex-1 rounded bg-slate-800"><div class="h-2 rounded ${x.label === 'temiz ağ' ? 'bg-slate-500' : 'bg-amber-400'}" style="width:${x.alarm * 100}%"></div></div>
+                <span class="w-24 shrink-0 text-right font-mono">%${(x.alarm * 100).toFixed(0)} · z ${x.zMean.toFixed(2)}</span></div>`).join('');
+          setVerdict($('kekVerdict'), k.supported, false, 'H-KEK DESTEKLENDİ', 'H-KEK ÇÜRÜTÜLDÜ');
+          setVerdict($('kumeVerdict'), c.supported, false, 'H-KÜME DESTEKLENDİ', 'H-KÜME ÇÜRÜTÜLDÜ');
+          const nullOk = c.clean.alarm <= 0.05;
+          $('kekNote').textContent = `Temiz ağda alarm %${(c.clean.alarm * 100).toFixed(0)} (ort z ${c.clean.zMean.toFixed(2)}): kek sıfır modeli olarak ${nullOk ? 'geçerli' : 'GEÇERSİZ'}. ` +
+            (nullOk ? 'Kaos varken ağ kekten daha az geri saçıyor: bağlanan sürü noktasal çekirdek değil yayılmış bir bulut oluşturuyor.' :
+              'v2.0 korunumlu ekonomide paylaşım komşu sinyalleri ilişkilendiriyor; sinyalleri karıştırmak bu doğal yapıyı da bozduğu için kek, kaosu değil ağın kendi yapısını ölçüyor. v1.1\'deki "sürü alarmı" bulgusu para basımı hatasına dayanıyordu ve geri çekildi.');
+          drawKek();
+          $('kekProgress').classList.add('hidden');
+          btn.disabled = false; btn.classList.remove('opacity-60');
+          kekRunning = false;
+        });
+      });
+    }
+
+    function drawKek() {
+      smallChart('kekCanvas', (ctx, w, h, pad, pw, ph) => {
+        if (!kekData) { ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.font = '11px Inter, sans-serif'; ctx.fillText('deney bekleniyor', w / 2, h / 2); return; }
+        const k = kekData.k;
+        const ratio = (hh, pp) => hh.map((v, i) => (pp[i] > 0 ? v / pp[i] : NaN));
+        const rc = ratio(k.histChaos, k.pudChaos), rn = ratio(k.histClean, k.pudClean);
+        const lo = 0, hi = 2;
+        const xAt = i => pad.left + ((i + 0.5) / R_BINS) * pw, yAt = v => pad.top + ph - ((Math.min(hi, v) - lo) / (hi - lo)) * ph;
+        ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        [0, 45, 90, 135, 180].forEach(d => ctx.fillText(`${d}°`, pad.left + (d / 180) * pw, h - pad.bottom + 5));
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        [0, 0.5, 1, 1.5, 2].forEach(v => ctx.fillText(v.toFixed(1), pad.left - 4, yAt(v)));
+        ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = '#fde047'; ctx.beginPath(); ctx.moveTo(pad.left, yAt(1)); ctx.lineTo(w - pad.right, yAt(1)); ctx.stroke(); ctx.restore();
+        const line = (arr, color) => { ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2.2; let started = false; arr.forEach((v, i) => { if (!Number.isFinite(v)) return; started ? ctx.lineTo(xAt(i), yAt(v)) : ctx.moveTo(xAt(i), yAt(v)); started = true; }); ctx.stroke(); };
+        line(rn, '#64748b'); line(rc, '#fbbf24');
+      });
+    }
+
+    // ---------- Kontroller ----------
+    function showToast(msg) {
+      const t = $('toast');
+      $('toastText').textContent = msg;
+      t.classList.remove('hidden');
+      clearTimeout(t._id);
+      t._id = setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+
+    const PATTERNS = {
+      PARASITE: ['PARASITE'],
+      sm: 'sm',
+      sm17: SM_ORDER.filter(k => k !== 'G'),
+      fermions: SM_ORDER.filter(k => FERMION.has(P[k])),
+      quarks: ['u', 'd', 'c', 's', 't', 'b'],
+      leptons: ['e', 've', 'mu', 'vmu', 'tau', 'vtau'],
+      neutrinos: ['ve', 'vmu', 'vtau'],
+    };
+
+    function getUiParticles() { return PATTERNS[$('particleSelect').value] || ['PARASITE']; }
+
+    function uiAgentCount() {
+      return Math.round(60 * parseFloat($('chaosRatioSlider').value) / 100);
+    }
+
+    function renderParticleLegend() {
+      $('particleLegend').innerHTML = SM_ORDER.map(k => {
+        const info = PARTICLE_INFO[k];
+        return `<span title="${info.name}: ${info.cycle}" class="flex h-6 items-center justify-center rounded-md border border-slate-800 bg-slate-950 font-mono text-[10px] font-bold" style="color:${info.color}">${info.sym}</span>`;
+      }).join('');
+    }
+
+    function updateSwarmSummary() {
+      const n = uiAgentCount();
+      if (n === 0) { $('swarmSummary').textContent = '0 ajan: kaos yok'; return; }
+      const types = assignParticles(getUiParticles(), n, 0);
+      const counts = {};
+      for (const t of types) counts[PKEY[t]] = (counts[PKEY[t]] || 0) + 1;
+      const ghost = $('cosmoSelect').value !== 'v11' && counts.G;
+      const ghostLabel = $('cosmoSelect').value === 'cern' ? 'agnostik graviton (var olup olmadığı bilinmez)' : 'hayalet G (düğüm değil)';
+      if (ghost) delete counts.G;
+      $('swarmSummary').textContent = `${n - (ghost || 0)} düğüm ajanı: ` + Object.entries(counts).map(([k, c]) => `${c > 1 ? c + '×' : ''}${PARTICLE_INFO[k].sym}`).join(' ') + (ghost ? ` · ${ghost} ${ghostLabel}` : '');
+    }
+
+    function getUiConfig() {
+      return {
+        topology: $('topologySelect').value,
+        infiltration_mode: $('infiltrationSelect').value,
+        chaos_ratio: parseFloat($('chaosRatioSlider').value) / 100,
+        drain_intensity: parseFloat($('drainSlider').value),
+        quarantine_sensitivity: parseFloat($('sensSlider').value),
+        contagion_rate: parseFloat($('contagionSlider').value),
+        buffer_share: parseFloat($('bufferSlider').value),
+        double_helix: $('doubleHelixToggle').checked,
+        chaos_particles: getUiParticles(),
+        ...({ cern: COSMO_CERN, v21: COSMO_V21, v11: COSMO_V11 })[$('cosmoSelect').value],
+        planck_h: parseFloat($('planckSlider').value),
+        higgs_osc_amp: parseFloat($('higgsSlider').value),
+        seed: 42,
+        recordSnapshots: true,
+      };
+    }
+
+    function updateKPIs() {
+      const quarOn = $('quarantineToggle').checked;
+      const a = activeSim();
+      const last = a.steps - 1;
+      $('kpiCsi').textContent = a.csi[last].toFixed(3);
+      $('kpiCsiSub').textContent = quarOn ? 'Karantina AÇIK' : 'Karantina KAPALI';
+      $('kpiAlive').textContent = `${(a.alive[last] * 100).toFixed(0)}%`;
+      $('kpiCapitalSub').textContent = `Aktif sermaye: ${(a.capital[last] * 100).toFixed(0)}%`;
+      $('kpiTp').textContent = `${a.tp} / ${a.totalChaos}`;
+      $('kpiTpSub').textContent = Object.entries(a.byFamily).map(([f, v]) => `${f} ${v.caught}/${v.count}`).join(' · ') || 'kaos yok';
+      $('kpiFp').textContent = `${a.fp}`;
+      $('kpiExtracted').textContent = a.extracted.toFixed(1);
+      const other = quarOn ? simQuarOff : simQuarOn;
+      $('kpiExtractedSub').textContent = `Diğer koşu: ${other.extracted.toFixed(1)}`;
+
+      const earlyVar = Math.max(computeVariance(a.stress, Math.floor(a.steps * 0.06), Math.floor(a.steps * 0.31)), 1e-6);
+      const lateVar = computeVariance(a.stress, Math.floor(a.steps * 0.5), a.steps);
+      const badge = $('ewsBadge');
+      if (a.csi[last] < 0.25) {
+        badge.textContent = 'EWS: KRİTİK ÇÖKÜŞ';
+        badge.className = 'rounded-md border border-rose-500/50 bg-rose-500/20 px-2.5 py-0.5 font-mono text-[11px] font-bold text-rose-300';
+      } else if (lateVar > earlyVar * 2.2 || a.fp >= 10) {
+        badge.textContent = 'EWS: ERKEN UYARI';
+        badge.className = 'rounded-md border border-amber-500/50 bg-amber-500/20 px-2.5 py-0.5 font-mono text-[11px] font-bold text-amber-300';
+      } else {
+        badge.textContent = 'EWS: STABİL';
+        badge.className = 'rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300';
+      }
+    }
+
+    function runInteractiveSim() {
+      stopPlayback();
+      const base = getUiConfig();
+      simQuarOn = new GoliathSim({ ...base, quarantine_enabled: true }).run();
+      simQuarOff = new GoliathSim({ ...base, quarantine_enabled: false }).run();
+      nodePositions = computeNodeLayout(simQuarOn.topology, simQuarOn.degrees, simQuarOn.layers);
+      lastStep = simQuarOn.steps - 1;
+      currentStep = lastStep;
+      $('timeScrubber').max = lastStep;
+      $('timeScrubber').value = currentStep;
+      $('headerMeta').textContent = `N=${simQuarOn.degrees.length} • T=${simQuarOn.steps}`;
+      $('networkSubtitle').textContent = simQuarOn.topology === 'adaptive_hierarchy'
+        ? 'Katman 0: Çekirdek (4) • Katman 1: Bölgesel (16) • Katman 2: Çeper (40)'
+        : 'Scale-Free: halkalar bağlantı sırasına göre (ilk 4 • sonraki 16 • kalan)';
+      updateKPIs();
+      drawNetwork(currentStep);
+      drawCsiChart();
+    }
+
+    function stopPlayback() {
+      isPlaying = false;
+      clearInterval(playTimer);
+      $('playIcon').classList.remove('hidden');
+      $('pauseIcon').classList.add('hidden');
+    }
+
+    function togglePlayback() {
+      if (isPlaying) { stopPlayback(); return; }
+      if (currentStep >= lastStep) currentStep = 0;
+      isPlaying = true;
+      $('playIcon').classList.add('hidden');
+      $('pauseIcon').classList.remove('hidden');
+      playTimer = setInterval(() => {
+        currentStep++;
+        if (currentStep > lastStep) { currentStep = lastStep; stopPlayback(); return; }
+        $('timeScrubber').value = currentStep;
+        drawNetwork(currentStep);
+        drawCsiChart();
+      }, 90);
+    }
+
+    const PRESETS = {
+      trojan:    { topology: 'adaptive_hierarchy', infiltration: 'hub',       chaos: 5,  drain: 0.45, sens: 0.50, contagion: 0.26, buffer: 0.18, helix: true },
+      periphery: { topology: 'adaptive_hierarchy', infiltration: 'periphery', chaos: 20, drain: 0.40, sens: 0.55, contagion: 0.24, buffer: 0.18, helix: true },
+      autophagy: { topology: 'adaptive_hierarchy', infiltration: 'random',    chaos: 5,  drain: 0.30, sens: 1.15, contagion: 0.22, buffer: 0.18, helix: true },
+      stealth:   { topology: 'adaptive_hierarchy', infiltration: 'hub',       chaos: 10, drain: 0.30, sens: 0.55, contagion: 0.24, buffer: 0.18, helix: true },
+      standard:  { topology: 'adaptive_hierarchy', infiltration: 'hub',       chaos: 30, drain: 0.50, sens: 0.55, contagion: 0.24, buffer: 0.18, helix: true, particles: 'sm' },
+      ghosts:    { topology: 'adaptive_hierarchy', infiltration: 'random',    chaos: 15, drain: 0.50, sens: 0.80, contagion: 0.24, buffer: 0.18, helix: true, particles: 'neutrinos' },
+      planck:    { topology: 'adaptive_hierarchy', infiltration: 'hub',       chaos: 10, drain: 0.30, sens: 0.55, contagion: 0.24, buffer: 0.18, helix: true, planck: 0.40 },
+    };
+
+    function updateThresholdHint() {
+      $('thresholdHint').textContent = `eşik = ${detectorThreshold(parseFloat($('sensSlider').value)).toFixed(3)}`;
+    }
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.dataset.preset];
+        if (!p) return;
+        $('topologySelect').value = p.topology;
+        $('infiltrationSelect').value = p.infiltration;
+        $('chaosRatioSlider').value = p.chaos; $('chaosRatioVal').textContent = `${p.chaos}%`;
+        $('drainSlider').value = p.drain; $('drainVal').textContent = p.drain.toFixed(2);
+        $('sensSlider').value = p.sens; $('sensVal').textContent = p.sens.toFixed(2);
+        $('contagionSlider').value = p.contagion; $('contagionVal').textContent = p.contagion.toFixed(2);
+        $('bufferSlider').value = p.buffer; $('bufferVal').textContent = p.buffer.toFixed(2);
+        $('doubleHelixToggle').checked = p.helix;
+        $('quarantineToggle').checked = true;
+        $('particleSelect').value = p.particles || 'PARASITE';
+        $('planckSlider').value = p.planck || 0; $('planckVal').textContent = (p.planck || 0).toFixed(2);
+        $('higgsSlider').value = p.higgs || 0; $('higgsVal').textContent = (p.higgs || 0).toFixed(2);
+        updateSwarmSummary();
+        updateThresholdHint();
+        runInteractiveSim();
+        showToast(`Senaryo yüklendi: ${btn.querySelector('span').textContent}`);
+      });
+    });
+
+    $('chaosRatioSlider').addEventListener('input', e => { $('chaosRatioVal').textContent = `${e.target.value}%`; updateSwarmSummary(); });
+    $('particleSelect').addEventListener('change', updateSwarmSummary);
+    $('cosmoSelect').addEventListener('change', updateSwarmSummary);
+    $('planckSlider').addEventListener('input', e => { $('planckVal').textContent = parseFloat(e.target.value).toFixed(2); });
+    $('higgsSlider').addEventListener('input', e => { $('higgsVal').textContent = parseFloat(e.target.value).toFixed(2); });
+    [['drainSlider', 'drainVal'], ['sensSlider', 'sensVal'], ['contagionSlider', 'contagionVal'], ['bufferSlider', 'bufferVal']].forEach(([s, v]) => {
+      $(s).addEventListener('input', e => { $(v).textContent = parseFloat(e.target.value).toFixed(2); updateThresholdHint(); });
+    });
+
+    $('runSimBtn').addEventListener('click', runInteractiveSim);
+    $('quarantineToggle').addEventListener('change', () => { updateKPIs(); drawNetwork(currentStep); drawCsiChart(); });
+    $('playPauseBtn').addEventListener('click', togglePlayback);
+    $('timeScrubber').addEventListener('input', e => {
+      stopPlayback();
+      currentStep = parseInt(e.target.value, 10);
+      drawNetwork(currentStep);
+      drawCsiChart();
+    });
+    $('runSweepBtn').addEventListener('click', () => { runTippingPointSweep(); showToast('Kırılma eşiği taraması (%0 → %35) tamamlandı.'); });
+    $('runHypBtn').addEventListener('click', runHypothesis);
+    $('runQuantumBtn').addEventListener('click', runQuantum);
+    $('runPrrBtn').addEventListener('click', runPrr);
+    $('runKekBtn').addEventListener('click', runKek);
+    $('runJGBtn').addEventListener('click', runJG);
+    $('runLigoBtn').addEventListener('click', runLigo);
+    $('runJokerCernBtn').addEventListener('click', runJokerCern);
+
+    window.addEventListener('resize', () => { drawNetwork(currentStep); drawCsiChart(); drawSweepChart(); drawHypChart(); drawPrr(); drawKek(); });
+    window.addEventListener('load', () => {
+      updateThresholdHint();
+      renderParticleLegend();
+      updateSwarmSummary();
+      runInteractiveSim();
+      runTippingPointSweep();
+      drawHypChart();
+      drawPrr();
+      drawKek();
+    });
+  </script>
+</body>
+</html>

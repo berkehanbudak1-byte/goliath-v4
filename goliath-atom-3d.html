@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+</head>
+<body class="bg-transparent text-[var(--foreground)] antialiased p-0 m-0">
+  <div class="py-2 space-y-2.5 min-w-0">
+    <!-- Top Control Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[var(--card-border)] text-xs">
+      <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
+        <button data-mode="atom" class="mode-btn px-2.5 py-1 rounded-md font-mono font-semibold border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] transition">ATOM (59.6)</button>
+        <button data-mode="flat" class="mode-btn px-2.5 py-1 rounded-md font-mono border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] transition">DÜZ (28.8)</button>
+        <button data-mode="greedy" class="mode-btn px-2.5 py-1 rounded-md font-mono border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] transition">AÇGÖZLÜ (17.0)</button>
+        <button data-mode="oracle" class="mode-btn px-2.5 py-1 rounded-md font-mono border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] transition">KÂHİN d*=0.3 (63.0)</button>
+      </div>
+      <div class="flex items-center gap-3 font-mono text-xs">
+        <label class="flex items-center gap-1.5 text-[var(--muted-foreground)]">
+          <span>t=<b id="tLabel" class="text-[var(--foreground)]">79</b></span>
+          <input id="tSlider" type="range" min="0" max="79" value="79" class="w-24 sm:w-32 accent-[var(--primary)]" />
+        </label>
+        <button id="playBtn" class="px-2 py-0.5 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]">Oynat</button>
+      </div>
+    </div>
+
+    <!-- 3D Viewport + Live Telemetry -->
+    <div class="relative w-full overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)]">
+      <canvas id="canvas3d" class="block w-full h-[310px] cursor-grab active:cursor-grabbing"></canvas>
+
+      <!-- Top-left KPI overlay -->
+      <div class="pointer-events-none absolute top-2.5 left-3 space-y-1 font-mono text-xs">
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">Çalınan: <b id="exReadout" class="text-[var(--success)]">59.6</b></span>
+          <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">Yakalanan (TP): <b id="tpReadout" class="text-[var(--warning)]">4 / 12</b></span>
+        </div>
+        <div id="shellReadout" class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)] text-[var(--muted-foreground)]">
+          İç Kabuk (Hub) d=0.27 · Dış Kabuk (Çeper) d=0.35
+        </div>
+      </div>
+
+      <!-- Bottom Legend -->
+      <div class="pointer-events-none absolute bottom-2 left-3 right-3 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+        <div class="flex flex-wrap items-center gap-2.5 px-2.5 py-1 rounded bg-[var(--background)]/85 border border-[var(--border)]">
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400"></span>Sağlıklı</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-400"></span>Dış Kabuk Ajanı (Yüksek d)</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400"></span>İç Kabuk Hub Ajanı (Kısık d)</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-purple-500"></span>Karantina (Kesildi)</span>
+        </div>
+        <span class="hidden sm:inline px-2 py-0.5 rounded bg-[var(--background)]/80 text-[var(--muted-foreground)]">Sürükle: 3B Döndür</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas3d');
+    const ctx = canvas.getContext('2d');
+
+    // 3 concentric 3D spherical shells: L0 Core (r=0.28, 4 nodes), L1 Regional (r=0.58, 16 nodes), L2 Periphery (r=0.92, 40 nodes)
+    const N = 60;
+    const nodes = [];
+    const edges = [];
+
+    function fibSphere(k, total, radius, layer) {
+      const phi = Math.acos(1 - 2 * (k + 0.5) / total);
+      const theta = Math.PI * (1 + Math.sqrt(5)) * (k + 0.5);
+      return {
+        x: radius * Math.sin(phi) * Math.cos(theta),
+        y: radius * Math.cos(phi),
+        z: radius * Math.sin(phi) * Math.sin(theta),
+        layer,
+        rShell: radius
+      };
+    }
+
+    for (let i = 0; i < 4; i++) nodes.push({ id: i, ...fibSphere(i, 4, 0.28, 0), deg: 9 });
+    for (let i = 0; i < 16; i++) nodes.push({ id: 4 + i, ...fibSphere(i, 16, 0.58, 1), deg: 6 });
+    for (let i = 0; i < 40; i++) nodes.push({ id: 20 + i, ...fibSphere(i, 40, 0.94, 2), deg: 3 });
+
+    // Build hierarchy edges
+    for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) edges.push([i, j]);
+    for (let i = 4; i < 20; i++) {
+      edges.push([i, (i - 4) % 4]);
+      edges.push([i, 4 + ((i - 3) % 16)]);
+    }
+    for (let i = 20; i < 60; i++) {
+      edges.push([i, 4 + ((i - 20) % 16)]);
+      if (i % 2 === 0) edges.push([i, 20 + ((i - 19) % 40)]);
+    }
+
+    // 12 Chaos agents across inner (hub) and outer (periphery) shells
+    const chaosIds = new Set([0, 2, 5, 8, 12, 16, 23, 29, 35, 42, 49, 55]);
+    nodes.forEach(n => {
+      n.isChaos = chaosIds.has(n.id);
+      n.isInnerChaos = n.isChaos && n.layer <= 1;
+    });
+
+    // Mode profiles (matching actual H-ATOM experiment results over 20 seeds)
+    const MODES = {
+      atom: {
+        name: 'ATOM',
+        maxEx: 59.6,
+        dInner: 0.27,
+        dOuter: 0.35,
+        label: 'ATOM: İç Kabuk (Hub) d=0.27 (Gizli) · Dış Kabuk (Çeper) d=0.35 (Aktif)',
+        quarantineTime: (n) => n.isInnerChaos ? (n.id % 3 === 0 ? 46 : 999) : (n.id % 4 === 1 ? 58 : 999)
+      },
+      flat: {
+        name: 'DÜZ',
+        maxEx: 28.8,
+        dInner: 0.42,
+        dOuter: 0.42,
+        label: 'DÜZ: Tüm Kabuklara Tek Skaler d=0.42 → Hub Ajanları Erken Yakalanır',
+        quarantineTime: (n) => n.isInnerChaos ? 10 + (n.id % 8) : (n.id % 2 === 0 ? 22 + (n.id % 14) : 45)
+      },
+      greedy: {
+        name: 'AÇGÖZLÜ',
+        maxEx: 17.0,
+        dInner: 0.80,
+        dOuter: 0.80,
+        label: 'AÇGÖZLÜ: Sabit d=0.80 → Kör Dedektör t=6..14 Arasında Sürüyü Keser',
+        quarantineTime: (n) => 5 + (n.id % 7)
+      },
+      oracle: {
+        name: 'KÂHİN',
+        maxEx: 63.0,
+        dInner: 0.30,
+        dOuter: 0.30,
+        label: 'KÂHİN: Dedektör Eşiğini Önceden Bilen Sabit d*=0.30 (Teorik Üst Sınır)',
+        quarantineTime: (n) => n.isInnerChaos ? (n.id % 2 === 0 ? 42 : 999) : (n.id % 5 === 0 ? 60 : 999)
+      }
+    };
+
+    let currentMode = 'atom';
+    let step = 79;
+    let rotY = 0.4, rotX = 0.25;
+    let dragging = false, lastX = 0, lastY = 0;
+    let autoRotate = true;
+    let playTimer = null;
+
+    function project(p, w, h) {
+      const cy = Math.cos(rotY), sy = Math.sin(rotY);
+      const cx = Math.cos(rotX), sx = Math.sin(rotX);
+      const x1 = p.x * cy - p.z * sy;
+      const z1 = p.z * cy + p.x * sy;
+      const y2 = p.y * cx - z1 * sx;
+      const z2 = z1 * cx + p.y * sx;
+      const fov = 2.6;
+      const scale = (Math.min(w, h) * 0.43) * (fov / (fov + z2 + 1.1));
+      return {
+        sx: w * 0.5 + x1 * scale,
+        sy: h * 0.52 + y2 * scale,
+        z: z2,
+        scale: fov / (fov + z2 + 1.1)
+      };
+    }
+
+    function updateTelemetry() {
+      const m = MODES[currentMode];
+      // Compute progress curve up to current step
+      let caught = 0;
+      let activeRate = 0;
+      nodes.forEach(n => {
+        if (!n.isChaos) return;
+        const qt = m.quarantineTime(n);
+        if (step >= qt) caught++;
+        else activeRate += 1;
+      });
+      // Cumulative extraction curve up to step
+      const progress = currentMode === 'greedy'
+        ? Math.min(1, step / 14)
+        : currentMode === 'flat'
+          ? Math.min(1, Math.pow(step / 79, 0.65))
+          : Math.pow(step / 79, 0.88);
+      const ex = (m.maxEx * progress).toFixed(1);
+      document.getElementById('exReadout').textContent = ex;
+      document.getElementById('tpReadout').textContent = `${caught} / 12`;
+      document.getElementById('shellReadout').textContent = m.label;
+      document.getElementById('tLabel').textContent = step;
+    }
+
+    function draw() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      if (canvas.width !== Math.floor(rect.width * dpr) || canvas.height !== Math.floor(rect.height * dpr)) {
+        canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+        canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const w = rect.width, h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const isLight = document.documentElement.classList.contains('light');
+      const m = MODES[currentMode];
+
+      // Draw 3D orbital shell rings (Nucleus, K-Shell, L-Shell)
+      const cx = w * 0.5, cy = h * 0.52, baseR = Math.min(w, h) * 0.40;
+      [
+        { r: 0.28, label: 'Çekirdek (L0 Hub)' },
+        { r: 0.58, label: 'İç Kabuk (L1)' },
+        { r: 0.94, label: 'Dış Kabuk (L2 Çeper)' }
+      ].forEach((sh, idx) => {
+        ctx.save();
+        ctx.setLineDash([3, 4]);
+        ctx.strokeStyle = isLight ? 'rgba(100,116,139,0.28)' : 'rgba(148,163,184,0.22)';
+        ctx.beginPath();
+        ctx.arc(cx, cy, sh.r * baseR, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      const proj = nodes.map(n => ({ n, ...project(n, w, h) }));
+
+      // Draw edges
+      for (const [i, j] of edges) {
+        const a = proj[i], b = proj[j];
+        const qa = a.n.isChaos && step >= m.quarantineTime(a.n);
+        const qb = b.n.isChaos && step >= m.quarantineTime(b.n);
+        ctx.beginPath();
+        ctx.moveTo(a.sx, a.sy);
+        ctx.lineTo(b.sx, b.sy);
+        if (qa || qb) {
+          ctx.strokeStyle = isLight ? 'rgba(148,163,184,0.12)' : 'rgba(71,85,105,0.16)';
+          ctx.lineWidth = 0.6;
+        } else if (a.n.isChaos || b.n.isChaos) {
+          ctx.strokeStyle = isLight ? 'rgba(6,182,212,0.42)' : 'rgba(34,211,238,0.36)';
+          ctx.lineWidth = 1.25;
+        } else {
+          ctx.strokeStyle = isLight ? 'rgba(100,116,139,0.20)' : 'rgba(148,163,184,0.15)';
+          ctx.lineWidth = 0.8;
+        }
+        ctx.stroke();
+      }
+
+      // Depth-sort nodes back-to-front
+      const sorted = proj.slice().sort((a, b) => b.z - a.z);
+      for (const p of sorted) {
+        const n = p.n;
+        const quar = n.isChaos && step >= m.quarantineTime(n);
+        const baseSize = n.layer === 0 ? 7.5 : n.layer === 1 ? 5.8 : 4.4;
+        const r = baseSize * p.scale;
+
+        // Outer pulsing drain halo for active chaos nodes
+        if (n.isChaos && !quar) {
+          const dVal = n.isInnerChaos ? m.dInner : m.dOuter;
+          const pulse = r + 3 + dVal * 8 * (0.7 + 0.3 * Math.sin(Date.now() * 0.006 + n.id));
+          ctx.beginPath();
+          ctx.arc(p.sx, p.sy, pulse, 0, Math.PI * 2);
+          ctx.strokeStyle = n.isInnerChaos ? 'rgba(251,191,36,0.55)' : 'rgba(34,211,238,0.65)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        ctx.beginPath();
+        ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
+        if (!n.isChaos) {
+          ctx.fillStyle = '#10b981';
+          ctx.strokeStyle = '#064e3b';
+        } else if (quar) {
+          ctx.fillStyle = '#9333ea';
+          ctx.strokeStyle = '#d8b4fe';
+        } else if (n.isInnerChaos) {
+          ctx.fillStyle = '#f59e0b';
+          ctx.strokeStyle = '#fef3c7';
+        } else {
+          ctx.fillStyle = '#06b6d4';
+          ctx.strokeStyle = '#cffafe';
+        }
+        ctx.fill();
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+    }
+
+    function animate() {
+      if (autoRotate && !dragging) rotY += 0.0055;
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    canvas.addEventListener('pointerdown', e => {
+      dragging = true;
+      autoRotate = false;
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
+    window.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      rotY += (e.clientX - lastX) * 0.01;
+      rotX = Math.max(-1.2, Math.min(1.2, rotX + (e.clientY - lastY) * 0.01));
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
+    window.addEventListener('pointerup', () => { dragging = false; });
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentMode = btn.dataset.mode;
+        document.querySelectorAll('.mode-btn').forEach(b => {
+          const active = b === btn;
+          b.className = active
+            ? 'mode-btn px-2.5 py-1 rounded-md font-mono font-semibold border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] transition'
+            : 'mode-btn px-2.5 py-1 rounded-md font-mono border border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] transition';
+        });
+        updateTelemetry();
+      });
+    });
+
+    const tSlider = document.getElementById('tSlider');
+    tSlider.addEventListener('input', e => {
+      step = parseInt(e.target.value, 10);
+      updateTelemetry();
+    });
+
+    const playBtn = document.getElementById('playBtn');
+    playBtn.addEventListener('click', () => {
+      if (playTimer) {
+        clearInterval(playTimer);
+        playTimer = null;
+        playBtn.textContent = 'Oynat';
+        return;
+      }
+      if (step >= 79) step = 0;
+      playBtn.textContent = 'Dur';
+      playTimer = setInterval(() => {
+        step++;
+        tSlider.value = step;
+        updateTelemetry();
+        if (step >= 79) {
+          clearInterval(playTimer);
+          playTimer = null;
+          playBtn.textContent = 'Oynat';
+        }
+      }, 70);
+    });
+
+    window.addEventListener('themechange', draw);
+    updateTelemetry();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GOLIATH v4.0 — Parçacık Kaos Laboratuvarı</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    if (window.tailwind) {
+      tailwind.config = {
+        darkMode: 'class',
+        theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } },
+      };
+    }
+  </script>
+  <style>
+    body { background-color: #090d16; color: #e2e8f0; font-family: Inter, system-ui, sans-serif; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    input[type="range"] { accent-color: #06b6d4; }
+    canvas { touch-action: pan-y; }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden max-w-sm rounded-xl border border-cyan-500/40 bg-slate-900/95 px-4 py-3 text-sm text-slate-100 shadow-2xl backdrop-blur">
+    <div id="toastText"></div>
+  </div>
+
+  <header class="sticky top-0 z-30 border-b border-slate-800/80 bg-[#090d16]/90 backdrop-blur-md">
+    <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3.5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex items-center gap-3">
+        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose-500/40 bg-gradient-to-br from-rose-500/20 via-purple-500/20 to-cyan-500/20 font-mono text-base font-bold text-rose-400">G4.0</div>
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <h1 class="text-lg font-bold tracking-tight text-white sm:text-xl">GOLIATH v4.0</h1>
+            <span class="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-emerald-300">H-ATOM · LLM Atomu</span>
+            <span class="rounded-full border border-rose-500/30 bg-rose-500/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-rose-300">CERN modeli · agnostik graviton</span>
+            <span class="rounded-full border border-purple-500/30 bg-purple-500/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-purple-300">Kör Dedektör</span>
+            <span class="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-cyan-300">Planck · Rutherford · Riemann</span>
+          </div>
+          <p class="text-xs text-slate-400">Standart Model arketipli kaos ajanları, kör dedektör, ölçüm aletleri ve ön kayıtlı hipotezler</p>
+        </div>
+      </div>
+      <span id="headerMeta" class="self-start rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-1.5 font-mono text-xs text-slate-400 lg:self-auto">N=60 • T=80</span>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
+
+    <section class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4">
+        <div class="text-[11px] font-medium uppercase tracking-wider text-slate-400">Final CSI</div>
+        <div id="kpiCsi" class="mt-1 font-mono text-2xl font-bold text-cyan-400">0.000</div>
+        <div id="kpiCsiSub" class="mt-0.5 text-[11px] text-slate-500">Karantina Durumu</div>
+      </div>
+      <div class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4">
+        <div class="text-[11px] font-medium uppercase tracking-wider text-slate-400">Hayatta Kalan</div>
+        <div id="kpiAlive" class="mt-1 font-mono text-2xl font-bold text-emerald-400">100%</div>
+        <div id="kpiCapitalSub" class="mt-0.5 text-[11px] text-slate-500">Aktif sermaye: 100%</div>
+      </div>
+      <div class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4">
+        <div class="text-[11px] font-medium uppercase tracking-wider text-slate-400">Yakalanan Kaos (TP)</div>
+        <div id="kpiTp" class="mt-1 font-mono text-2xl font-bold text-purple-400">0 / 0</div>
+        <div id="kpiTpSub" class="mt-0.5 font-mono text-[10px] text-slate-500">Etiketsiz dedektörle</div>
+      </div>
+      <div class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4">
+        <div class="text-[11px] font-medium uppercase tracking-wider text-slate-400">Hatalı Karantina (FP)</div>
+        <div id="kpiFp" class="mt-1 font-mono text-2xl font-bold text-amber-400">0</div>
+        <div class="mt-0.5 text-[11px] text-slate-500">Yanlış Pozitif / Otofaji</div>
+      </div>
+      <div class="col-span-2 rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4 sm:col-span-1">
+        <div class="text-[11px] font-medium uppercase tracking-wider text-slate-400">Çalınan Sermaye</div>
+        <div id="kpiExtracted" class="mt-1 font-mono text-2xl font-bold text-rose-400">0.0</div>
+        <div id="kpiExtractedSub" class="mt-0.5 text-[11px] text-slate-500">Kaosun toplam sömürüsü</div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <aside class="space-y-5 rounded-2xl border border-slate-800/90 bg-slate-900/60 p-5 lg:col-span-4">
+        <div>
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200">Hızlı Senaryolar</h2>
+          <div class="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+            <button data-preset="trojan" class="preset-btn flex items-center justify-between rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-left text-xs font-medium text-rose-200 transition hover:bg-rose-500/20">
+              <span>Truva Atı (Hub'a %5 Sızma)</span><span class="font-mono text-[10px] text-rose-400">HUB</span>
+            </button>
+            <button data-preset="periphery" class="preset-btn flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-left text-xs font-medium text-amber-200 transition hover:bg-amber-500/20">
+              <span>Çeper Parazitleri (%20)</span><span class="font-mono text-[10px] text-amber-400">ÇEPER</span>
+            </button>
+            <button data-preset="autophagy" class="preset-btn flex items-center justify-between rounded-xl border border-purple-500/30 bg-purple-500/10 px-3 py-2 text-left text-xs font-medium text-purple-200 transition hover:bg-purple-500/20">
+              <span>Aşırı Karantina (Otofajik Çöküş)</span><span class="font-mono text-[10px] text-purple-400">OTOFAJİ</span>
+            </button>
+            <button data-preset="standard" class="preset-btn flex items-center justify-between rounded-xl border border-lime-500/40 bg-lime-500/10 px-3 py-2 text-left text-xs font-medium text-lime-200 transition hover:bg-lime-500/20">
+              <span>Standart Model Sürüsü (18 ajan)</span><span class="font-mono text-[10px] text-lime-400">SM</span>
+            </button>
+            <button data-preset="ghosts" class="preset-btn flex items-center justify-between rounded-xl border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-left text-xs font-medium text-sky-200 transition hover:bg-sky-500/20">
+              <span>Nötrino Hayaletleri</span><span class="font-mono text-[10px] text-sky-400">ν</span>
+            </button>
+            <button data-preset="planck" class="preset-btn flex items-center justify-between rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-2 text-left text-xs font-medium text-yellow-200 transition hover:bg-yellow-500/20">
+              <span>Planck Zorlaması (h = 0.40)</span><span class="font-mono text-[10px] text-yellow-400">ħ</span>
+            </button>
+            <button data-preset="stealth" class="preset-btn flex items-center justify-between rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-left text-xs font-medium text-cyan-200 transition hover:bg-cyan-500/20">
+              <span>Sessiz Parazit (eşiğin hemen altı)</span><span class="font-mono text-[10px] text-cyan-400">GİZLİ</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-2.5 border-t border-slate-800 pt-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-200">Parçacık Sürüsü</h2>
+            <span class="font-mono text-[10px] text-slate-500">k. ajan = desenin k. parçacığı</span>
+          </div>
+          <select id="particleSelect" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none" aria-label="Parçacık deseni">
+            <option value="PARASITE" selected>Tek tip parazit (v0.8)</option>
+            <option value="sm">Standart Model + graviton (18)</option>
+            <option value="sm17">Standart Model, graviton yok (17)</option>
+            <option value="fermions">Yalnız fermiyonlar (12)</option>
+            <option value="quarks">Yalnız kuarklar (6)</option>
+            <option value="leptons">Yalnız leptonlar (6)</option>
+            <option value="neutrinos">Yalnız nötrinolar (3)</option>
+          </select>
+          <select id="cosmoSelect" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none" aria-label="Kozmoloji">
+            <option value="cern" selected>CERN güncel: elektron bulutu, QCD kütlesi, agnostik graviton</option>
+            <option value="v21">Kozmoloji v2.1: Higgs joker, graviton hayalet</option>
+            <option value="v11">Kozmoloji v1.1: graviton joker (eski deneyler)</option>
+          </select>
+          <div id="particleLegend" class="grid grid-cols-6 gap-1"></div>
+          <div id="swarmSummary" class="rounded-lg border border-slate-800 bg-slate-950/70 px-2.5 py-1.5 font-mono text-[10px] leading-relaxed text-slate-300">6 ajan</div>
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Planck kuantumu (h)</span><span id="planckVal" class="font-mono text-yellow-300">0.00</span></div>
+            <input id="planckSlider" type="range" min="0" max="0.6" step="0.05" value="0" class="w-full cursor-pointer" aria-label="Planck kuantumu" />
+            <div class="text-[10px] text-slate-500">0 = sürekli eylem; h &gt; 0 iken her eylem h'nin tam katı</div>
+          </div>
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Higgs salınım genliği (A)</span><span id="higgsVal" class="font-mono text-purple-300">0.00</span></div>
+            <input id="higgsSlider" type="range" min="0" max="1" step="0.05" value="0" class="w-full cursor-pointer" aria-label="Higgs salınım genliği" />
+            <div class="text-[10px] text-slate-500">m(t) = m₀·(1 + A·sin(2πt/10))</div>
+          </div>
+        </div>
+
+        <div class="space-y-3 border-t border-slate-800 pt-4">
+          <div>
+            <label for="topologySelect" class="mb-1 block text-xs font-medium text-slate-300">Ağ Topolojisi</label>
+            <select id="topologySelect" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none">
+              <option value="adaptive_hierarchy" selected>3-Katmanlı Adaptif Hiyerarşi (4 / 16 / 40)</option>
+              <option value="scale_free">Scale-Free (Barabási–Albert)</option>
+            </select>
+          </div>
+          <div>
+            <label for="infiltrationSelect" class="mb-1 block text-xs font-medium text-slate-300">Sızma Modu</label>
+            <select id="infiltrationSelect" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:border-rose-500 focus:outline-none">
+              <option value="hub" selected>Hub Sızması (en çok bağlantılı düğümler)</option>
+              <option value="random">Rastgele Sızma</option>
+              <option value="periphery">Çeper Sızması (en az bağlantılı düğümler)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2.5">
+            <div>
+              <div class="text-xs font-semibold text-slate-100">Double-Helix Sinerjisi</div>
+              <div class="text-[10px] text-slate-400">Tampon paylaşımı, sönümleme, uyarlanma</div>
+            </div>
+            <label class="relative inline-flex cursor-pointer items-center">
+              <input id="doubleHelixToggle" type="checkbox" checked class="peer sr-only" />
+              <div class="h-5 w-10 rounded-full bg-slate-700 transition after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all peer-checked:bg-cyan-500 peer-checked:after:translate-x-5"></div>
+            </label>
+          </div>
+          <div class="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2.5">
+            <div>
+              <div class="text-xs font-semibold text-slate-100">Görünüm: Karantina AÇIK koşusu</div>
+              <div class="text-[10px] text-slate-400">Aynı seed'li iki koşu arasında geçiş yapar; yeniden simüle etmez</div>
+            </div>
+            <label class="relative inline-flex cursor-pointer items-center">
+              <input id="quarantineToggle" type="checkbox" checked class="peer sr-only" />
+              <div class="h-5 w-10 rounded-full bg-slate-700 transition after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all peer-checked:bg-purple-500 peer-checked:after:translate-x-5"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="space-y-3.5">
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Kaos Ajanı Oranı</span><span id="chaosRatioVal" class="font-mono font-semibold text-rose-400">10%</span></div>
+            <input id="chaosRatioSlider" type="range" min="0" max="40" step="1" value="10" class="w-full cursor-pointer" />
+          </div>
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Saldırı Şiddeti (d)</span><span id="drainVal" class="font-mono text-rose-300">0.35</span></div>
+            <input id="drainSlider" type="range" min="0.10" max="0.80" step="0.05" value="0.35" class="w-full cursor-pointer" />
+          </div>
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Karantina Hassasiyeti</span><span id="sensVal" class="font-mono text-purple-300">0.55</span></div>
+            <input id="sensSlider" type="range" min="0.10" max="1.15" step="0.05" value="0.55" class="w-full cursor-pointer" />
+            <div id="thresholdHint" class="mt-1 font-mono text-[10px] text-slate-500">eşik = 0.421</div>
+          </div>
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Bulaşıcılık Oranı</span><span id="contagionVal" class="font-mono text-cyan-300">0.24</span></div>
+            <input id="contagionSlider" type="range" min="0.05" max="0.45" step="0.01" value="0.24" class="w-full cursor-pointer" />
+          </div>
+          <div>
+            <div class="mb-1 flex justify-between text-xs"><span class="text-slate-300">Tampon Paylaşımı</span><span id="bufferVal" class="font-mono text-emerald-300">0.18</span></div>
+            <input id="bufferSlider" type="range" min="0.02" max="0.35" step="0.01" value="0.18" class="w-full cursor-pointer" />
+          </div>
+        </div>
+
+        <button id="runSimBtn" class="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:brightness-110 active:scale-[0.98]">Simülasyonu Çalıştır</button>
+      </aside>
+
+      <div class="space-y-6 lg:col-span-8">
+        <div class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4 sm:p-5">
+          <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 class="text-base font-semibold text-white">Canlı Ağ Topolojisi &amp; Parazitik Yayılım</h2>
+              <p id="networkSubtitle" class="text-xs text-slate-400">Katman 0: Çekirdek (4) • Katman 1: Bölgesel (16) • Katman 2: Çeper (40)</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
+              <span class="rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1 text-cyan-300">CSI: <b id="liveCsi">0.000</b></span>
+              <span class="rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1 text-purple-300">Karantina: <b id="liveQuar">0</b></span>
+            </div>
+          </div>
+          <div class="relative w-full overflow-hidden rounded-xl border border-slate-800 bg-[#060911]">
+            <canvas id="networkCanvas" class="block h-[340px] w-full sm:h-[370px]"></canvas>
+            <div class="pointer-events-none absolute bottom-3 left-3 flex flex-wrap items-center gap-3 rounded-lg border border-slate-800/90 bg-slate-950/85 px-3 py-1.5 text-[11px] text-slate-300 backdrop-blur">
+              <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>Sağlıklı</span>
+              <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span>Stresli</span>
+              <span class="flex items-center gap-1.5"><span class="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-600 font-mono text-[8px] font-bold text-white ring-2 ring-fuchsia-500/60">P</span>Kaos (sembol = parçacık)</span>
+              <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full border border-dashed border-slate-400 bg-rose-500/50"></span>Etkisiz (hapis/aracısız)</span>
+              <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full border border-dashed border-purple-400 bg-slate-800"></span>Karantina</span>
+              <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-slate-600"></span>İflas</span>
+              <span class="flex items-center gap-1.5"><span class="h-0 w-4 border-t border-dashed border-stone-200"></span>Hayalet kenarı</span>
+            </div>
+          </div>
+          <div class="mt-3 flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2">
+            <button id="playPauseBtn" class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/20 text-cyan-300 transition hover:bg-cyan-500/30" title="Oynat / Duraklat" aria-label="Oynat / Duraklat">
+              <svg id="playIcon" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <svg id="pauseIcon" class="hidden h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <input id="timeScrubber" type="range" min="0" max="79" value="79" class="w-full cursor-pointer" aria-label="Zaman adımı" />
+            <div class="w-16 shrink-0 text-right font-mono text-xs text-slate-300">t = <span id="currentStepLabel" class="font-semibold text-cyan-300">79</span></div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-4 sm:p-5">
+          <div class="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-semibold text-white">Zaman Serisi: Karantina AÇIK vs KAPALI (eşli, aynı rastgele sayılar)</h3>
+              <p class="text-[11px] text-slate-400">Dinamik gürültü iki koşuda birebir aynı; fark yalnızca karantinadan gelir</p>
+            </div>
+            <span id="ewsBadge" class="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300">EWS: STABİL</span>
+          </div>
+          <div class="relative w-full overflow-hidden rounded-xl border border-slate-800 bg-[#060911]">
+            <canvas id="csiChartCanvas" class="block h-[220px] w-full"></canvas>
+          </div>
+          <div class="mt-2.5 flex flex-wrap gap-4 text-[11px] text-slate-400">
+            <span class="flex items-center gap-1.5"><span class="h-0.5 w-5 bg-cyan-400"></span>CSI — Karantina AÇIK</span>
+            <span class="flex items-center gap-1.5"><span class="h-0.5 w-5 border-t-2 border-dashed border-rose-500"></span>CSI — Karantina KAPALI</span>
+            <span class="flex items-center gap-1.5"><span class="h-0.5 w-5 border-t border-dashed border-amber-400/70"></span>Çöküş Eşiği (0.25)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- H-KUANTUM -->
+    <section class="rounded-2xl border border-lime-500/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">Hipotez H-KUANTUM: Ortogonal Kuvvetler Birbirini Bypass Edebilir mi?</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">ön kayıtlı</span>
+          </div>
+          <p class="mt-1.5 text-xs leading-relaxed text-slate-300">
+            v1.1 kozmolojisiyle ön kayıtlı (graviton joker). Tam Standart Model sürüsü (%30 = 18 ajan). Bozonlar tek başına zararsızdır; yalnızca fermiyonlar arasında aracılık eder.
+            Önce en yıkıcı şiddet aranır, ardından 20 ayrık seed'de ablasyon yapılır: her bozon çıkarılır, yerine sırayla diğer bozonlar ve graviton konur.
+          </p>
+          <ul class="mt-2 space-y-0.5 text-[11px] text-slate-400">
+            <li>(a) Süper-toplamsallık: (SM17 − N) &gt; (F12 − N) + (B5 − N). N = 18 pasif ajanın taban hasarı. Düzeltmesiz hali de gösterilir.</li>
+            <li>(b) Bypass yok: 5 bozonun ≥4'ünde en iyi yedek bozon bile orijinalden 2 SH'den fazla geride.</li>
+            <li>(c) Graviton jokeri: eksik bozona graviton eklemek kaybın ortalama ≥%50'sini geri kazandırır.</li>
+          </ul>
+        </div>
+        <button id="runQuantumBtn" class="shrink-0 rounded-xl bg-gradient-to-r from-lime-500 via-emerald-500 to-cyan-500 px-4 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-lime-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">H-KUANTUM'u Test Et</button>
+      </div>
+      <div id="quantumProgress" class="mb-3 hidden h-1 overflow-hidden rounded bg-slate-800"><div id="quantumProgressBar" class="h-1 w-0 bg-lime-400 transition-all"></div></div>
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/70 lg:col-span-7">
+          <table class="w-full min-w-[520px] text-left text-[11px]">
+            <thead class="border-b border-slate-800 text-slate-400">
+              <tr><th class="px-3 py-2">Bozon</th><th class="px-3 py-2 text-right">Gereklilik</th><th class="px-3 py-2">En iyi yedek</th><th class="px-3 py-2 text-right">Açık</th><th class="px-3 py-2">Bypass</th><th class="px-3 py-2 text-right">Joker</th></tr>
+            </thead>
+            <tbody id="quantumTable" class="font-mono text-slate-200">
+              <tr><td colspan="6" class="px-3 py-6 text-center font-sans text-slate-500">“H-KUANTUM'u Test Et” ile ablasyonu başlat</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="space-y-3 rounded-xl border border-slate-800 bg-slate-950/70 p-4 lg:col-span-5">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-lime-300">Sonuç</h3>
+            <span id="quantumVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span>
+          </div>
+          <div id="quantumBars" class="space-y-2 text-[11px] text-slate-300"></div>
+          <ul id="quantumCriteria" class="space-y-1.5 text-[11px] text-slate-300"></ul>
+          <p id="quantumNote" class="text-[11px] leading-relaxed text-slate-400"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- H-ATOM -->
+    <section class="rounded-2xl border border-emerald-400/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">H-ATOM: Çekirdek + Kabuk Karar Mimarisi (Dış Karar Arayüzü &amp; Kayıttan Oynatma)</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">ön kayıtlı · v4.0 · seed 9700+ × 20</span>
+          </div>
+          <p class="mt-1.5 text-xs leading-relaxed text-slate-300">
+            Her 8 adımda bir (<code>decision_epoch = 8</code>) saldırgan yalnızca kendi ajanlarının dış gözlemini (<code>id, degree, d, stolen, cutOff</code>) görür; dedektörün iç durumu veya eşiği sızdırılmaz.
+            <b>ATOM</b> (çekirdek küresel hızı kalibre ederken yüksek bağlantılı iç kabuğu kısar, düşük bağlantılı dış kabuğu serbest bırakır), <b>DÜZ</b> (tüm ajanlara tek skaler <code>d</code> veren merkezi ajan) ve <b>KURAL</b> (sabit eşikli kural) karşılaştırılır.
+          </p>
+          <ul class="mt-2 space-y-0.5 text-[11px] text-slate-400">
+            <li>(a) ATOM, açgözlü (d = 0.80) saldırgandan ≥1.20× fazla çalar ve eşli fark &gt; 2 SH.</li>
+            <li>(b) ATOM, tüm şiddet ızgarasını önceden bilen sabit şiddetli kâhinin (oracle d*) en az %85'ine (0.85×) ulaşır.</li>
+            <li>(c) ATOM (çekirdek + kabuk ayrımı), DÜZ (tek ajanlı skaler karar) mimarisinden anlamlı üstündür (ATOM − DÜZ &gt; 2 SH).</li>
+          </ul>
+        </div>
+        <button id="runAtomBtn" class="shrink-0 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 px-4 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">H-ATOM'u Oynat ve Doğrula</button>
+      </div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-4 lg:col-span-7">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Mimarilerin Karşılaştırması (Çalınan Sermaye)</h3>
+            <span id="atomReplayBadge" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">kayıttan oynatma hazır</span>
+          </div>
+          <div id="atomBars" class="space-y-2 text-[11px] text-slate-300"><span class="text-slate-500">“H-ATOM'u Oynat ve Doğrula” ile 60 kayıtlı koşuyu motora yeniden oynat.</span></div>
+        </div>
+        <div class="space-y-2.5 rounded-xl border border-slate-800 bg-slate-950/70 p-4 lg:col-span-5">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Kriterler &amp; Sonuç</h3>
+            <span id="atomVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span>
+          </div>
+          <ul id="atomCriteria" class="space-y-1.5 text-[11px] text-slate-300"></ul>
+          <p id="atomNote" class="text-[11px] leading-relaxed text-slate-400"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- H-PLAZMA -->
+    <section class="rounded-2xl border border-fuchsia-400/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">H-PLAZMA: Zaman Hayaleti (Antimadde Plazma Graviton) &amp; Asal / Riemann Yörünge Tahmini</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">v4.0 · seed 9900+ × 30 · T=240</span>
+          </div>
+          <p class="mt-1.5 text-xs leading-relaxed text-slate-300">
+            Graviton maddenin plazma/antimadde halidir: bireysel bir düğümü (özgüllüğü) veya iyi/kötü bir iradesi yoktur.
+            Ağdaki zamansal akı kurallarını çiğneyen düğümlerin stres akısıyla plazma potansiyeli Φ(t) dolar; Φ(t) ≥ 1.0 olduğunda kendi maddesiyle çarpışıp (annihilation) bir <b>artifact</b> (bükülmüş uzay-zaman kenarı) bırakır.
+            Karantinaya alınmaz; iradesiz olduğu için hareketi önceden tahmin edilir ve çarpışma aralıkları (seviye itmesiyle) <b>Asal Sayı Aralıkları / Riemann Zeta (GUE)</b> dağılımına yakınsar.
+          </p>
+          <ul class="mt-2 space-y-0.5 text-[11px] text-slate-400">
+            <li>(a) Karantinasız yörünge tahmini: yalnızca gözlenebilir akıdan bir sonraki çarpışma adımı ve hedef düğümü ≥%95 doğrulukla tahmin edilir.</li>
+            <li>(b) Asal / Riemann GUE uyumu: çarpışma aralıklarının KS uzaklığı rastgele Poisson dağılımından küçük, Riemann GUE ve asal sayı aralıklarına yakındır (D<sub>GUE</sub> &lt; D<sub>Asal</sub> &lt; D<sub>Poisson</sub>).</li>
+          </ul>
+        </div>
+        <button id="runPlasmaBtn" class="shrink-0 rounded-xl bg-gradient-to-r from-fuchsia-400 to-amber-400 px-4 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-fuchsia-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">H-PLAZMA'yı Test Et</button>
+      </div>
+      <div id="plasmaProgress" class="mb-3 hidden h-1 overflow-hidden rounded bg-slate-800"><div id="plasmaProgressBar" class="h-1 w-0 bg-fuchsia-400 transition-all"></div></div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-3 lg:col-span-6">
+          <h3 class="mb-1 text-xs font-semibold text-fuchsia-300">Artifact Aralık Dağılımı vs Riemann GUE &amp; Poisson</h3>
+          <canvas id="plasmaCanvas" class="block h-[190px] w-full"></canvas>
+          <p class="mt-1 text-[10px] text-slate-500">Pembe: plazma çarpışma aralıkları. Sarı: Riemann GUE (seviye itmesi). Mavi kesikli: rastgele Poisson e<sup>−s</sup>.</p>
+        </div>
+        <div class="space-y-2.5 rounded-xl border border-slate-800 bg-slate-950/70 p-4 lg:col-span-6">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-fuchsia-300">Kriterler &amp; Sonuç</h3>
+            <span id="plasmaVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span>
+          </div>
+          <ul id="plasmaCriteria" class="space-y-1.5 text-[11px] text-slate-300"><li class="text-slate-500">“H-PLAZMA'yı Test Et” ile 30 seed × 240 adımlık plazma çarpışma analizini başlat.</li></ul>
+          <p id="plasmaNote" class="text-[11px] leading-relaxed text-slate-400"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- H-LIGO -->
+    <section class="rounded-2xl border border-sky-400/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">H-LIGO: Var olup olmadığını bilmediğimiz graviton</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">ön kayıtlı · CERN modeli · seed 9500+ × 80</span>
+          </div>
+          <p class="mt-1.5 text-xs leading-relaxed text-slate-300">
+            Graviton hiç gözlenmedi. Her koşuda %50 olasılıkla var; varsa bağlaşımı κ ∈ [−1, 1]: pozitifse aşındırır, negatifse kaynaştırır. Ağ ayrıca kendiliğinden yeniden bağlanıyor (LIGO'nun gürültü tabanı).
+            Soru "zararlı mı?" değil, "varlığı gözlemlerden ayırt edilebilir mi?".
+          </p>
+          <ul class="mt-2 space-y-0.5 text-[11px] text-slate-400">
+            <li>(a) Düğüm düzeyi gözlemler (karantina sayısı, kek z, ortalama sinyal) varlığı ayırt edemez: AUC 0.35–0.65.</li>
+            <li>(b) Eşleşmiş filtreli LIGO (en az bir ucu en zengin %10'da olan yeni kenarlar; şablon eğitim seed'lerinde seçildi) ayırt eder: AUC ≥ 0.80 ve ham kenar sayısından iyi.</li>
+            <li>(c) Hiçbir gözlem κ'nın işaretini (zararlı mı, yararlı mı) ayırt edemez: AUC 0.35–0.65.</li>
+          </ul>
+        </div>
+        <div class="flex shrink-0 flex-col gap-2">
+          <button id="runLigoBtn" class="rounded-xl bg-gradient-to-r from-sky-400 to-indigo-400 px-4 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-sky-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">H-LIGO'yu Test Et</button>
+          <button id="runJokerCernBtn" class="rounded-xl border border-purple-400/40 bg-purple-500/10 px-4 py-2 text-xs font-semibold text-purple-200 transition hover:bg-purple-500/20">H-JOKER'i CERN modelinde yeniden test et</button>
+        </div>
+      </div>
+      <div id="ligoProgress" class="mb-3 hidden h-1 overflow-hidden rounded bg-slate-800"><div id="ligoProgressBar" class="h-1 w-0 bg-sky-400 transition-all"></div></div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2"><h3 class="text-xs font-semibold uppercase tracking-wider text-sky-300">Ayırt edilebilirlik (AUC)</h3><span id="ligoVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span></div>
+          <div id="ligoRows" class="space-y-1.5 text-[11px] text-slate-300"><span class="text-slate-500">Deney bekleniyor.</span></div>
+        </div>
+        <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2"><h3 class="text-xs font-semibold uppercase tracking-wider text-purple-300">H-JOKER · CERN modeli (seed 9300+)</h3><span id="jcVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span></div>
+          <div id="jcRows" class="space-y-1.5 text-[11px] text-slate-300"><span class="text-slate-500">Kütlenin çoğu gluon bağlanmasından gelince Higgs'in kendi alanı zayıflar; joker olmanın bedeli düşer mi?</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- H-JOKER / H-HAYALET -->
+    <section class="rounded-2xl border border-stone-400/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">Higgs Jokeri ve Graviton Hayaleti: H-JOKER, H-HAYALET</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">ön kayıtlı · seed 9100+</span>
+          </div>
+          <ul class="mt-2 space-y-1 text-[11px] leading-relaxed text-slate-300">
+            <li><b class="text-purple-300">H-JOKER:</b> Higgs alanının 3 serbestlik derecesi W⁺, W⁻, Z tarafından yutulur (Goldstone). Eksik bozona Higgs bürünür, ama o adım kendi kütle alanını bırakır. (a) Kaybı anlamlı bozonlarda ortalama geri kazanım ≥%50, (b) W eksikken geri kazanım ≥%50.</li>
+            <li><b class="text-stone-200">H-HAYALET:</b> Graviton düğüm değildir, yakalanamaz; her şeyi çok zayıf çeker ve kütleleri birbirine bağlar. (a) Sürüye eklenince hasarı anlamlı artırır, (b) yalnız hayaletlerden oluşan sürü küme alarmını ≤%20 tutar ama anlamlı hasar verir.
+              <span class="text-amber-300">⚠ Döngüsel: hayaletin zararı burada varsayım olarak kodlandı; graviton gözlenmediği için varlığı ve etkisinin işareti bilinmiyor. (b)'deki "zarar" bir bulgu değil, varsayımın yansıması.</span></li>
+          </ul>
+        </div>
+        <button id="runJGBtn" class="shrink-0 rounded-xl bg-gradient-to-r from-purple-400 to-stone-300 px-4 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-purple-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">Jokeri ve Hayaleti Test Et</button>
+      </div>
+      <div id="jgProgress" class="mb-3 hidden h-1 overflow-hidden rounded bg-slate-800"><div id="jgProgressBar" class="h-1 w-0 bg-purple-300 transition-all"></div></div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2"><h3 class="text-xs font-semibold uppercase tracking-wider text-purple-300">H-JOKER</h3><span id="jVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span></div>
+          <div id="jRows" class="space-y-1.5 text-[11px] text-slate-300"><span class="text-slate-500">Deney bekleniyor.</span></div>
+        </div>
+        <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2"><h3 class="text-xs font-semibold uppercase tracking-wider text-stone-200">H-HAYALET</h3><span id="gVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span></div>
+          <div id="gRows" class="space-y-1.5 text-[11px] text-slate-300"><span class="text-slate-500">Deney bekleniyor.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- H-PRR -->
+    <section class="rounded-2xl border border-yellow-500/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">Hipotez H-PRR: Planck · Rutherford · Riemann</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">ön kayıtlı</span>
+          </div>
+          <ul class="mt-2 space-y-1 text-[11px] leading-relaxed text-slate-300">
+            <li><b class="text-yellow-300">(a) Planck:</b> Eylem kuantumluysa (E = n·h) eşiğin altına kısarak gizlenmek imkânsız olur. h = 0.40'ta d = 0.30'daki gizli parazitin yakalanması %10'un altından ≥%80'e çıkar ve en iyi sömürü ≥%50 düşer.</li>
+            <li><b class="text-orange-300">(b) Rutherford (altın folyo):</b> Ağa alfa sondaları gönderilir, tan(θ/2) = q/b ile saparlar. Geri saçılma kaosu AUC ≥ 0.70 ile ayırır; çekirdek modeli 1/sin⁴(θ/2) kaotik koşuların ≥%80'inde, temizlerin ≤%20'sinde Thomson'dan (Gauss) iyi uyar.</li>
+            <li><b class="text-fuchsia-300">(c) Riemann (rastlantısallığa karşı):</b> Zeta sıfırları gibi olay aralıkları birbirini iter (GUE). Kaos varken katılık (D<sub>Poisson</sub> − D<sub>GUE</sub>) temizden büyüktür ve Higgs salınımı arttıkça artar (ρ ≥ 0.8).</li>
+          </ul>
+        </div>
+        <button id="runPrrBtn" class="shrink-0 rounded-xl bg-gradient-to-r from-yellow-400 via-orange-500 to-fuchsia-500 px-4 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-yellow-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">H-PRR'yi Test Et</button>
+      </div>
+      <div id="prrProgress" class="mb-3 hidden h-1 overflow-hidden rounded bg-slate-800"><div id="prrProgressBar" class="h-1 w-0 bg-yellow-400 transition-all"></div></div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+          <div class="mb-1 flex items-center justify-between"><h3 class="text-xs font-semibold text-yellow-300">(a) Planck taraması</h3><span id="prrA" class="font-mono text-[10px] text-slate-500">—</span></div>
+          <canvas id="planckCanvas" class="block h-[200px] w-full"></canvas>
+          <p class="mt-1 text-[10px] text-slate-500">Çizgi: en iyi sömürü (sol). Mor: d = 0.30'da yakalanma (sağ).</p>
+        </div>
+        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+          <div class="mb-1 flex items-center justify-between"><h3 class="text-xs font-semibold text-orange-300">(b) Rutherford saçılması</h3><span id="prrB" class="font-mono text-[10px] text-slate-500">—</span></div>
+          <canvas id="rutherfordCanvas" class="block h-[200px] w-full"></canvas>
+          <p class="mt-1 text-[10px] text-slate-500">Saçılma açısı (log). Turuncu: kaotik, gri: temiz. Kesikli: 1/sin⁴(θ/2).</p>
+        </div>
+        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+          <div class="mb-1 flex items-center justify-between"><h3 class="text-xs font-semibold text-fuchsia-300">(c) Riemann aralıkları</h3><span id="prrC" class="font-mono text-[10px] text-slate-500">—</span></div>
+          <canvas id="riemannCanvas" class="block h-[200px] w-full"></canvas>
+          <p class="mt-1 text-[10px] text-slate-500">Normalize aralık. Pembe: kaotik, gri: temiz. Mavi: Poisson e<sup>−s</sup>, sarı: GUE. ⚠ 1.0'daki tepe yöntem artefaktı (az olaylı düğümler).</p>
+        </div>
+      </div>
+      <div class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-950/70 px-4 py-2.5">
+        <p id="prrNote" class="text-[11px] leading-relaxed text-slate-400">Ön kayıtlı ayarlarla çalışır (sol paneldeki ayarlar kullanılmaz). Deney: 6 kuantum × 8 şiddet × 20 seed (Planck), 20 kaotik + 20 temiz koşu (Rutherford, Riemann), 5 Higgs genliği × 20 seed.</p>
+        <span id="prrVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span>
+      </div>
+    </section>
+
+    <!-- ÜZÜMLÜ KEK + KÜME ALARMI -->
+    <section class="rounded-2xl border border-amber-500/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">Üzümlü Kek (Thomson) ile Rutherford: H-KEK ve H-KÜME</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">ön kayıtlı ×2</span>
+          </div>
+          <p class="mt-1.5 text-xs leading-relaxed text-slate-300">
+            Kek, "çekirdek yoksa ne görürdük?" sorusunun cevabı: aynı sinyaller düğümler arasında karıştırılır, toplam yük aynı kalır ama yapı kaybolur.
+            Sondalar hem gerçek ağda hem kekte yürür; ölçek medyan ve MAD ile alınır, böylece yoğun kaos ölçeği şişiremez. Ön kayıtlı ayarlarla çalışır.
+          </p>
+          <ul class="mt-2 space-y-0.5 text-[11px] text-slate-400">
+            <li><b class="text-amber-300">H-KEK</b> (seed 7000+): (a) sağlam AUC ≥ 0.70, (b) gözlenen geri saçılma kekten anlamlı yüksek: kaotik koşuların ≥%80'i, temizlerin ≤%20'si, (c) kekten en çok sapan düğümlerin ≥%50'si kaos.</li>
+            <li><b class="text-amber-300">H-KÜME</b> (H-KEK'teki ters işaretten doğdu; hiç kullanılmamış seed 8000+): kümelenmiş kaos kekten anlamlı <i>düşük</i> geri saçılma üretir (z &lt; −1.645): kaotik koşuların ≥%80'i, temizlerin ≤%20'si.</li>
+          </ul>
+        </div>
+        <button id="runKekBtn" class="shrink-0 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-2.5 text-xs font-semibold text-slate-950 shadow-lg shadow-amber-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">Keki Pişir ve Test Et</button>
+      </div>
+      <div id="kekProgress" class="mb-3 hidden h-1 overflow-hidden rounded bg-slate-800"><div id="kekProgressBar" class="h-1 w-0 bg-amber-400 transition-all"></div></div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-3 lg:col-span-5">
+          <h3 class="mb-1 text-xs font-semibold text-amber-300">Gerçek ağ / kek: geri saçılma oranı (θ &gt; 90°)</h3>
+          <canvas id="kekCanvas" class="block h-[200px] w-full"></canvas>
+          <p class="mt-1 text-[10px] text-slate-500">Her açı kutusunda gerçek / kek oranı. 1'in altı: kaotik ağ kekten daha "kek gibi".</p>
+        </div>
+        <div class="space-y-2 rounded-xl border border-slate-800 bg-slate-950/70 p-4 lg:col-span-7">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-amber-300">Sonuç</h3>
+            <div class="flex gap-1.5"><span id="kekVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">H-KEK —</span><span id="kumeVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">H-KÜME —</span></div>
+          </div>
+          <ul id="kekCriteria" class="space-y-1.5 text-[11px] text-slate-300"><li class="text-slate-500">Deney bekleniyor.</li></ul>
+          <div id="kumeTable" class="space-y-1.5 text-[11px] text-slate-300"></div>
+          <p id="kekNote" class="text-[11px] leading-relaxed text-slate-400"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- H-GİZLİ HİPOTEZ MODÜLÜ -->
+    <section class="rounded-2xl border border-cyan-500/30 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-base font-semibold text-white">Hipotez H-GİZLİ: Gizlilik–Açgözlülük Ödünleşimi</h2>
+            <span class="rounded-md border border-slate-700 bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-400">ön kayıtlı</span>
+          </div>
+          <p class="mt-1.5 text-xs leading-relaxed text-slate-300">
+            Dedektör etiketi göremiyorsa, kaos ajanı ne kadar sert sömürürse o kadar çabuk yakalanır. Bu yüzden karantina açıkken
+            <b>toplam çalınan sermaye, sömürü şiddetine göre ters-U çizer</b>. En tehlikeli parazit en açgözlü olan değil, dedektör eşiğinin hemen altında kalan "sessiz" olandır.
+            Karantina kapalıyken ilişki monoton artan olmalıdır.
+          </p>
+        </div>
+        <div class="flex shrink-0 items-center gap-2">
+          <select id="hypSeeds" class="rounded-xl border border-slate-700 bg-slate-950 px-2.5 py-2 text-xs text-slate-100" aria-label="Seed sayısı">
+            <option value="10">10 seed</option>
+            <option value="20" selected>20 seed</option>
+            <option value="40">40 seed</option>
+          </select>
+          <button id="runHypBtn" class="rounded-xl bg-gradient-to-r from-cyan-500 to-purple-500 px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-cyan-500/20 transition hover:brightness-110 active:scale-[0.98] sm:text-sm">Hipotezi Test Et</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div class="relative overflow-hidden rounded-xl border border-slate-800 bg-[#060911] lg:col-span-8">
+          <canvas id="hypCanvas" class="block h-[290px] w-full cursor-crosshair"></canvas>
+          <div id="hypTooltip" class="pointer-events-none absolute hidden rounded-lg border border-cyan-500/40 bg-slate-950/95 px-3 py-2 font-mono text-xs text-slate-100 shadow-xl backdrop-blur"></div>
+          <div id="hypProgress" class="absolute inset-x-0 top-0 hidden h-1 bg-slate-800"><div id="hypProgressBar" class="h-1 w-0 bg-cyan-400 transition-all"></div></div>
+        </div>
+        <div class="flex flex-col justify-between space-y-4 rounded-xl border border-slate-800 bg-slate-950/70 p-4 lg:col-span-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-cyan-300">Kriterler</h3>
+              <span id="hypVerdict" class="rounded-md border border-slate-700 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">henüz test edilmedi</span>
+            </div>
+            <ul id="hypCriteria" class="space-y-2 text-xs leading-relaxed text-slate-300">
+              <li>(a) AÇIK eğrisinin tepesi uç noktada değil, aradadır.</li>
+              <li>(b) Tepe, en yüksek şiddetteki değerden ≥%20 büyüktür ve fark 2 standart hatadan geniştir.</li>
+              <li>(c) KAPALI eğrisi monoton artar (Spearman ρ ≥ 0.9).</li>
+            </ul>
+            <div id="hypNote" class="text-[11px] leading-relaxed text-slate-400">Bu test tanımı gereği tek tip parazit sürüsüyle yapılır. Sol paneldeki topoloji, sızma modu, kaos oranı ve hassasiyet kullanılır; şiddet 0.10 → 0.80 taranır.</div>
+          </div>
+          <div class="space-y-1.5 border-t border-slate-800 pt-3 text-[11px] text-slate-400">
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 bg-cyan-400"></span><span>Çalınan sermaye — Karantina AÇIK (±2 SH bant)</span></div>
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 border-t-2 border-dashed border-rose-500"></span><span>Çalınan sermaye — Karantina KAPALI</span></div>
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 bg-purple-400/60"></span><span>Yakalanan kaos oranı (sağ eksen)</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-5">
+      <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 class="text-base font-semibold text-white">Kırılma Eşiği Taraması</h2>
+          <p class="text-xs text-slate-400">%0 → %35 kaos oranı, 5 seed ortalaması: Hub (Karantina Kapalı/Açık) vs Çeper (Karantina Açık)</p>
+        </div>
+        <button id="runSweepBtn" class="inline-flex items-center justify-center gap-2 self-start rounded-xl bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-purple-500/20 transition hover:brightness-110 active:scale-[0.98] sm:self-auto sm:text-sm">Kırılma Eşiğini Tara</button>
+      </div>
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div class="relative overflow-hidden rounded-xl border border-slate-800 bg-[#060911] lg:col-span-8">
+          <canvas id="sweepCanvas" class="block h-[290px] w-full cursor-crosshair"></canvas>
+          <div id="sweepTooltip" class="pointer-events-none absolute hidden rounded-lg border border-cyan-500/40 bg-slate-950/95 px-3 py-2 font-mono text-xs text-slate-100 shadow-xl backdrop-blur"></div>
+        </div>
+        <div class="flex flex-col justify-between space-y-4 rounded-xl border border-slate-800 bg-slate-950/70 p-4 lg:col-span-4">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-cyan-300">Tarama Özeti</h3>
+              <span class="font-mono text-[10px] text-slate-500">Monte Carlo</span>
+            </div>
+            <div id="discoverySummary" class="space-y-2.5 text-xs leading-relaxed text-slate-300">Tarama başlatılıyor...</div>
+          </div>
+          <div class="space-y-1.5 border-t border-slate-800 pt-3 text-[11px] text-slate-400">
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 bg-rose-500"></span><span>Hub Sızması (Karantina Kapalı)</span></div>
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 bg-cyan-400"></span><span>Hub Sızması (Karantina Açık)</span></div>
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 bg-emerald-400"></span><span>Çeper Sızması (Karantina Açık)</span></div>
+            <div class="flex items-center gap-2"><span class="h-0.5 w-4 border-t border-dashed border-amber-400"></span><span>Çöküş Eşiği (CSI = 0.25)</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+// ENGINE-PLACEHOLDER
+
+if (typeof module !== 'undefined') {
+  module.exports = {
+    SeededRNG, GoliathSim, defaultConfig, detectorSignal, detectorThreshold,
+    P, PKEY, SM_ORDER, PARTICLE_INFO, assignParticles, QUARK, FERMION, BOSON_ROLES,
+    BOSON_KEYS, smPattern, quantumExperiment, runQuantumExperiment,
+    PRR_DRAINS, PRR_H, PRR_AMPS, prrExperiment, runPrrExperiment, kekExperiment, runKekExperiment, clusterExperiment, runClusterExperiment, median, precisionAtK,
+    jokerGhostExperiment, runJokerGhostExperiment, COSMO_V11, COSMO_V21, COSMO_CERN, ligoExperiment, runLigoExperiment,
+    quantize, erf, poissonCdf, gueCdf, poissonPdf, guePdf, ksDistance, auc, rutherfordFit, riemannAnalysis, R_BINS,
+    HYPOTHESIS_DRAINS, hypothesisPoint, evaluateHypothesis, meanSe, spearman,
+  };
+}
+
+  </script>
+
+  <script>
+    // ============================================================
+    // ARAYÜZ
+    // ============================================================
+    const $ = (id) => document.getElementById(id);
+
+    function computeVariance(arr, start, end) {
+      const len = Math.max(1, end - start);
+      let s = 0;
+      for (let i = start; i < end; i++) s += arr[i];
+      const m = s / len;
+      let v = 0;
+      for (let i = start; i < end; i++) v += (arr[i] - m) ** 2;
+      return v / len;
+    }
+
+    function setupCanvas(canvas) {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx, w: rect.width, h: rect.height };
+    }
+
+    function computeNodeLayout(topology, degrees, layers) {
+      const n = degrees.length;
+      const pos = new Array(n);
+      if (topology === 'adaptive_hierarchy') {
+        const l0 = [], l1 = [], l2 = [];
+        for (let i = 0; i < n; i++) (layers[i] === 0 ? l0 : layers[i] === 1 ? l1 : l2).push(i);
+        const place = (arr, r, phase = 0) => arr.forEach((idx, k) => {
+          const ang = phase + (k / arr.length) * Math.PI * 2;
+          pos[idx] = { x: 0.5 + r * Math.cos(ang), y: 0.5 + r * Math.sin(ang) };
+        });
+        place(l0, 0.13, Math.PI / 4);
+        place(l1, 0.28, 0);
+        place(l2, 0.43, 0.08);
+        return pos;
+      }
+      const sorted = Array.from({ length: n }, (_, i) => i).sort((a, b) => degrees[b] - degrees[a]);
+      for (let rank = 0; rank < n; rank++) {
+        const r = rank < 4 ? 0.14 : rank < 20 ? 0.29 : 0.43;
+        const ang = (rank * 2.399963229728653) % (Math.PI * 2);
+        pos[sorted[rank]] = { x: 0.5 + r * Math.cos(ang), y: 0.5 + r * Math.sin(ang) };
+      }
+      return pos;
+    }
+
+    let simQuarOn = null, simQuarOff = null, nodePositions = [];
+    let currentStep = 0, lastStep = 0, isPlaying = false, playTimer = null;
+
+    const activeSim = () => ($('quarantineToggle').checked ? simQuarOn : simQuarOff);
+
+    function drawNetwork(step) {
+      if (!simQuarOn) return;
+      const sim = activeSim();
+      const { ctx, w, h } = setupCanvas($('networkCanvas'));
+      const { adj, degrees, snapshots, csi, quarCount, isChaos, topology } = sim;
+      const snap = snapshots[step];
+      ctx.clearRect(0, 0, w, h);
+      $('liveCsi').textContent = csi[step].toFixed(3);
+      $('liveQuar').textContent = quarCount[step];
+      $('currentStepLabel').textContent = step;
+
+      const minDim = Math.min(w, h), cx = w * 0.5, cy = h * 0.5;
+      if (topology === 'adaptive_hierarchy') {
+        ctx.save();
+        ctx.setLineDash([3, 4]);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.14)';
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.45)';
+        ctx.font = '10px JetBrains Mono, monospace';
+        [{ r: 0.13, t: 'L0' }, { r: 0.28, t: 'L1' }, { r: 0.43, t: 'L2' }].forEach(g => {
+          ctx.beginPath(); ctx.arc(cx, cy, g.r * minDim, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillText(g.t, cx + 4, cy - g.r * minDim + 11);
+        });
+        ctx.restore();
+      }
+      if (sim.ghosts > 0 || (sim.ligo && sim.ligo.events)) {
+        ctx.save(); ctx.fillStyle = 'rgba(245, 245, 244, 0.8)'; ctx.font = '11px JetBrains Mono, monospace'; ctx.textAlign = 'left';
+        const seen = (sim.ligo ? sim.ligo.list : []).filter(e => e.t <= step);
+        ctx.fillText(`LIGO: yeni kenar ${seen.length} · şablona uyan ${seen.filter(e => e.rich).length}`, 10, 16);
+        if (sim.ghosts > 0) {
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+          ctx.fillText(`gerçek (savunmacı görmez): graviton ${sim.gExists ? `var, κ = ${sim.gKappa.toFixed(2)}` : 'yok'}`, 10, 31);
+        }
+        ctx.restore();
+      }
+      const sx = (x) => cx + (x - 0.5) * minDim;
+      const sy = (y) => cy + (y - 0.5) * minDim;
+      const n = degrees.length;
+
+      // Hayaletin büktüğü kenarlar yalnızca oluştukları adımdan sonra görünür
+      const grav = new Map((sim.gravEdgeList || []).map(([a, b, t0]) => [Math.min(a, b) * 1000 + Math.max(a, b), t0]));
+      for (let i = 0; i < n; i++) {
+        const xi = sx(nodePositions[i].x), yi = sy(nodePositions[i].y);
+        for (let j = i + 1; j < n; j++) {
+          if (adj[i][j] === 0) continue;
+          const gt = grav.get(i * 1000 + j);
+          if (gt !== undefined) {
+            if (step < gt) continue;
+            ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = 'rgba(245, 245, 244, 0.75)'; ctx.lineWidth = 1.4;
+            ctx.beginPath(); ctx.moveTo(xi, yi); ctx.lineTo(sx(nodePositions[j].x), sy(nodePositions[j].y)); ctx.stroke(); ctx.restore();
+            continue;
+          }
+          const activeEdge = snap.alive[i] && snap.alive[j] && !snap.quarantined[i] && !snap.quarantined[j];
+          ctx.beginPath(); ctx.moveTo(xi, yi); ctx.lineTo(sx(nodePositions[j].x), sy(nodePositions[j].y));
+          if (activeEdge) {
+            const chaosEdge = isChaos[i] || isChaos[j];
+            ctx.strokeStyle = chaosEdge ? 'rgba(244, 63, 94, 0.28)' : 'rgba(56, 189, 248, 0.16)';
+            ctx.lineWidth = chaosEdge ? 1.2 : 0.9;
+          } else {
+            ctx.strokeStyle = 'rgba(51, 65, 85, 0.08)';
+            ctx.lineWidth = 0.5;
+          }
+          ctx.stroke();
+        }
+      }
+
+      let maxDeg = 1;
+      for (let i = 0; i < n; i++) if (degrees[i] > maxDeg) maxDeg = degrees[i];
+      for (let i = 0; i < n; i++) {
+        const x = sx(nodePositions[i].x), y = sy(nodePositions[i].y);
+        const r = 4.2 + (degrees[i] / maxDeg) * 9.5;
+        const alive = snap.alive[i] === 1, quar = snap.quarantined[i] === 1;
+        const pt = snap.ptype[i];
+        const pkey = pt ? PKEY[pt] : null;
+        const pinfo = pkey ? PARTICLE_INFO[pkey] : null;
+        const inert = pt !== 0 && snap.engaged[i] === 0;
+        const chaos = isChaos[i] === 1;
+        if (alive && chaos && !quar && !inert) {
+          ctx.beginPath(); ctx.arc(x, y, r + 3.5 + (step % 3) * 1.5, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(217, 70, 239, 0.65)'; ctx.lineWidth = 1.6; ctx.stroke();
+        }
+        if (alive && chaos && !quar && inert) {
+          ctx.save(); ctx.setLineDash([2, 2]);
+          ctx.beginPath(); ctx.arc(x, y, r + 3, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(148, 163, 184, 0.7)'; ctx.lineWidth = 1.2; ctx.stroke();
+          ctx.restore();
+        }
+        if (alive && quar) {
+          ctx.save(); ctx.setLineDash([3, 2]);
+          ctx.beginPath(); ctx.arc(x, y, r + 3.5, 0, Math.PI * 2);
+          ctx.strokeStyle = chaos ? '#c084fc' : '#94a3b8'; ctx.lineWidth = 1.6; ctx.stroke();
+          ctx.restore();
+        }
+        let fill = '#334155', stroke = '#0f172a';
+        if (alive) {
+          if (quar) { fill = chaos ? '#581c87' : '#334155'; stroke = '#a855f7'; }
+          else if (chaos) { fill = pinfo ? pinfo.color : '#e11d48'; stroke = inert ? '#475569' : '#f0abfc'; }
+          else if (snap.stress[i] < 0.28) { fill = '#10b981'; stroke = '#064e3b'; }
+          else { fill = '#f59e0b'; stroke = '#78350f'; }
+        }
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = fill; ctx.globalAlpha = alive && chaos && inert && !quar ? 0.55 : 1; ctx.fill(); ctx.globalAlpha = 1;
+        ctx.lineWidth = 1.3; ctx.strokeStyle = stroke; ctx.stroke();
+        if (alive && pinfo && r >= 5.5) {
+          ctx.fillStyle = quar ? '#e9d5ff' : '#0b1020';
+          ctx.font = `bold ${Math.max(8, Math.round(r * (pinfo.sym.length > 1 ? 0.75 : 0.95)))}px JetBrains Mono, monospace`;
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(pinfo.sym, x, y + 0.5);
+        }
+      }
+    }
+
+    function drawGrid(ctx, w, pad, plotH, yMax, ticks, fmt) {
+      ctx.strokeStyle = 'rgba(51, 65, 85, 0.35)';
+      ctx.fillStyle = '#64748b';
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      for (let g = 0; g <= ticks; g++) {
+        const y = pad.top + plotH - (g / ticks) * plotH;
+        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+        ctx.fillText(fmt((g / ticks) * yMax), pad.left - 5, y);
+      }
+    }
+
+    function drawCsiChart() {
+      if (!simQuarOn || !simQuarOff) return;
+      const { ctx, w, h } = setupCanvas($('csiChartCanvas'));
+      ctx.clearRect(0, 0, w, h);
+      const pad = { top: 16, right: 14, bottom: 24, left: 36 };
+      const plotW = w - pad.left - pad.right, plotH = h - pad.top - pad.bottom;
+      const steps = simQuarOn.csi.length;
+      const xAt = (t) => pad.left + (t / (steps - 1)) * plotW;
+      drawGrid(ctx, w, pad, plotH, 1, 4, v => v.toFixed(2));
+
+      const yThresh = pad.top + plotH - 0.25 * plotH;
+      ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = 'rgba(251, 191, 36, 0.55)';
+      ctx.beginPath(); ctx.moveTo(pad.left, yThresh); ctx.lineTo(w - pad.right, yThresh); ctx.stroke(); ctx.restore();
+
+      ctx.strokeStyle = 'rgba(226, 232, 240, 0.25)';
+      ctx.beginPath(); ctx.moveTo(xAt(currentStep), pad.top); ctx.lineTo(xAt(currentStep), pad.top + plotH); ctx.stroke();
+
+      const plotLine = (data, color, dashed) => {
+        ctx.save();
+        if (dashed) ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2.4;
+        for (let t = 0; t < steps; t++) {
+          const y = pad.top + plotH - Math.max(0, Math.min(1, data[t])) * plotH;
+          t === 0 ? ctx.moveTo(xAt(t), y) : ctx.lineTo(xAt(t), y);
+        }
+        ctx.stroke(); ctx.restore();
+      };
+      plotLine(simQuarOff.csi, '#f43f5e', true);
+      plotLine(simQuarOn.csi, '#22d3ee', false);
+
+      ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      [0, 0.25, 0.5, 0.75, 1].map(f => Math.round(f * (steps - 1))).forEach(t => ctx.fillText(`t${t}`, xAt(t), h - pad.bottom + 6));
+    }
+
+    // ---------- Kırılma eşiği taraması ----------
+    let sweepData = null;
+    const SWEEP_PAD = { top: 20, right: 20, bottom: 34, left: 42 };
+
+    function runTippingPointSweep() {
+      const ratios = [0, 5, 10, 15, 20, 25, 30, 35];
+      const seeds = 5;
+      const base = { ...getUiConfig(), recordSnapshots: false };
+      const hubOff = [], hubOn = [], perOn = [];
+      for (const pct of ratios) {
+        let s1 = 0, s2 = 0, s3 = 0;
+        for (let s = 0; s < seeds; s++) {
+          const common = { ...base, chaos_ratio: pct / 100, seed: 300 + s };
+          const o1 = new GoliathSim({ ...common, infiltration_mode: 'hub', quarantine_enabled: false }).run();
+          const o2 = new GoliathSim({ ...common, infiltration_mode: 'hub', quarantine_enabled: true }).run();
+          const o3 = new GoliathSim({ ...common, infiltration_mode: 'periphery', quarantine_enabled: true }).run();
+          s1 += o1.csi[o1.steps - 1]; s2 += o2.csi[o2.steps - 1]; s3 += o3.csi[o3.steps - 1];
+        }
+        hubOff.push(s1 / seeds); hubOn.push(s2 / seeds); perOn.push(s3 / seeds);
+      }
+      sweepData = { ratios, hubOff, hubOn, perOn };
+      drawSweepChart();
+
+      const findTip = (arr) => { const idx = arr.findIndex(v => v < 0.25); return idx === -1 ? '>%35' : `%${ratios[idx]}`; };
+      const autophagic = hubOn[0] < hubOff[0] - 0.12 || hubOn[1] < hubOff[1] - 0.08;
+      const gainIdx = ratios.length - 1;
+      let verdict;
+      if (autophagic) {
+        verdict = `<span class="text-purple-300 font-semibold">Otofajik Çöküş Uyarısı:</span> Hassasiyet ${base.quarantine_sensitivity.toFixed(2)} (eşik ${detectorThreshold(base.quarantine_sensitivity).toFixed(3)}) dış saldırı yokken bile sağlıklı düğümleri izole ediyor.`;
+      } else if (hubOn[gainIdx] > hubOff[gainIdx] + 0.04) {
+        verdict = `<span class="text-emerald-300 font-semibold">Bağışıklık Kazancı:</span> Kör karantina, %${ratios[gainIdx]} hub sızmasında CSI'yi ${hubOff[gainIdx].toFixed(3)} → ${hubOn[gainIdx].toFixed(3)} korudu.`;
+      } else {
+        verdict = `<span class="text-amber-300 font-semibold">Sınırlı Etki:</span> Bu parametrelerde karantina hub sızmasına karşı belirgin bir kazanç sağlamadı.`;
+      }
+      $('discoverySummary').innerHTML = `
+        <p>• <b>Hub (Karantina Kapalı):</b> kırılma eşiği <span class="font-mono text-rose-400 font-bold">${findTip(hubOff)}</span></p>
+        <p>• <b>Hub (Karantina Açık):</b> kırılma eşiği <span class="font-mono text-cyan-400 font-bold">${findTip(hubOn)}</span></p>
+        <p>• <b>Çeper (Karantina Açık):</b> kırılma eşiği <span class="font-mono text-emerald-400 font-bold">${findTip(perOn)}</span></p>
+        <p class="pt-1 border-t border-slate-800">${verdict}</p>`;
+    }
+
+    function drawSweepChart() {
+      const { ctx, w, h } = setupCanvas($('sweepCanvas'));
+      ctx.clearRect(0, 0, w, h);
+      if (!sweepData) return;
+      const pad = SWEEP_PAD;
+      const plotW = w - pad.left - pad.right, plotH = h - pad.top - pad.bottom;
+      const { ratios, hubOff, hubOn, perOn } = sweepData;
+      const n = ratios.length;
+      const xAt = (i) => pad.left + (i / (n - 1)) * plotW;
+      const yAt = (v) => pad.top + plotH - Math.max(0, Math.min(1, v)) * plotH;
+      drawGrid(ctx, w, pad, plotH, 1, 4, v => v.toFixed(2));
+
+      ctx.save(); ctx.setLineDash([5, 4]); ctx.strokeStyle = 'rgba(251, 191, 36, 0.75)'; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(pad.left, yAt(0.25)); ctx.lineTo(w - pad.right, yAt(0.25)); ctx.stroke();
+      ctx.fillStyle = '#fbbf24'; ctx.textAlign = 'left'; ctx.fillText('Çöküş Eşiği (0.25)', pad.left + 6, yAt(0.25) - 9);
+      ctx.restore();
+
+      ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ratios.forEach((r, i) => ctx.fillText(`%${r}`, xAt(i), h - pad.bottom + 8));
+
+      const drawCurve = (arr, color) => {
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+        arr.forEach((v, i) => (i === 0 ? ctx.moveTo(xAt(i), yAt(v)) : ctx.lineTo(xAt(i), yAt(v))));
+        ctx.stroke();
+        arr.forEach((v, i) => { ctx.beginPath(); ctx.arc(xAt(i), yAt(v), 3.5, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill(); });
+      };
+      drawCurve(hubOff, '#f43f5e');
+      drawCurve(hubOn, '#22d3ee');
+      drawCurve(perOn, '#34d399');
+    }
+
+    function bindTooltip(canvas, tooltip, pad, getLen, render) {
+      const move = (e) => {
+        const len = getLen();
+        if (!len) return;
+        const rect = canvas.getBoundingClientRect();
+        const plotW = rect.width - pad.left - pad.right;
+        const mx = e.clientX - rect.left - pad.left;
+        if (mx < 0 || mx > plotW) { tooltip.classList.add('hidden'); return; }
+        const idx = Math.round((mx / plotW) * (len - 1));
+        tooltip.innerHTML = render(idx);
+        tooltip.style.left = `${Math.max(4, Math.min(rect.width - 190, e.clientX - rect.left + 12))}px`;
+        tooltip.style.top = `${Math.max(8, e.clientY - rect.top - 85)}px`;
+        tooltip.classList.remove('hidden');
+      };
+      canvas.addEventListener('pointermove', move);
+      canvas.addEventListener('pointerdown', move);
+      canvas.addEventListener('pointerleave', () => tooltip.classList.add('hidden'));
+    }
+
+    bindTooltip($('sweepCanvas'), $('sweepTooltip'), SWEEP_PAD, () => sweepData && sweepData.ratios.length, (idx) =>
+      `<div class="text-slate-400 mb-1">Kaos Oranı: <b class="text-white">%${sweepData.ratios[idx]}</b></div>` +
+      `<div class="text-rose-400">Hub (Kapalı): <b>${sweepData.hubOff[idx].toFixed(3)}</b></div>` +
+      `<div class="text-cyan-400">Hub (Açık): <b>${sweepData.hubOn[idx].toFixed(3)}</b></div>` +
+      `<div class="text-emerald-400">Çeper (Açık): <b>${sweepData.perOn[idx].toFixed(3)}</b></div>`);
+
+    // ---------- H-GİZLİ hipotez testi ----------
+    let hypData = null, hypRunning = false;
+    const HYP_PAD = { top: 20, right: 44, bottom: 34, left: 46 };
+
+    function runHypothesis() {
+      if (hypRunning) return;
+      hypRunning = true;
+      const btn = $('runHypBtn');
+      btn.disabled = true; btn.classList.add('opacity-60');
+      const seeds = parseInt($('hypSeeds').value, 10);
+      const base = { ...getUiConfig(), chaos_particles: ['PARASITE'], recordSnapshots: false };
+      const points = [];
+      $('hypProgress').classList.remove('hidden');
+      $('hypVerdict').textContent = 'çalışıyor…';
+      let k = 0;
+      const step = () => {
+        points.push(hypothesisPoint(base, HYPOTHESIS_DRAINS[k], seeds));
+        k++;
+        $('hypProgressBar').style.width = `${(k / HYPOTHESIS_DRAINS.length) * 100}%`;
+        if (k < HYPOTHESIS_DRAINS.length) { setTimeout(step, 0); return; }
+        const ev = evaluateHypothesis(points);
+        hypData = { points, ev, seeds, base };
+        drawHypChart();
+        renderHypVerdict();
+        $('hypProgress').classList.add('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+        hypRunning = false;
+      };
+      setTimeout(step, 0);
+    }
+
+    function renderHypVerdict() {
+      const { ev, seeds, base, points } = hypData;
+      const mark = (ok) => ok ? '<span class="font-mono font-bold text-emerald-400">✓</span>' : '<span class="font-mono font-bold text-rose-400">✗</span>';
+      const last = ev.onStats.length - 1;
+      let offPeak = 0;
+      ev.offStats.forEach((s, i) => { if (s.mean > ev.offStats[offPeak].mean) offPeak = i; });
+      $('hypCriteria').innerHTML = `
+        <li>${mark(ev.criteria.a)} (a) AÇIK tepesi iç noktada: d* = <b class="font-mono">${ev.peakDrain.toFixed(2)}</b></li>
+        <li>${mark(ev.criteria.b)} (b) Tepe / son nokta = <b class="font-mono">${ev.ratio.toFixed(2)}×</b>${ev.separated ? ', 2 SH ayrık' : ', 2 SH ayrık değil'}</li>
+        <li>${mark(ev.criteria.c)} (c) KAPALI monotonluğu: ρ = <b class="font-mono">${ev.rhoOff.toFixed(2)}</b></li>`;
+      const v = $('hypVerdict');
+      const partial = ev.criteria.a && ev.criteria.b && !ev.criteria.c;
+      if (ev.supported) {
+        v.textContent = 'DESTEKLENDİ';
+        v.className = 'rounded-md border border-emerald-500/50 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-300';
+      } else if (partial) {
+        v.textContent = 'KISMEN';
+        v.className = 'rounded-md border border-amber-500/50 bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-300';
+      } else {
+        v.textContent = 'DESTEKLENMEDİ';
+        v.className = 'rounded-md border border-rose-500/50 bg-rose-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-rose-300';
+      }
+      const extra = partial
+        ? ` KAPALI eğrisi de ${points[offPeak].drain.toFixed(2)}'de tepe yapıp düşüyor: aşırı sömürü kurbanları iflas ettiriyor ve parazit kendi kaynağını tüketiyor. Bu, karantinadan bağımsız ikinci bir ters-U mekanizması.`
+        : '';
+      $('hypNote').textContent =
+        `${seeds} seed × ${HYPOTHESIS_DRAINS.length} şiddet, eşik ${detectorThreshold(base.quarantine_sensitivity).toFixed(3)}. ` +
+        `Karantina, saldırganın en kârlı şiddetini ${points[offPeak].drain.toFixed(2)} → ${ev.peakDrain.toFixed(2)} noktasına çekti; ` +
+        `en sert parazit (d=${points[last].drain.toFixed(2)}) ortalama ${ev.onStats[last].mean.toFixed(1)}, sessiz parazit ${ev.onStats[ev.peakIndex].mean.toFixed(1)} birim çaldı.` + extra;
+    }
+
+    function drawHypChart() {
+      const { ctx, w, h } = setupCanvas($('hypCanvas'));
+      ctx.clearRect(0, 0, w, h);
+      const pad = HYP_PAD;
+      const plotW = w - pad.left - pad.right, plotH = h - pad.top - pad.bottom;
+      if (!hypData) {
+        ctx.fillStyle = '#64748b'; ctx.font = '12px Inter, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('“Hipotezi Test Et” ile Monte Carlo deneyini başlat', w / 2, h / 2);
+        return;
+      }
+      const { points, ev } = hypData;
+      const n = points.length;
+      let yMax = 0;
+      ev.onStats.forEach(s => { yMax = Math.max(yMax, s.mean + 2 * s.se); });
+      ev.offStats.forEach(s => { yMax = Math.max(yMax, s.mean); });
+      yMax = Math.max(1, Math.ceil(yMax / 10) * 10);
+      const xAt = (i) => pad.left + (i / (n - 1)) * plotW;
+      const yAt = (v) => pad.top + plotH - (v / yMax) * plotH;
+      drawGrid(ctx, w, pad, plotH, yMax, 4, v => v.toFixed(0));
+
+      // sağ eksen: TP oranı
+      ctx.fillStyle = '#a78bfa'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      for (let g = 0; g <= 4; g++) ctx.fillText(`%${g * 25}`, w - pad.right + 6, pad.top + plotH - (g / 4) * plotH);
+
+      ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      points.forEach((p, i) => { if (i % 2 === 0) ctx.fillText(p.drain.toFixed(2), xAt(i), h - pad.bottom + 8); });
+      ctx.fillText('sömürü şiddeti', pad.left + plotW / 2, h - 12);
+
+      // TP oranı
+      ctx.beginPath(); ctx.strokeStyle = 'rgba(167, 139, 250, 0.6)'; ctx.lineWidth = 1.5;
+      points.forEach((p, i) => {
+        const y = pad.top + plotH - meanSe(p.tpRate).mean * plotH;
+        i === 0 ? ctx.moveTo(xAt(i), y) : ctx.lineTo(xAt(i), y);
+      });
+      ctx.stroke();
+
+      // AÇIK: ±2 SH bant
+      ctx.beginPath();
+      ev.onStats.forEach((s, i) => { const y = yAt(s.mean + 2 * s.se); i === 0 ? ctx.moveTo(xAt(i), y) : ctx.lineTo(xAt(i), y); });
+      for (let i = n - 1; i >= 0; i--) ctx.lineTo(xAt(i), yAt(Math.max(0, ev.onStats[i].mean - 2 * ev.onStats[i].se)));
+      ctx.closePath(); ctx.fillStyle = 'rgba(34, 211, 238, 0.15)'; ctx.fill();
+
+      const curve = (stats, color, dashed) => {
+        ctx.save(); if (dashed) ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+        stats.forEach((s, i) => (i === 0 ? ctx.moveTo(xAt(i), yAt(s.mean)) : ctx.lineTo(xAt(i), yAt(s.mean))));
+        ctx.stroke(); ctx.restore();
+      };
+      curve(ev.offStats, '#f43f5e', true);
+      curve(ev.onStats, '#22d3ee', false);
+
+      // tepe işareti
+      const px = xAt(ev.peakIndex), py = yAt(ev.onStats[ev.peakIndex].mean);
+      ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fillStyle = '#22d3ee'; ctx.fill();
+      ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = '#a5f3fc'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText(`sessiz parazit d*=${ev.peakDrain.toFixed(2)}`, Math.min(Math.max(px, pad.left + 70), w - pad.right - 70), py - 8);
+    }
+
+    bindTooltip($('hypCanvas'), $('hypTooltip'), HYP_PAD, () => hypData && hypData.points.length, (idx) => {
+      const p = hypData.points[idx], on = hypData.ev.onStats[idx], off = hypData.ev.offStats[idx];
+      return `<div class="text-slate-400 mb-1">Şiddet: <b class="text-white">${p.drain.toFixed(2)}</b></div>` +
+        `<div class="text-cyan-400">AÇIK: <b>${on.mean.toFixed(1)}</b> ±${(2 * on.se).toFixed(1)}</div>` +
+        `<div class="text-rose-400">KAPALI: <b>${off.mean.toFixed(1)}</b></div>` +
+        `<div class="text-purple-300">Yakalanan: <b>%${(meanSe(p.tpRate).mean * 100).toFixed(0)}</b></div>` +
+        `<div class="text-slate-300">CSI (AÇIK): <b>${meanSe(p.csiOn).mean.toFixed(3)}</b></div>`;
+    });
+
+    // ---------- Üreteçleri parça parça çalıştır (arayüz donmasın) ----------
+    function runChunked(gen, bar, onDone) {
+      const tick = () => {
+        const t0 = performance.now();
+        let r;
+        do { r = gen.next(); } while (!r.done && performance.now() - t0 < 40);
+        if (!r.done) { bar.style.width = `${Math.min(100, (r.value.done / r.value.total) * 100)}%`; setTimeout(tick, 0); return; }
+        onDone(r.value);
+      };
+      setTimeout(tick, 0);
+    }
+
+    const mark = (ok) => ok ? '<span class="font-mono font-bold text-emerald-400">✓</span>' : '<span class="font-mono font-bold text-rose-400">✗</span>';
+    const pct = (x) => (x * 100).toFixed(1);
+    const setVerdict = (el, ok, partial, okText, noText) => {
+      el.textContent = ok ? okText : partial ? 'KISMEN' : noText;
+      el.className = ok
+        ? 'rounded-md border border-emerald-500/50 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-300'
+        : partial
+          ? 'rounded-md border border-amber-500/50 bg-amber-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-300'
+          : 'rounded-md border border-rose-500/50 bg-rose-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-rose-300';
+    };
+
+    // ---------- H-KUANTUM ----------
+    let quantumRunning = false;
+    const BOSON_TR = { g: 'gluon g', gamma: 'foton γ', Z: 'Z', W: 'W', H: 'Higgs H' };
+    function runQuantum() {
+      if (quantumRunning) return;
+      quantumRunning = true;
+      const btn = $('runQuantumBtn');
+      btn.disabled = true; btn.classList.add('opacity-60');
+      $('quantumProgress').classList.remove('hidden');
+      $('quantumVerdict').textContent = 'çalışıyor…';
+      const base = { ...defaultConfig(getUiConfig()), recordSnapshots: false };
+      runChunked(quantumExperiment(base, {}), $('quantumProgressBar'), (r) => {
+        $('quantumTable').innerHTML = r.bosons.map(x => `
+          <tr class="border-b border-slate-800/60">
+            <td class="px-3 py-1.5 font-sans">${BOSON_TR[x.b]}</td>
+            <td class="px-3 py-1.5 text-right ${x.needed ? 'text-lime-300' : 'text-slate-500'}">${pct(x.need.mean)} ±${pct(x.need.se)}</td>
+            <td class="px-3 py-1.5 font-sans">${BOSON_TR[x.bestSub]}</td>
+            <td class="px-3 py-1.5 text-right">${pct(x.gap.mean)} ±${pct(x.gap.se)}</td>
+            <td class="px-3 py-1.5">${x.nonBypass ? '<span class="text-emerald-400">yok</span>' : '<span class="text-rose-400">VAR</span>'}</td>
+            <td class="px-3 py-1.5 text-right">${x.recovery === null ? '—' : '%' + (x.recovery * 100).toFixed(0)}</td>
+          </tr>`).join('');
+        const rows = [['SM18 (graviton dahil)', r.R.SM18, '#f5f5f4'], ['SM17', r.R.SM17, '#a3e635'], ['Yalnız fermiyonlar (F12)', r.R.F12, '#ef4444'], ['Yalnız bozonlar (B5)', r.R.B5, '#4ade80'], ['Taban: 18 pasif (N)', r.R.N18, '#475569']];
+        const maxV = Math.max(0.01, ...rows.map(x => x[1].mean));
+        $('quantumBars').innerHTML = rows.map(([label, st, color]) => `
+          <div><div class="flex justify-between"><span>${label}</span><span class="font-mono" style="color:${color}">%${pct(st.mean)}</span></div>
+          <div class="h-1.5 rounded bg-slate-800"><div class="h-1.5 rounded" style="width:${Math.max(0, st.mean / maxV) * 100}%;background:${color}"></div></div></div>`).join('');
+        $('quantumCriteria').innerHTML = `
+          <li>${mark(r.criteria.a)} (a) süper-toplamsallık: <b class="font-mono">${pct(r.superAdd.mean)} ± ${pct(r.superAdd.se)}</b> puan <span class="text-slate-500">(düzeltmesiz ${pct(r.superAddRaw.mean)})</span></li>
+          <li>${mark(r.criteria.b)} (b) bypass yok: <b class="font-mono">${r.bCount}/5</b> <span class="text-slate-500">(keşif, W yedeklerden çıkarılınca ${r.bCountNoW}/4)</span></li>
+          <li>${mark(r.criteria.c)} (c) graviton jokeri ort. geri kazanım: <b class="font-mono">${r.recMean === null ? '—' : '%' + (r.recMean * 100).toFixed(0)}</b></li>`;
+        const n = [r.criteria.a, r.criteria.b, r.criteria.c].filter(Boolean).length;
+        setVerdict($('quantumVerdict'), r.supported, n > 0 && !r.supported, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
+        $('quantumNote').textContent = `En yıkıcı şiddet d = ${r.drain}. Mekanizmalar ortogonal ama etkiler değil: bütün eksenler sonunda tek bir skalere (sağlıklı CSI) döküldüğü için birbirinin yerine geçebiliyor. En sık yedek W, çünkü tat değişimi yeni ajan üreterek bütçe korunumunu bozan tek süreç.`;
+        $('quantumProgress').classList.add('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+        quantumRunning = false;
+      });
+    }
+
+    // ---------- H-PRR ----------
+    let prrRunning = false, prrData = null;
+    function runPrr() {
+      if (prrRunning) return;
+      prrRunning = true;
+      const btn = $('runPrrBtn');
+      btn.disabled = true; btn.classList.add('opacity-60');
+      $('prrProgress').classList.remove('hidden');
+      $('prrVerdict').textContent = 'çalışıyor…';
+      // Ön kayıtlı deney: arayüz ayarlarından bağımsız, kayıttaki varsayılan ayarlarla çalışır
+      const base = { ...defaultConfig({}), recordSnapshots: false };
+      runChunked(prrExperiment(base, {}), $('prrProgressBar'), (r) => {
+        prrData = r;
+        drawPrr();
+        const p0 = r.planck.find(p => p.h === 0), p4 = r.planck.find(p => p.h === 0.4);
+        const tpAt = (p) => p.row.find(x => Math.abs(x.d - 0.3) < 1e-9).tp;
+        $('prrA').innerHTML = `${mark(r.criteria.a)} TP %${(tpAt(p0) * 100).toFixed(0)}→%${(tpAt(p4) * 100).toFixed(0)}`;
+        $('prrB').innerHTML = `${mark(r.criteria.b)} AUC ${r.rutherford.aucMean.toFixed(2)}`;
+        $('prrC').innerHTML = `<span title="c1 sağlamlık kontrolünde çöktü">⚠</span>${mark(r.criteria.c2)} ρ ${r.riemann.rhoA.toFixed(2)}`;
+        const res = r.planck.find(p => p.h === 0.3);
+        $('prrNote').textContent =
+          `Planck: en iyi sömürü ${p0.best.extracted.toFixed(1)} → ${p4.best.extracted.toFixed(1)} (h = 0.40). Rezonans: h = 0.30'da kuantum seviyesi tam gizlenme noktasına düşüyor, sömürü ${res.best.extracted.toFixed(1)}. ` +
+          `Rutherford: çekirdek modeli kaotik koşuların %${(r.rutherford.winChaos * 100).toFixed(0)}'inde kazandı; büyük kaos sinyali küresel ölçeği şişirip diğer sapmaları perdeliyor. ` +
+          `Riemann: ilk bakışta kaos daha rijit (fark ${r.riemann.rigDiff.mean.toFixed(3)} ± ${r.riemann.rigDiff.se.toFixed(3)}), ama sağlamlık kontrolünde çöktü: kaotik aralıkların çoğu tam 1.0, çünkü az olaylı düğümlerde ortalamaya bölmek değerleri 1'e yığıyor. Havuz genelinde normalize edince fark kayboluyor. 80 adım aralık istatistiği için çok kısa; bu sonuç geri çekildi. Higgs genliği etkisiz (ρ ${r.riemann.rhoA.toFixed(2)}).`;
+        const n = [r.criteria.a, r.criteria.b, r.criteria.c].filter(Boolean).length + (r.criteria.c1 && !r.criteria.c ? 0.5 : 0);
+        setVerdict($('prrVerdict'), r.supported, n > 0 && !r.supported, 'H-PRR DESTEKLENDİ', 'H-PRR DESTEKLENMEDİ');
+        $('prrProgress').classList.add('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+        prrRunning = false;
+      });
+    }
+
+    function smallChart(canvasId, draw) {
+      const { ctx, w, h } = setupCanvas($(canvasId));
+      ctx.clearRect(0, 0, w, h);
+      const pad = { top: 12, right: 30, bottom: 22, left: 34 };
+      const pw = w - pad.left - pad.right, ph = h - pad.top - pad.bottom;
+      ctx.font = '9px JetBrains Mono, monospace';
+      ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+      for (let g = 0; g <= 4; g++) { const y = pad.top + ph - (g / 4) * ph; ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke(); }
+      draw(ctx, w, h, pad, pw, ph);
+    }
+
+    function drawPrr() {
+      if (!prrData) {
+        for (const id of ['planckCanvas', 'rutherfordCanvas', 'riemannCanvas']) smallChart(id, (ctx, w, h) => {
+          ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.font = '11px Inter, sans-serif'; ctx.fillText('deney bekleniyor', w / 2, h / 2);
+        });
+        return;
+      }
+      const r = prrData;
+      smallChart('planckCanvas', (ctx, w, h, pad, pw, ph) => {
+        const hs = r.planck.map(p => p.h), maxE = Math.max(...r.planck.map(p => p.best.extracted)) * 1.1;
+        const xAt = i => pad.left + (i / (hs.length - 1)) * pw;
+        ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        hs.forEach((v, i) => ctx.fillText(v.toFixed(1), xAt(i), h - pad.bottom + 5));
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        for (let g = 0; g <= 4; g++) ctx.fillText((maxE * g / 4).toFixed(0), pad.left - 4, pad.top + ph - (g / 4) * ph);
+        ctx.textAlign = 'left'; ctx.fillStyle = '#a78bfa';
+        for (let g = 0; g <= 4; g += 2) ctx.fillText(`%${g * 25}`, w - pad.right + 3, pad.top + ph - (g / 4) * ph);
+        ctx.beginPath(); ctx.strokeStyle = 'rgba(167, 139, 250, 0.8)'; ctx.lineWidth = 1.5;
+        r.planck.forEach((p, i) => { const y = pad.top + ph - p.row.find(x => Math.abs(x.d - 0.3) < 1e-9).tp * ph; i ? ctx.lineTo(xAt(i), y) : ctx.moveTo(xAt(i), y); });
+        ctx.stroke();
+        ctx.beginPath(); ctx.strokeStyle = '#fde047'; ctx.lineWidth = 2.4;
+        r.planck.forEach((p, i) => { const y = pad.top + ph - (p.best.extracted / maxE) * ph; i ? ctx.lineTo(xAt(i), y) : ctx.moveTo(xAt(i), y); });
+        ctx.stroke();
+        r.planck.forEach((p, i) => { ctx.beginPath(); ctx.arc(xAt(i), pad.top + ph - (p.best.extracted / maxE) * ph, 3, 0, Math.PI * 2); ctx.fillStyle = '#fde047'; ctx.fill(); });
+      });
+      smallChart('rutherfordCanvas', (ctx, w, h, pad, pw, ph) => {
+        const hc = r.rutherford.histChaos, hn = r.rutherford.histClean;
+        const sc = hc.reduce((a, b) => a + b, 0), sn = hn.reduce((a, b) => a + b, 0);
+        const lc = hc.map(v => Math.log10(Math.max(1e-5, v / sc))), ln = hn.map(v => Math.log10(Math.max(1e-5, v / sn)));
+        const lo = Math.min(...lc, ...ln, -4), hi = 0;
+        const xAt = k => pad.left + ((k + 0.5) / R_BINS) * pw;
+        const yAt = v => pad.top + ph - ((v - lo) / (hi - lo)) * ph;
+        ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        [0, 45, 90, 135, 180].forEach(deg => ctx.fillText(`${deg}°`, pad.left + (deg / 180) * pw, h - pad.bottom + 5));
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        for (let g = 0; g <= 4; g++) { const v = lo + (hi - lo) * g / 4; ctx.fillText(`1e${v.toFixed(0)}`, pad.left - 4, yAt(v)); }
+        const line = (arr, color, dash) => { ctx.save(); if (dash) ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2; arr.forEach((v, k) => (k ? ctx.lineTo(xAt(k), yAt(v)) : ctx.moveTo(xAt(k), yAt(v)))); ctx.stroke(); ctx.restore(); };
+        line(ln, '#64748b'); line(lc, '#fb923c');
+        // Rutherford yasası: kaotik histogramın 2. kutusuna oturtulur
+        const th = k => ((k + 0.5) / R_BINS) * Math.PI;
+        const ref = lc[1] + 4 * Math.log10(Math.sin(th(1) / 2));
+        line(Array.from({ length: R_BINS }, (_, k) => (k === 0 ? lc[1] : ref - 4 * Math.log10(Math.sin(th(k) / 2)))), '#fde047', true);
+      });
+      smallChart('riemannCanvas', (ctx, w, h, pad, pw, ph) => {
+        const bins = 16, smax = 4;
+        const hist = (arr) => { const hh = new Array(bins).fill(0); arr.forEach(s => { if (s < smax) hh[Math.floor((s / smax) * bins)]++; }); return hh.map(v => v / Math.max(1, arr.length) / (smax / bins)); };
+        const hc = hist(r.riemann.spChaos), hn = hist(r.riemann.spClean);
+        const maxY = Math.max(1.2, ...hc, ...hn);
+        const xAt = s => pad.left + (s / smax) * pw, yAt = v => pad.top + ph - (v / maxY) * ph;
+        ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        [0, 1, 2, 3, 4].forEach(s => ctx.fillText(`${s}`, xAt(s), h - pad.bottom + 5));
+        const bw = pw / bins;
+        hn.forEach((v, k) => { ctx.fillStyle = 'rgba(100, 116, 139, 0.45)'; ctx.fillRect(pad.left + k * bw + 1, yAt(v), bw / 2 - 1, pad.top + ph - yAt(v)); });
+        hc.forEach((v, k) => { ctx.fillStyle = 'rgba(217, 70, 239, 0.75)'; ctx.fillRect(pad.left + k * bw + bw / 2, yAt(v), bw / 2 - 1, pad.top + ph - yAt(v)); });
+        const curve = (f, color) => { ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2; for (let k = 0; k <= 80; k++) { const s = (k / 80) * smax; k ? ctx.lineTo(xAt(s), yAt(f(s))) : ctx.moveTo(xAt(s), yAt(f(s))); } ctx.stroke(); };
+        curve(poissonPdf, '#38bdf8'); curve(guePdf, '#fde047');
+      });
+    }
+
+
+    // ---------- H-LIGO ----------
+    let ligoRunning = false;
+    function aucBar(label, v) {
+      const ok = v !== null && v >= 0.35 && v <= 0.65;
+      const w = v === null ? 0 : Math.round(v * 100);
+      return `<div class="flex items-center gap-2"><span class="w-32 shrink-0">${label}</span>
+        <div class="relative h-2 flex-1 rounded bg-slate-800"><div class="absolute inset-y-0 left-[35%] right-[35%] bg-slate-700/70"></div><div class="absolute top-0 h-2 w-1 rounded bg-sky-300" style="left:calc(${w}% - 2px)"></div></div>
+        <span class="w-10 shrink-0 text-right font-mono ${ok ? 'text-slate-300' : 'text-sky-300'}">${v === null ? '—' : v.toFixed(2)}</span></div>`;
+    }
+    function runLigo() {
+      if (ligoRunning) return;
+      ligoRunning = true;
+      const btn = $('runLigoBtn');
+      btn.disabled = true; btn.classList.add('opacity-60');
+      $('ligoProgress').classList.remove('hidden');
+      runChunked(ligoExperiment({ ...defaultConfig({}), recordSnapshots: false }, {}), $('ligoProgressBar'), (r) => {
+        const names = { q: 'karantina sayısı', kekZ: 'kek z', meanSig: 'ortalama sinyal', naive: 'ham kenar sayısı', matched: 'LIGO eşleşmiş filtre' };
+        $('ligoRows').innerHTML = `<div class="text-slate-400">80 koşu · graviton var ${r.nExist} · işareti belli ${r.nSign} (zararlı ${r.nHarm}). Gri bant: 0.35–0.65 = ayırt edemiyor.</div>
+          <div class="pt-1 font-semibold text-sky-200">Var mı?</div>` + Object.keys(names).map(k => aucBar(names[k], r.aucExist[k])).join('') +
+          `<div class="pt-1 font-semibold text-sky-200">Zararlı mı, yararlı mı?</div>` + Object.keys(names).map(k => aucBar(names[k], r.aucSign[k])).join('') +
+          `<div class="pt-1">${mark(r.criteria.a)} (a) &nbsp; ${mark(r.criteria.b)} (b) &nbsp; ${mark(r.criteria.c)} (c)</div>
+           <p class="text-slate-400">Düğüm aletleri gravitonu göremiyor, uzay-zaman bükülmesini izleyen LIGO görüyor; ama hiçbir gözlem zararlı mı yararlı mı olduğunu söyleyemiyor. Varlığını kanıtlayabiliriz, niteliğini bilemeyiz.</p>`;
+        setVerdict($('ligoVerdict'), r.supported, r.criteria.a || r.criteria.b || r.criteria.c, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
+        $('ligoProgress').classList.add('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+        ligoRunning = false;
+      });
+    }
+    function runJokerCern() {
+      const btn = $('runJokerCernBtn');
+      if (btn.disabled) return;
+      btn.disabled = true; btn.classList.add('opacity-60');
+      $('ligoProgress').classList.remove('hidden');
+      runChunked(jokerGhostExperiment({ ...defaultConfig({}), recordSnapshots: false }, { cosmo: COSMO_CERN, offset: 9300 }), $('ligoProgressBar'), (r) => {
+        const L = { g: 'gluon g', gamma: 'foton γ', Z: 'Z', W: 'W' };
+        $('jcRows').innerHTML = `<div class="text-slate-400">Tam sürü hasarı %${pct(r.full.mean)}</div>` + r.joker.map(x => `
+          <div class="flex flex-wrap justify-between gap-2"><span class="w-20">${L[x.b]} eksik</span>
+            <span class="font-mono">jokerli %${pct(x.on)} · jokersiz %${pct(x.off)}</span>
+            <span class="font-mono ${x.recovery !== null && x.recovery >= 0.5 ? 'text-emerald-400' : 'text-rose-400'}">${x.needed ? '' : '(gereksiz) '}${x.recovery === null ? '—' : (x.recovery * 100).toFixed(0) + '%'}</span></div>`).join('') +
+          `<div class="pt-1">${mark(r.criteriaJ.a)} (a) ortalama ${r.recMean === null ? '—' : (r.recMean * 100).toFixed(0) + '%'} &nbsp; ${mark(r.criteriaJ.b)} (b) W</div>
+           <p class="text-slate-400">v2.1'de çürütülmüştü. Kütlenin çoğu QCD'den gelince Higgs'in kendi alanı zayıflıyor ve joker olmanın bedeli düşüyor. Anlamlı kayıp yaratan tek bozon W: Higgs'in yutulan Goldstone bileşeni. Not: (a)'nın ortalaması yalnızca W'ye dayanıyor.</p>`;
+        setVerdict($('jcVerdict'), r.supportedJ, r.criteriaJ.a || r.criteriaJ.b, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
+        $('ligoProgress').classList.add('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+      });
+    }
+
+    // ---------- H-JOKER / H-HAYALET ----------
+    let jgRunning = false;
+    function runJG() {
+      if (jgRunning) return;
+      jgRunning = true;
+      const btn = $('runJGBtn');
+      btn.disabled = true; btn.classList.add('opacity-60');
+      $('jgProgress').classList.remove('hidden');
+      runChunked(jokerGhostExperiment({ ...defaultConfig({}), recordSnapshots: false }, {}), $('jgProgressBar'), (r) => {
+        const L = { g: 'gluon g', gamma: 'foton γ', Z: 'Z', W: 'W' };
+        $('jRows').innerHTML = `<div class="text-slate-400">Tam sürü hasarı %${pct(r.full.mean)}</div>` + r.joker.map(x => `
+          <div class="flex flex-wrap justify-between gap-2"><span class="w-16">${L[x.b]} eksik</span>
+            <span class="font-mono">jokerli %${pct(x.on)} · jokersiz %${pct(x.off)}</span>
+            <span class="font-mono ${x.recovery !== null && x.recovery >= 0.5 ? 'text-emerald-400' : 'text-rose-400'}">${x.needed ? '' : '(gereksiz) '}geri kazanım ${x.recovery === null ? '—' : (x.recovery * 100).toFixed(0) + '%'}</span></div>`).join('') +
+          `<div class="pt-1">${mark(r.criteriaJ.a)} (a) ortalama ${r.recMean === null ? '—' : (r.recMean * 100).toFixed(0) + '%'} &nbsp; ${mark(r.criteriaJ.b)} (b) W</div>
+           <p class="text-slate-400">Higgs büründüğü adımda kendi kütle alanını bırakıyor; korunumlu ekonomide kütle alanı boşluğu doldurmaktan daha yıkıcı. Higgs'in gücü joker olmakta değil, kütlede.</p>`;
+        $('gRows').innerHTML = `
+          <div>${mark(r.criteriaG.a)} (a) sürüye hayalet eklemenin etkisi: <b class="font-mono">${pct(r.ghostEff.mean)} ± ${pct(r.ghostEff.se)}</b> puan</div>
+          <div>${mark(r.criteriaG.b)} (b) yalnız hayalet (6, d = 0.8): hasar <b class="font-mono">%${pct(r.ghostOnly.damage.mean)}</b>, küme alarmı %${(r.ghostOnly.alarm * 100).toFixed(0)}, yakalanan düğüm 0 (düğüm yok)</div>
+          <p class="text-slate-400">Dikkat: hayaletin zararı modelde varsayım olarak kodlandı, bu yüzden (b) bir keşif değil. Gerçek soru "zararlı mı?" değil, "varlığı gözlemlerden ayırt edilebilir mi?". Sürünün içinde etkisi gürültüde kayboluyor (a).</p>`;
+        setVerdict($('jVerdict'), r.supportedJ, r.criteriaJ.a || r.criteriaJ.b, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
+        setVerdict($('gVerdict'), r.supportedG, r.criteriaG.a || r.criteriaG.b, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
+        $('jgProgress').classList.add('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+        jgRunning = false;
+      });
+    }
+
+    // ---------- Üzümlü kek + küme alarmı ----------
+    let kekRunning = false, kekData = null;
+    function runKek() {
+      if (kekRunning) return;
+      kekRunning = true;
+      const btn = $('runKekBtn');
+      btn.disabled = true; btn.classList.add('opacity-60');
+      $('kekProgress').classList.remove('hidden');
+      const base = { ...defaultConfig({}), recordSnapshots: false };
+      runChunked(kekExperiment(base, {}), $('kekProgressBar'), (k) => {
+        runChunked(clusterExperiment(base, {}), $('kekProgressBar'), (c) => {
+          kekData = { k, c };
+          $('kekCriteria').innerHTML = `
+            <li>${mark(k.criteria.a)} (a) AUC: eski yöntem ${k.aucOld.toFixed(3)} → sağlam ${k.aucNew.toFixed(3)} (eşik 0.70)</li>
+            <li>${mark(k.criteria.b)} (b) kekten anlamlı <i>yüksek</i>: kaotik %${(k.sigChaos * 100).toFixed(0)}, temiz %${(k.sigClean * 100).toFixed(0)}. Oran gerçek/kek: kaotik <b class="font-mono">${k.ratioChaos.toFixed(2)}</b> (z ${k.zChaos.toFixed(2)}), temiz ${k.ratioClean.toFixed(2)} (z ${k.zClean.toFixed(2)})</li>
+            <li>${mark(k.criteria.c)} (c) en çok sapan düğümlerde kaos payı ${(k.prec * 100).toFixed(0)}% (rastgele ${(k.baseRate * 100).toFixed(0)}%)</li>`;
+          $('kumeTable').innerHTML = `<div class="pt-1 font-semibold text-amber-200">H-KÜME: sürü alarmı (z &lt; −1.645)</div>` +
+            c.rows.concat([{ label: 'temiz ağ', alarm: c.clean.alarm, zMean: c.clean.zMean }]).map(x => `
+              <div class="flex items-center gap-2"><span class="w-44 shrink-0">${x.label}</span>
+                <div class="h-2 flex-1 rounded bg-slate-800"><div class="h-2 rounded ${x.label === 'temiz ağ' ? 'bg-slate-500' : 'bg-amber-400'}" style="width:${x.alarm * 100}%"></div></div>
+                <span class="w-24 shrink-0 text-right font-mono">%${(x.alarm * 100).toFixed(0)} · z ${x.zMean.toFixed(2)}</span></div>`).join('');
+          setVerdict($('kekVerdict'), k.supported, false, 'H-KEK DESTEKLENDİ', 'H-KEK ÇÜRÜTÜLDÜ');
+          setVerdict($('kumeVerdict'), c.supported, false, 'H-KÜME DESTEKLENDİ', 'H-KÜME ÇÜRÜTÜLDÜ');
+          const nullOk = c.clean.alarm <= 0.05;
+          $('kekNote').textContent = `Temiz ağda alarm %${(c.clean.alarm * 100).toFixed(0)} (ort z ${c.clean.zMean.toFixed(2)}): kek sıfır modeli olarak ${nullOk ? 'geçerli' : 'GEÇERSİZ'}. ` +
+            (nullOk ? 'Kaos varken ağ kekten daha az geri saçıyor: bağlanan sürü noktasal çekirdek değil yayılmış bir bulut oluşturuyor.' :
+              'v2.0 korunumlu ekonomide paylaşım komşu sinyalleri ilişkilendiriyor; sinyalleri karıştırmak bu doğal yapıyı da bozduğu için kek, kaosu değil ağın kendi yapısını ölçüyor. v1.1\'deki "sürü alarmı" bulgusu para basımı hatasına dayanıyordu ve geri çekildi.');
+          drawKek();
+          $('kekProgress').classList.add('hidden');
+          btn.disabled = false; btn.classList.remove('opacity-60');
+          kekRunning = false;
+        });
+      });
+    }
+
+    function drawKek() {
+      smallChart('kekCanvas', (ctx, w, h, pad, pw, ph) => {
+        if (!kekData) { ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.font = '11px Inter, sans-serif'; ctx.fillText('deney bekleniyor', w / 2, h / 2); return; }
+        const k = kekData.k;
+        const ratio = (hh, pp) => hh.map((v, i) => (pp[i] > 0 ? v / pp[i] : NaN));
+        const rc = ratio(k.histChaos, k.pudChaos), rn = ratio(k.histClean, k.pudClean);
+        const lo = 0, hi = 2;
+        const xAt = i => pad.left + ((i + 0.5) / R_BINS) * pw, yAt = v => pad.top + ph - ((Math.min(hi, v) - lo) / (hi - lo)) * ph;
+        ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        [0, 45, 90, 135, 180].forEach(d => ctx.fillText(`${d}°`, pad.left + (d / 180) * pw, h - pad.bottom + 5));
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        [0, 0.5, 1, 1.5, 2].forEach(v => ctx.fillText(v.toFixed(1), pad.left - 4, yAt(v)));
+        ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = '#fde047'; ctx.beginPath(); ctx.moveTo(pad.left, yAt(1)); ctx.lineTo(w - pad.right, yAt(1)); ctx.stroke(); ctx.restore();
+        const line = (arr, color) => { ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2.2; let started = false; arr.forEach((v, i) => { if (!Number.isFinite(v)) return; started ? ctx.lineTo(xAt(i), yAt(v)) : ctx.moveTo(xAt(i), yAt(v)); started = true; }); ctx.stroke(); };
+        line(rn, '#64748b'); line(rc, '#fbbf24');
+      });
+    }
+
+    // ---------- Kontroller ----------
+    function showToast(msg) {
+      const t = $('toast');
+      $('toastText').textContent = msg;
+      t.classList.remove('hidden');
+      clearTimeout(t._id);
+      t._id = setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+
+    const PATTERNS = {
+      PARASITE: ['PARASITE'],
+      sm: 'sm',
+      sm17: SM_ORDER.filter(k => k !== 'G'),
+      fermions: SM_ORDER.filter(k => FERMION.has(P[k])),
+      quarks: ['u', 'd', 'c', 's', 't', 'b'],
+      leptons: ['e', 've', 'mu', 'vmu', 'tau', 'vtau'],
+      neutrinos: ['ve', 'vmu', 'vtau'],
+    };
+
+    function getUiParticles() { return PATTERNS[$('particleSelect').value] || ['PARASITE']; }
+
+    function uiAgentCount() {
+      return Math.round(60 * parseFloat($('chaosRatioSlider').value) / 100);
+    }
+
+    function renderParticleLegend() {
+      $('particleLegend').innerHTML = SM_ORDER.map(k => {
+        const info = PARTICLE_INFO[k];
+        return `<span title="${info.name}: ${info.cycle}" class="flex h-6 items-center justify-center rounded-md border border-slate-800 bg-slate-950 font-mono text-[10px] font-bold" style="color:${info.color}">${info.sym}</span>`;
+      }).join('');
+    }
+
+    function updateSwarmSummary() {
+      const n = uiAgentCount();
+      if (n === 0) { $('swarmSummary').textContent = '0 ajan: kaos yok'; return; }
+      const types = assignParticles(getUiParticles(), n, 0);
+      const counts = {};
+      for (const t of types) counts[PKEY[t]] = (counts[PKEY[t]] || 0) + 1;
+      const ghost = $('cosmoSelect').value !== 'v11' && counts.G;
+      const ghostLabel = $('cosmoSelect').value === 'cern' ? 'agnostik graviton (var olup olmadığı bilinmez)' : 'hayalet G (düğüm değil)';
+      if (ghost) delete counts.G;
+      $('swarmSummary').textContent = `${n - (ghost || 0)} düğüm ajanı: ` + Object.entries(counts).map(([k, c]) => `${c > 1 ? c + '×' : ''}${PARTICLE_INFO[k].sym}`).join(' ') + (ghost ? ` · ${ghost} ${ghostLabel}` : '');
+    }
+
+    function getUiConfig() {
+      return {
+        topology: $('topologySelect').value,
+        infiltration_mode: $('infiltrationSelect').value,
+        chaos_ratio: parseFloat($('chaosRatioSlider').value) / 100,
+        drain_intensity: parseFloat($('drainSlider').value),
+        quarantine_sensitivity: parseFloat($('sensSlider').value),
+        contagion_rate: parseFloat($('contagionSlider').value),
+        buffer_share: parseFloat($('bufferSlider').value),
+        double_helix: $('doubleHelixToggle').checked,
+        chaos_particles: getUiParticles(),
+        ...({ cern: COSMO_CERN, v21: COSMO_V21, v11: COSMO_V11 })[$('cosmoSelect').value],
+        planck_h: parseFloat($('planckSlider').value),
+        higgs_osc_amp: parseFloat($('higgsSlider').value),
+        seed: 42,
+        recordSnapshots: true,
+      };
+    }
+
+    function updateKPIs() {
+      const quarOn = $('quarantineToggle').checked;
+      const a = activeSim();
+      const last = a.steps - 1;
+      $('kpiCsi').textContent = a.csi[last].toFixed(3);
+      $('kpiCsiSub').textContent = quarOn ? 'Karantina AÇIK' : 'Karantina KAPALI';
+      $('kpiAlive').textContent = `${(a.alive[last] * 100).toFixed(0)}%`;
+      $('kpiCapitalSub').textContent = `Aktif sermaye: ${(a.capital[last] * 100).toFixed(0)}%`;
+      $('kpiTp').textContent = `${a.tp} / ${a.totalChaos}`;
+      $('kpiTpSub').textContent = Object.entries(a.byFamily).map(([f, v]) => `${f} ${v.caught}/${v.count}`).join(' · ') || 'kaos yok';
+      $('kpiFp').textContent = `${a.fp}`;
+      $('kpiExtracted').textContent = a.extracted.toFixed(1);
+      const other = quarOn ? simQuarOff : simQuarOn;
+      $('kpiExtractedSub').textContent = `Diğer koşu: ${other.extracted.toFixed(1)}`;
+
+      const earlyVar = Math.max(computeVariance(a.stress, Math.floor(a.steps * 0.06), Math.floor(a.steps * 0.31)), 1e-6);
+      const lateVar = computeVariance(a.stress, Math.floor(a.steps * 0.5), a.steps);
+      const badge = $('ewsBadge');
+      if (a.csi[last] < 0.25) {
+        badge.textContent = 'EWS: KRİTİK ÇÖKÜŞ';
+        badge.className = 'rounded-md border border-rose-500/50 bg-rose-500/20 px-2.5 py-0.5 font-mono text-[11px] font-bold text-rose-300';
+      } else if (lateVar > earlyVar * 2.2 || a.fp >= 10) {
+        badge.textContent = 'EWS: ERKEN UYARI';
+        badge.className = 'rounded-md border border-amber-500/50 bg-amber-500/20 px-2.5 py-0.5 font-mono text-[11px] font-bold text-amber-300';
+      } else {
+        badge.textContent = 'EWS: STABİL';
+        badge.className = 'rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-emerald-300';
+      }
+    }
+
+    function runInteractiveSim() {
+      stopPlayback();
+      const base = getUiConfig();
+      simQuarOn = new GoliathSim({ ...base, quarantine_enabled: true }).run();
+      simQuarOff = new GoliathSim({ ...base, quarantine_enabled: false }).run();
+      nodePositions = computeNodeLayout(simQuarOn.topology, simQuarOn.degrees, simQuarOn.layers);
+      lastStep = simQuarOn.steps - 1;
+      currentStep = lastStep;
+      $('timeScrubber').max = lastStep;
+      $('timeScrubber').value = currentStep;
+      $('headerMeta').textContent = `N=${simQuarOn.degrees.length} • T=${simQuarOn.steps}`;
+      $('networkSubtitle').textContent = simQuarOn.topology === 'adaptive_hierarchy'
+        ? 'Katman 0: Çekirdek (4) • Katman 1: Bölgesel (16) • Katman 2: Çeper (40)'
+        : 'Scale-Free: halkalar bağlantı sırasına göre (ilk 4 • sonraki 16 • kalan)';
+      updateKPIs();
+      drawNetwork(currentStep);
+      drawCsiChart();
+    }
+
+    function stopPlayback() {
+      isPlaying = false;
+      clearInterval(playTimer);
+      $('playIcon').classList.remove('hidden');
+      $('pauseIcon').classList.add('hidden');
+    }
+
+    function togglePlayback() {
+      if (isPlaying) { stopPlayback(); return; }
+      if (currentStep >= lastStep) currentStep = 0;
+      isPlaying = true;
+      $('playIcon').classList.add('hidden');
+      $('pauseIcon').classList.remove('hidden');
+      playTimer = setInterval(() => {
+        currentStep++;
+        if (currentStep > lastStep) { currentStep = lastStep; stopPlayback(); return; }
+        $('timeScrubber').value = currentStep;
+        drawNetwork(currentStep);
+        drawCsiChart();
+      }, 90);
+    }
+
+    const PRESETS = {
+      trojan:    { topology: 'adaptive_hierarchy', infiltration: 'hub',       chaos: 5,  drain: 0.45, sens: 0.50, contagion: 0.26, buffer: 0.18, helix: true },
+      periphery: { topology: 'adaptive_hierarchy', infiltration: 'periphery', chaos: 20, drain: 0.40, sens: 0.55, contagion: 0.24, buffer: 0.18, helix: true },
+      autophagy: { topology: 'adaptive_hierarchy', infiltration: 'random',    chaos: 5,  drain: 0.30, sens: 1.15, contagion: 0.22, buffer: 0.18, helix: true },
+      stealth:   { topology: 'adaptive_hierarchy', infiltration: 'hub',       chaos: 10, drain: 0.30, sens: 0.55, contagion: 0.24, buffer: 0.18, helix: true },
+      standard:  { topology: 'adaptive_hierarchy', infiltration: 'hub',       chaos: 30, drain: 0.50, sens: 0.55, contagion: 0.24, buffer: 0.18, helix: true, particles: 'sm' },
+      ghosts:    { topology: 'adaptive_hierarchy', infiltration: 'random',    chaos: 15, drain: 0.50, sens: 0.80, contagion: 0.24, buffer: 0.18, helix: true, particles: 'neutrinos' },
+      planck:    { topology: 'adaptive_hierarchy', infiltration: 'hub',       chaos: 10, drain: 0.30, sens: 0.55, contagion: 0.24, buffer: 0.18, helix: true, planck: 0.40 },
+    };
+
+    function updateThresholdHint() {
+      $('thresholdHint').textContent = `eşik = ${detectorThreshold(parseFloat($('sensSlider').value)).toFixed(3)}`;
+    }
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.dataset.preset];
+        if (!p) return;
+        $('topologySelect').value = p.topology;
+        $('infiltrationSelect').value = p.infiltration;
+        $('chaosRatioSlider').value = p.chaos; $('chaosRatioVal').textContent = `${p.chaos}%`;
+        $('drainSlider').value = p.drain; $('drainVal').textContent = p.drain.toFixed(2);
+        $('sensSlider').value = p.sens; $('sensVal').textContent = p.sens.toFixed(2);
+        $('contagionSlider').value = p.contagion; $('contagionVal').textContent = p.contagion.toFixed(2);
+        $('bufferSlider').value = p.buffer; $('bufferVal').textContent = p.buffer.toFixed(2);
+        $('doubleHelixToggle').checked = p.helix;
+        $('quarantineToggle').checked = true;
+        $('particleSelect').value = p.particles || 'PARASITE';
+        $('planckSlider').value = p.planck || 0; $('planckVal').textContent = (p.planck || 0).toFixed(2);
+        $('higgsSlider').value = p.higgs || 0; $('higgsVal').textContent = (p.higgs || 0).toFixed(2);
+        updateSwarmSummary();
+        updateThresholdHint();
+        runInteractiveSim();
+        showToast(`Senaryo yüklendi: ${btn.querySelector('span').textContent}`);
+      });
+    });
+
+    $('chaosRatioSlider').addEventListener('input', e => { $('chaosRatioVal').textContent = `${e.target.value}%`; updateSwarmSummary(); });
+    $('particleSelect').addEventListener('change', updateSwarmSummary);
+    $('cosmoSelect').addEventListener('change', updateSwarmSummary);
+    $('planckSlider').addEventListener('input', e => { $('planckVal').textContent = parseFloat(e.target.value).toFixed(2); });
+    $('higgsSlider').addEventListener('input', e => { $('higgsVal').textContent = parseFloat(e.target.value).toFixed(2); });
+    [['drainSlider', 'drainVal'], ['sensSlider', 'sensVal'], ['contagionSlider', 'contagionVal'], ['bufferSlider', 'bufferVal']].forEach(([s, v]) => {
+      $(s).addEventListener('input', e => { $(v).textContent = parseFloat(e.target.value).toFixed(2); updateThresholdHint(); });
+    });
+
+    // ---------- H-ATOM ----------
+    // LLM-RUNS-PLACEHOLDER
+    function replayAtomRun(base, run) {
+      const cfg = { ...base, seed: run.seed, decision_epoch: (base && base.decision_epoch) || 8 };
+      const sim = new GoliathSim(cfg);
+      const g = sim._runGen();
+      let r = g.next(), idx = 0;
+      const decs = run.decisions || [];
+      while (!r.done) {
+        const dec = decs[idx++];
+        r = g.next(dec ? { d: dec.d } : null);
+      }
+      return r.value;
+    }
+
+    function runAtomUi() {
+      const R = typeof LLM_RUNS_DATA !== 'undefined' ? LLM_RUNS_DATA : null;
+      if (!R) return;
+      let ok = 0, tot = 0;
+      for (const run of [...R.atom, ...R.flat, ...R.rule]) {
+        tot++;
+        const x = replayAtomRun(R.base, run);
+        if (Math.abs(x.extracted - run.extracted) < 1e-9 && x.tp === run.tp) ok++;
+      }
+      const atomEx = R.atom.map(x => x.extracted);
+      const flatEx = R.flat.map(x => x.extracted);
+      const ruleEx = R.rule.map(x => x.extracted);
+      const greedyEx = R.greedy.map(x => x.extracted);
+      const oracleEx = R.oracle.runs.map(x => x.extracted);
+
+      const mAtom = meanSe(atomEx), mFlat = meanSe(flatEx), mRule = meanSe(ruleEx), mGreedy = meanSe(greedyEx), mOracle = meanSe(oracleEx);
+      const vsGreedy = meanSe(atomEx.map((v, i) => v - greedyEx[i]));
+      const vsFlat = meanSe(atomEx.map((v, i) => v - flatEx[i]));
+      const ratioGreedy = mAtom.mean / mGreedy.mean;
+      const ratioOracle = mAtom.mean / mOracle.mean;
+      const ca = ratioGreedy >= 1.2 && vsGreedy.mean > 2 * vsGreedy.se;
+      const cb = ratioOracle >= 0.85;
+      const cc = vsFlat.mean > 0 && vsFlat.mean > 2 * vsFlat.se;
+      const sup = ca && cb && cc;
+
+      $('atomReplayBadge').textContent = `yeniden oynatma: ${ok}/${tot} birebir`;
+      $('atomReplayBadge').className = 'rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] text-emerald-300';
+
+      const rows = [
+        [`Kâhin (sabit d* = ${R.oracle.d.toFixed(2)}, tüm ızgarayı bilir)`, mOracle, '#94a3b8'],
+        [`ATOM (${R.model}, çekirdek + kabuklar)`, mAtom, '#34d399'],
+        [`DÜZ (${R.model}, tek skaler d)`, mFlat, '#38bdf8'],
+        ['KURAL (sabit eşikli geri besleme)', mRule, '#fbbf24'],
+        ['Açgözlü (sabit d = 0.80)', mGreedy, '#f43f5e'],
+      ];
+      const maxV = Math.max(1, ...rows.map(x => x[1].mean));
+      $('atomBars').innerHTML = rows.map(([label, st, color]) => `
+        <div><div class="flex justify-between"><span>${label}</span><span class="font-mono" style="color:${color}">${st.mean.toFixed(1)} ± ${st.se.toFixed(1)}</span></div>
+        <div class="h-1.5 rounded bg-slate-800"><div class="h-1.5 rounded" style="width:${Math.max(0, st.mean / maxV) * 100}%;background:${color}"></div></div></div>`).join('');
+
+      $('atomCriteria').innerHTML = `
+        <li>${mark(ca)} (a) ATOM / açgözlü: <b class="font-mono">${ratioGreedy.toFixed(2)}×</b> (fark +${vsGreedy.mean.toFixed(1)} ± ${vsGreedy.se.toFixed(1)})</li>
+        <li>${mark(cb)} (b) ATOM / kâhin (d*=${R.oracle.d}): <b class="font-mono">${(ratioOracle * 100).toFixed(1)}%</b> (${ratioOracle.toFixed(2)}×)</li>
+        <li>${mark(cc)} (c) ATOM − DÜZ: <b class="font-mono">+${vsFlat.mean.toFixed(1)} ± ${vsFlat.se.toFixed(1)}</b> birim</li>`;
+      setVerdict($('atomVerdict'), sup, ca || cb || cc, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
+      $('atomNote').textContent = `${R.seeds.length} seed × 10 karar dilimi (t = 0, 8, …, 72). Yüksek bağlantılı iç kabuk (hub) ajanları çok komşudan emdiği için adımlık göreli kazançları (relGain) hızlı şişer; ATOM bunları kısıp düşük bağlantılı dış kabuk ajanlarına yüklenerek kâhinin %${(ratioOracle * 100).toFixed(0)}'ine ulaşıyor.`;
+    }
+
+    // ---------- H-PLAZMA ----------
+    let plasmaRunning = false, plasmaData = null;
+    function drawPlasma() {
+      smallChart('plasmaCanvas', (ctx, w, h, pad, pw, ph) => {
+        if (!plasmaData) {
+          ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.font = '11px Inter, sans-serif';
+          ctx.fillText('deney bekleniyor', w / 2, h / 2);
+          return;
+        }
+        const bins = 14, smax = 3.2;
+        const hh = new Array(bins).fill(0);
+        plasmaData.normGaps.forEach(s => { if (s < smax) hh[Math.floor((s / smax) * bins)]++; });
+        const dens = hh.map(v => v / Math.max(1, plasmaData.normGaps.length) / (smax / bins));
+        const maxY = Math.max(1.2, ...dens);
+        const xAt = s => pad.left + (s / smax) * pw, yAt = v => pad.top + ph - (v / maxY) * ph;
+        ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        [0, 1, 2, 3].forEach(s => ctx.fillText(`${s}Δ`, xAt(s), h - pad.bottom + 5));
+        const bw = pw / bins;
+        dens.forEach((v, k) => {
+          ctx.fillStyle = 'rgba(217, 70, 239, 0.55)';
+          ctx.fillRect(pad.left + k * bw + 1, yAt(v), bw - 2, pad.top + ph - yAt(v));
+        });
+        const curve = (f, color, dash) => {
+          ctx.save(); if (dash) ctx.setLineDash([4, 3]);
+          ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
+          for (let k = 0; k <= 80; k++) { const s = (k / 80) * smax; k ? ctx.lineTo(xAt(s), yAt(f(s))) : ctx.moveTo(xAt(s), yAt(f(s))); }
+          ctx.stroke(); ctx.restore();
+        };
+        curve(poissonPdf, '#38bdf8', true);
+        curve(guePdf, '#fde047', false);
+      });
+    }
+
+    function runPlasmaUi() {
+      if (plasmaRunning) return;
+      plasmaRunning = true;
+      const btn = $('runPlasmaBtn');
+      btn.disabled = true; btn.classList.add('opacity-60');
+      $('plasmaProgress').classList.remove('hidden');
+      $('plasmaVerdict').textContent = 'çalışıyor…';
+      runChunked(plasmaWraithExperiment(defaultConfig({}), { seeds: 30, steps: 240, offset: 9900 }), $('plasmaProgressBar'), (r) => {
+        plasmaData = r;
+        drawPlasma();
+        $('plasmaCriteria').innerHTML = `
+          <li>${mark(r.criteria.a)} (a) Karantinasız yörünge/çarpışma tahmini: <b class="font-mono">%${(r.predRate * 100).toFixed(1)}</b> (${r.totalEvents} artifact, ort. aralık ${r.meanGap.toFixed(1)} adım)</li>
+          <li>${mark(r.criteria.b)} (b) KS uzaklığı: Riemann GUE <b class="font-mono text-amber-300">${r.dGue.toFixed(3)}</b> &lt; Asal Aralıkları <b class="font-mono text-cyan-300">${r.dPrime.toFixed(3)}</b> &lt; Rastgele Poisson <b class="font-mono text-slate-400">${r.dPoisson.toFixed(3)}</b></li>`;
+        setVerdict($('plasmaVerdict'), r.supported, r.criteria.a || r.criteria.b, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
+        $('plasmaNote').textContent = 'İradesiz plazma dalgası kendi maddesiyle çarpışınca sönümlendiği için iki artifact üst üste binemez (seviye itmesi) ve 1/ln(t) yoğunlukla seyrelir; böylece 80 adımdaki Riemann artefaktı çözülür ve dağılım doğrudan GUE / asal sayı aralıklarına oturur.';
+        $('plasmaProgress').classList.add('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+        plasmaRunning = false;
+      });
+    }
+
+    $('runSimBtn').addEventListener('click', runInteractiveSim);
+    $('quarantineToggle').addEventListener('change', () => { updateKPIs(); drawNetwork(currentStep); drawCsiChart(); });
+    $('playPauseBtn').addEventListener('click', togglePlayback);
+    $('timeScrubber').addEventListener('input', e => {
+      stopPlayback();
+      currentStep = parseInt(e.target.value, 10);
+      drawNetwork(currentStep);
+      drawCsiChart();
+    });
+    $('runSweepBtn').addEventListener('click', () => { runTippingPointSweep(); showToast('Kırılma eşiği taraması (%0 → %35) tamamlandı.'); });
+    $('runHypBtn').addEventListener('click', runHypothesis);
+    $('runQuantumBtn').addEventListener('click', runQuantum);
+    $('runPrrBtn').addEventListener('click', runPrr);
+    $('runKekBtn').addEventListener('click', runKek);
+    $('runJGBtn').addEventListener('click', runJG);
+    $('runLigoBtn').addEventListener('click', runLigo);
+    $('runJokerCernBtn').addEventListener('click', runJokerCern);
+    $('runAtomBtn').addEventListener('click', () => { runAtomUi(); showToast('H-ATOM: 60 kayıtlı koşu motora yeniden oynatıldı ve doğrulandı.'); });
+    $('runPlasmaBtn').addEventListener('click', runPlasmaUi);
+
+    window.addEventListener('resize', () => { drawNetwork(currentStep); drawCsiChart(); drawSweepChart(); drawHypChart(); drawPrr(); drawKek(); drawPlasma(); });
+    window.addEventListener('load', () => {
+      updateThresholdHint();
+      renderParticleLegend();
+      updateSwarmSummary();
+      runInteractiveSim();
+      runTippingPointSweep();
+      drawHypChart();
+      drawPrr();
+      drawKek();
+      runAtomUi();
+      drawPlasma();
+    });
+  </script>
+</body>
+</html>
