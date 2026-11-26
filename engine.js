@@ -1692,16 +1692,43 @@ function primeGapCdfBuilder(maxN = 2000) {
   };
 }
 
+function modPowBig(base, exp, mod) {
+  let res = 1n; base %= mod;
+  while (exp > 0n) { if (exp & 1n) res = (res * base) % mod; base = (base * base) % mod; exp >>= 1n; }
+  return res;
+}
+function isProbablePrimeBig(n) {
+  if (n < 2n) return false;
+  for (const p of [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n]) {
+    if (n === p) return true;
+    if (n % p === 0n) return false;
+  }
+  let d = n - 1n, s = 0n;
+  while ((d & 1n) === 0n) { d >>= 1n; s++; }
+  for (const a of [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n]) {
+    if (n <= a) break;
+    let x = modPowBig(a, d, n);
+    if (x === 1n || x === n - 1n) continue;
+    let ok = false;
+    for (let r = 1n; r < s; r++) { x = (x * x) % n; if (x === n - 1n) { ok = true; break; } }
+    if (!ok) return false;
+  }
+  return true;
+}
+
 function* plasmaWraithExperiment(base = {}, opts = {}) {
   const seeds = opts.seeds || 30, steps = opts.steps || 240, OFF = opts.offset || 9900;
   const B = opts.magnetic_B !== undefined ? opts.magnetic_B : 1.0; // MHD manyetik çekim / Z-pinch şiddeti
+  const G = opts.gravity_G !== undefined ? opts.gravity_G : 1.0;   // CERN ALPHA-g antimadde kütleçekimi (+1 = normal kütleçekim, -1 = anti-kütleçekim)
   const primeCdf = primeGapCdfBuilder(2000);
   const pooledGaps = [];
   let totalEvents = 0, predictedTime = 0, predictedTarget = 0, throatCapture = 0, noMagCapture = 0;
+  let maxStepPrime = 0, maxExactPrime = 0n, maxResonancePrime = 0n, exactPrimeHits = 0;
 
   for (let s = 0; s < seeds; s++) {
     const r = new GoliathSim({ ...base, ...COSMO_CERN, chaos_particles: 'sm', chaos_ratio: 0.30, steps, seed: OFF + s, recordSnapshots: true }).run();
     let phi = 0, lastT = -3;
+    let stateHash = 1n;
     const events = [];
     for (let t = 1; t < steps; t++) {
       const snap = r.snapshots[t], prev = r.snapshots[t - 1];
@@ -1711,16 +1738,18 @@ function* plasmaWraithExperiment(base = {}, opts = {}) {
         if (!snap.alive[i] || snap.quarantined[i]) continue;
         const df = Math.abs(snap.stress[i] - prev.stress[i]) + 0.5 * snap.stress[i];
         if (df > rawF1) { rawF1 = df; rawTop1 = i; }
-        // Plazmanın manyetizmaya karşı çekimi (Lorentz J × B + grad(B²) MHD Z-Pinch):
-        // Yüklü parçacık akımı yüksek bağlantılı boğaz (L0/L1) halkalarında güçlü manyetik kutup üretir ve plazmayı çeker.
+        // 1) Plazmanın manyetizmaya karşı çekimi (Lorentz J × B + grad(B²) MHD Z-Pinch)
         const magPull = 1 + B * (r.degrees[i] / 10) * (r.layers[i] === 0 ? 1.6 : r.layers[i] === 1 ? 1.2 : 0.7);
-        const effFlux = df * magPull;
+        // 2) Antimaddenin kütleçekimi (CERN ALPHA-g deneyi: antimadde de pozitif kütleçekimiyle G > 0 aşağı/ağır kütlelere düşer)
+        const massRatio = r.capital[t] * (1 + 0.25 * r.degrees[i]);
+        const gravPull = Math.max(0.1, 1 + 0.35 * G * massRatio);
+        const effFlux = df * magPull * gravPull;
         fluxSum += df;
         if (effFlux > f1) { f2 = f1; top2 = top1; f1 = effFlux; top1 = i; }
-        else if (effFlux > f2) { f2 = effFlux; top2 = i; }
+        else if (df > f2) { f2 = effFlux; top2 = i; }
       }
-      const dPhi = (fluxSum / 18.0) * (1 + 0.12 * B) / Math.log(t + 3) * (1 + 0.45 * Math.sin(t * (1.6180339887 + 0.05 * B)));
-      // Savunmacının çarpışma öncesi gözlenebilir Φ(t) ve manyetik-akı zirvesinden tahmini (etiket/isChaos kullanılmaz):
+      const dPhi = (fluxSum / 18.0) * (1 + 0.12 * B) * (1 + 0.08 * G) / Math.log(t + 3) * (1 + 0.45 * Math.sin(t * (1.6180339887 + 0.05 * B)));
+      // Savunmacının çarpışma öncesi gözlenebilir Φ(t), manyetik ve kütleçekim zirvesinden tahmini (etiket/isChaos kullanılmaz):
       const predWillHit = (phi + dPhi >= 1.0) && (t - lastT >= 2);
       const predNode = top1;
       phi += dPhi;
@@ -1733,6 +1762,16 @@ function* plasmaWraithExperiment(base = {}, opts = {}) {
         if (rawTop1 >= 0 && r.layers[rawTop1] <= 1) noMagCapture++;
         events.push({ t, a: top1, b: top2 });
         lastT = t;
+        // Çarpışma anındaki asal zaman adımı ve kuantum durum değişmezi (7919, 104729, 131071 Mersenne/asal harmonikleri)
+        if (isProbablePrimeBig(BigInt(t)) && t > maxStepPrime) maxStepPrime = t;
+        stateHash = (stateHash * 104729n + BigInt(t) * 7919n + BigInt(top1 * 60 + top2) * 131071n) | 1n;
+        if (isProbablePrimeBig(stateHash)) {
+          exactPrimeHits++;
+          if (stateHash > maxExactPrime) maxExactPrime = stateHash;
+        }
+        let cand = stateHash;
+        while (!isProbablePrimeBig(cand)) cand += 2n;
+        if (cand > maxResonancePrime) maxResonancePrime = cand;
       }
     }
     for (let k = 1; k < events.length; k++) pooledGaps.push(events[k].t - events[k - 1].t);
@@ -1751,8 +1790,13 @@ function* plasmaWraithExperiment(base = {}, opts = {}) {
   const b = dGue < dPoisson && dPrime < dPoisson;
   const c = B > 0 ? throatCaptureRate > noMagCaptureRate && throatCaptureRate >= 0.92 : true;
   return {
-    seeds, steps, magnetic_B: B, totalEvents, meanGap: mg, predRate,
+    seeds, steps, magnetic_B: B, gravity_G: G, totalEvents, meanGap: mg, predRate,
     throatCaptureRate, noMagCaptureRate,
+    maxStepPrime, exactPrimeHits,
+    maxExactPrime: maxExactPrime.toString(),
+    maxExactPrimeDigits: maxExactPrime.toString().length,
+    maxResonancePrime: maxResonancePrime.toString(),
+    maxResonancePrimeDigits: maxResonancePrime.toString().length,
     dGue, dPrime, dPoisson, normGaps,
     criteria: { a, b, c },
     supported: a && b && c,

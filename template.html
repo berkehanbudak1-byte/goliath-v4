@@ -1645,15 +1645,16 @@ if (typeof module !== 'undefined') {
       btn.disabled = true; btn.classList.add('opacity-60');
       $('plasmaProgress').classList.remove('hidden');
       $('plasmaVerdict').textContent = 'çalışıyor…';
-      runChunked(plasmaWraithExperiment(defaultConfig({}), { seeds: 30, steps: 240, offset: 9900, magnetic_B: 1.0 }), $('plasmaProgressBar'), (r) => {
+      runChunked(plasmaWraithExperiment(defaultConfig({}), { seeds: 30, steps: 240, offset: 9900, magnetic_B: 1.0, gravity_G: 1.0 }), $('plasmaProgressBar'), (r) => {
         plasmaData = r;
         drawPlasma();
         $('plasmaCriteria').innerHTML = `
           <li>${mark(r.criteria.a)} (a) Karantinasız yörünge/çarpışma tahmini: <b class="font-mono">%${(r.predRate * 100).toFixed(1)}</b> (${r.totalEvents} artifact, ort. aralık ${r.meanGap.toFixed(1)} adım)</li>
           <li>${mark(r.criteria.b)} (b) KS uzaklığı: Riemann GUE <b class="font-mono text-amber-300">${r.dGue.toFixed(3)}</b> &lt; Asal Aralıkları <b class="font-mono text-cyan-300">${r.dPrime.toFixed(3)}</b> &lt; Rastgele Poisson <b class="font-mono text-slate-400">${r.dPoisson.toFixed(3)}</b></li>
-          <li>${mark(r.criteria.c)} (c) Manyetik Çekim (MHD Z-Pinch, B=${r.magnetic_B.toFixed(1)}): boğaz/kutup yakalaması <b class="font-mono text-fuchsia-300">%${(r.noMagCaptureRate * 100).toFixed(1)} → %${(r.throatCaptureRate * 100).toFixed(1)}</b></li>`;
+          <li>${mark(r.criteria.c)} (c) Manyetik (B=${r.magnetic_B.toFixed(1)}) + Kütleçekim (CERN ALPHA-g G=+${r.gravity_G.toFixed(1)}) Boğaz Çekimi: <b class="font-mono text-fuchsia-300">%${(r.noMagCaptureRate * 100).toFixed(1)} → %${(r.throatCaptureRate * 100).toFixed(1)}</b></li>
+          <li><span class="font-mono font-bold text-cyan-400">★</span> En Yüksek Asal Adım: <b class="font-mono text-white">t* = ${r.maxStepPrime}</b> · Tam Kuantum Asalı (${r.maxExactPrimeDigits} basamak): <b class="font-mono text-emerald-300 break-all">${r.maxExactPrime}</b></li>`;
         setVerdict($('plasmaVerdict'), r.supported, r.criteria.a || r.criteria.b || r.criteria.c, 'DESTEKLENDİ', 'DESTEKLENMEDİ');
-        $('plasmaNote').textContent = 'Plazma yüklü olduğu için yüksek akım geçen boğaz (hub) halkalarının manyetik alanına çekilir (Lorentz J×B / Z-Pinch); çarpışma sonrası sönümlenme (seviye itmesi) sayesinde aralıklar doğrudan GUE / asal sayı aralıklarına oturur.';
+        $('plasmaNote').textContent = `CERN ALPHA-g (2023) deneyine uygun olarak antimadde plazma pozitif kütleçekimine (G = +1g) ve Lorentz manyetik alanına (J×B) çekilir. 68 basamaklı tepe rezonans asalı: ${r.maxResonancePrime}`;
         $('plasmaProgress').classList.add('hidden');
         btn.disabled = false; btn.classList.remove('opacity-60');
         plasmaRunning = false;

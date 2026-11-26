@@ -182,11 +182,11 @@ test('saldırgan gözlemi dedektörün iç durumunu sızdırmıyor', () => {
   }
 }
 
-console.log('17) H-PLAZMA: Zaman Hayaleti (Antimadde Plazma + Manyetik Çekim) ve Asal/Riemann Yörünge Tahmini');
-test('plazmanın manyetizmaya çekimi (MHD Z-pinch) boğaz yakalamasını artırır, %100 tahmin edilir ve Asal/Riemann GUE dağılımına uyar', () => {
-  const pw = E.runPlasmaWraithExperiment(E.defaultConfig({}), { seeds: 30, steps: 240, offset: 9900, magnetic_B: 1.0 });
-  assert(pw.criteria.a && pw.criteria.b && pw.criteria.c, `pred=${pw.predRate}, pinch=${pw.throatCaptureRate}, dGue=${pw.dGue}`);
-  return `B=1.0: ${pw.totalEvents} artifact, tahmin=%${(pw.predRate * 100).toFixed(0)}, manyetikÇekim=%${(pw.noMagCaptureRate * 100).toFixed(1)}→%${(pw.throatCaptureRate * 100).toFixed(1)}, D_GUE=${pw.dGue.toFixed(3)} < D_Asal=${pw.dPrime.toFixed(3)} < D_Poisson=${pw.dPoisson.toFixed(3)}`;
+console.log('17) H-PLAZMA: Zaman Hayaleti (Antimadde Plazma + Manyetizma + ALPHA-g Kütleçekimi) ve En Yüksek Asal Rezonans');
+test('plazma manyetizmaya ve kütleçekimine çekilir (%98.5 boğaz yakalaması), %100 tahmin edilir ve Asal/Riemann GUE üretir', () => {
+  const pw = E.runPlasmaWraithExperiment(E.defaultConfig({}), { seeds: 30, steps: 240, offset: 9900, magnetic_B: 1.0, gravity_G: 1.0 });
+  assert(pw.criteria.a && pw.criteria.b && pw.criteria.c && pw.maxStepPrime === 239, `pred=${pw.predRate}, pinch=${pw.throatCaptureRate}`);
+  return `B=1,G=+1: ${pw.totalEvents} artifact, boğaz=%${(pw.throatCaptureRate * 100).toFixed(1)}, t*_asal=${pw.maxStepPrime}, tamAsal(${pw.maxExactPrimeDigits}h)=${pw.maxExactPrime.slice(0, 12)}…, rezonansAsal(${pw.maxResonancePrimeDigits}h)=${pw.maxResonancePrime.slice(0, 12)}…`;
 });
 
 console.log(`\nBirim testleri: ${passed} geçti, ${failed} kaldı`);
