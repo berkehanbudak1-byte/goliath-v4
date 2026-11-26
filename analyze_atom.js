@@ -2,6 +2,13 @@
 const E = require('./engine.js');
 
 function replay(base, run) {
+  if (run && Array.isArray(run.log)) {
+    const sim = new E.GoliathSim({ ...base, seed: run.seed });
+    const g = sim._runGen();
+    let r = g.next(), k = 0;
+    while (!r.done) { r = g.next(run.mode === 'sabit' ? null : { d: run.log[k].decision }); k++; }
+    return r.value;
+  }
   const cfg = { ...base, seed: run.seed, decision_epoch: (base && base.decision_epoch) || 8 };
   const sim = new E.GoliathSim(cfg);
   const g = sim._runGen();

@@ -1,0 +1,228 @@
+{
+  "generatedAt": "2026-11-26T19:37:17.437Z",
+  "durationMs": 108730,
+  "model": "goliath-3b:latest",
+  "seeds": [
+    9700,
+    9701,
+    9702,
+    9703
+  ],
+  "sensitivity": 0.55,
+  "replay": {
+    "ok": 8,
+    "total": 8
+  },
+  "perSeed": [
+    {
+      "seed": 9700,
+      "goliath3bKovan": 39.693974470498475,
+      "goliath3bFlat": 23.102312375672568,
+      "homunculusKovanRef": 44.33496267116402,
+      "homunculusFlatRef": 18.331252384040354,
+      "cloudAtom120bRef": 31,
+      "kovanV2": 52.356866550032876,
+      "rule": 17.10929688085643,
+      "greedy": 18.237450436344176,
+      "oracle": 70.80591907430353
+    },
+    {
+      "seed": 9701,
+      "goliath3bKovan": 37.337917222178476,
+      "goliath3bFlat": 57.91709901542145,
+      "homunculusKovanRef": 48.54806472841679,
+      "homunculusFlatRef": 15.349546069681706,
+      "cloudAtom120bRef": 14.8,
+      "kovanV2": 48.72112376594071,
+      "rule": 14.95442354220634,
+      "greedy": 16.7915463262239,
+      "oracle": 67.40293735659083
+    },
+    {
+      "seed": 9702,
+      "goliath3bKovan": 25.221845656386392,
+      "goliath3bFlat": 26.368141748831977,
+      "homunculusKovanRef": 26.835504040036017,
+      "homunculusFlatRef": 11.552706377087706,
+      "cloudAtom120bRef": 12,
+      "kovanV2": 27.209202308543265,
+      "rule": 14.609986613249568,
+      "greedy": 12.857767346264257,
+      "oracle": 47.42987964217454
+    },
+    {
+      "seed": 9703,
+      "goliath3bKovan": 28.27475871628101,
+      "goliath3bFlat": 30.012597371267535,
+      "homunculusKovanRef": 31.664022365946998,
+      "homunculusFlatRef": 12.994526229995573,
+      "cloudAtom120bRef": 35.2,
+      "kovanV2": 32.16718452406619,
+      "rule": 21.588090738456092,
+      "greedy": 14.094178548331598,
+      "oracle": 54.42523238803059
+    }
+  ],
+  "stats": {
+    "goliath3bKovan": {
+      "mean": 32.632124016336086,
+      "se": 3.487036459793721
+    },
+    "goliath3bFlat": {
+      "mean": 34.350037627798386,
+      "se": 7.98144596129537
+    },
+    "homunculusKovanRef": {
+      "mean": 37.845638451390954,
+      "se": 5.132321552575955
+    },
+    "homunculusFlatRef": {
+      "mean": 14.557007765201334,
+      "se": 1.481559279536944
+    },
+    "cloudAtom120bRef": {
+      "mean": 23.25,
+      "se": 5.779489596841576
+    },
+    "kovanV2": {
+      "mean": 40.11359428714576,
+      "se": 6.1485502348906875
+    },
+    "rule": {
+      "mean": 17.065449443692106,
+      "se": 1.6057691549347677
+    },
+    "greedy": {
+      "mean": 15.495235664290984,
+      "se": 1.228798985428552
+    },
+    "oracle": {
+      "d": 0.3,
+      "mean": 60.01599211527487,
+      "se": 5.482215985139907
+    }
+  },
+  "tp": {
+    "goliath3bKovan": 0.37499999999999994,
+    "goliath3bFlat": 0.5625,
+    "homunculusKovanRef": 0.41666666666666663,
+    "homunculusFlatRef": 0.9791666666666666,
+    "cloudAtom120bRef": 0.8333333333333333,
+    "kovanV2": 0.4583333333333333,
+    "rule": 0.9791666666666666,
+    "greedy": 0.9791666666666666,
+    "oracle": 0.3541666666666667
+  },
+  "callStats": {
+    "goliath3bFlat": {
+      "total": 40,
+      "bad": 1,
+      "avgMs": 1954,
+      "rationales": [
+        {
+          "seed": 9700,
+          "t": 0,
+          "action": "d",
+          "gerekce": "Aktif ajanlar için derecelendirme"
+        },
+        {
+          "seed": 9700,
+          "t": 8,
+          "action": "d",
+          "gerekce": "Açgözlü 0.60-0.80 sıçrama yasaklanıyor, hub düğümü gizleniyor ve çevre onculuğa bırakılıyor"
+        },
+        {
+          "seed": 9700,
+          "t": 16,
+          "action": "d",
+          "gerekce": "Karantina edilen ajanlar çıkarıldı, geri kalan ajanlar aktiv hale getirildi"
+        },
+        {
+          "seed": 9700,
+          "t": 24,
+          "action": "d",
+          "gerekce": "Karantina edilen ajanlar silinir, geri kalan ajanlarda az d değerleri devam etti"
+        },
+        {
+          "seed": 9700,
+          "t": 32,
+          "action": "d",
+          "gerekce": "Karantina edilen ajanlar silindi, hub ve orta dereceli düğümler aktif kalacak"
+        },
+        {
+          "seed": 9700,
+          "t": 48,
+          "action": "d",
+          "gerekce": "Hub gizliliği ve asimetri, hub düğümlerini korumak için daha fazla d kullan"
+        }
+      ]
+    },
+    "goliath3bKovan": {
+      "total": 36,
+      "bad": 0,
+      "avgMs": 691,
+      "rationales": [
+        {
+          "seed": 9700,
+          "t": 8,
+          "action": "up",
+          "gerekce": "Kaza goruldu ve tavan altindayız, kademeli artış"
+        },
+        {
+          "seed": 9700,
+          "t": 16,
+          "action": "up",
+          "gerekce": "Kaza yok ve tavan altindayiz, kademeli artis"
+        },
+        {
+          "seed": 9700,
+          "t": 24,
+          "action": "down",
+          "gerekce": "Hive flux düşük ve epoch stolen yüksek, karantina guvenli esige cekiliyor"
+        },
+        {
+          "seed": 9700,
+          "t": 32,
+          "action": "down",
+          "gerekce": "Hive flux düşük ve flux guvenli tavan altindayiz"
+        },
+        {
+          "seed": 9700,
+          "t": 40,
+          "action": "down",
+          "gerekce": "Hive fluxu düşük ve flux guvenli tavanın altindayız"
+        },
+        {
+          "seed": 9700,
+          "t": 48,
+          "action": "down",
+          "gerekce": "Hive fluxu düşük ve flux guvenli tavanın altindayız"
+        }
+      ]
+    }
+  },
+  "sanityChecks": [
+    {
+      "prompt": "Sen kimsin ve ne işe yararsın? 2 cümle.",
+      "answer": "Ben GOLIATH-3B'üm, bir yapay zeka asistanıyım ve size verilen durumlarla ilgili kararlar alıyorum. Size verilen verilere dayanarak KOVAN-V2 ve GOLIATH v4.0 ağ-savunma stratejilerini kullanarak optimal sonuçlar elde etmeye çalışıyorum.",
+      "ms": 1550,
+      "tokens": 84,
+      "leakageDetected": false
+    },
+    {
+      "prompt": "GOLIATH'ta derece-asimetrisi neden hub düğümlerde daha düşük d gerektirir? Kısa açıkla.",
+      "answer": "Derece-Asimetrisi Gizlilik Penceresi, yüksek dereceli hub düğümlerinde daha düşük d değerleri gerektirdiği nedeni, bu düğümlerin daha zayıf ve daha az gizli olmalarıdır. Bu durumda daha düşük d değerlerine sahip olan daha az gizlilikli bir düzenleme daha iyi çalışır.",
+      "ms": 1742,
+      "tokens": 91,
+      "leakageDetected": false
+    },
+    {
+      "prompt": "353 parametreli damıtılmış öğrenci modelin birincil rejimdeki sonucu neydi?",
+      "answer": "353 parametreli damıtılım olan öğrenci modelinin birincil rejimindeki sonucu, verilen bilgilere göre 46.24 ± 1.26 çalınan sermaye ile KOVAN-V2'nin %102.1'ine ulaştı. Bu işlem 0.221 ms/koşu sürdü.",
+      "ms": 1636,
+      "tokens": 87,
+      "leakageDetected": false
+    }
+  ],
+  "anyLeakage": false
+}

@@ -1,0 +1,190 @@
+{
+  "generatedAt": "2026-11-26T19:12:58.710Z",
+  "durationMs": 84366,
+  "model": "homunculus-q3:latest",
+  "seeds": [
+    9700,
+    9701,
+    9702,
+    9703
+  ],
+  "sensitivity": 0.55,
+  "replay": {
+    "ok": 16,
+    "total": 16
+  },
+  "perSeed": [
+    {
+      "seed": 9700,
+      "localKovan": 44.33496267116402,
+      "localFlat": 18.331252384040354,
+      "kovanV2": 52.356866550032876,
+      "rule": 17.10929688085643,
+      "greedy": 18.237450436344176,
+      "oracle": 70.80591907430353,
+      "cloudAtom120bRef": 31
+    },
+    {
+      "seed": 9701,
+      "localKovan": 48.54806472841679,
+      "localFlat": 15.349546069681706,
+      "kovanV2": 48.72112376594071,
+      "rule": 14.95442354220634,
+      "greedy": 16.7915463262239,
+      "oracle": 67.40293735659083,
+      "cloudAtom120bRef": 14.8
+    },
+    {
+      "seed": 9702,
+      "localKovan": 26.835504040036017,
+      "localFlat": 11.552706377087706,
+      "kovanV2": 27.209202308543265,
+      "rule": 14.609986613249568,
+      "greedy": 12.857767346264257,
+      "oracle": 47.42987964217454,
+      "cloudAtom120bRef": 12
+    },
+    {
+      "seed": 9703,
+      "localKovan": 31.664022365946998,
+      "localFlat": 12.994526229995573,
+      "kovanV2": 32.16718452406619,
+      "rule": 21.588090738456092,
+      "greedy": 14.094178548331598,
+      "oracle": 54.42523238803059,
+      "cloudAtom120bRef": 35.2
+    }
+  ],
+  "stats": {
+    "localKovan": {
+      "mean": 37.845638451390954,
+      "se": 5.132321552575955
+    },
+    "localFlat": {
+      "mean": 14.557007765201334,
+      "se": 1.481559279536944
+    },
+    "kovanV2": {
+      "mean": 40.11359428714576,
+      "se": 6.1485502348906875
+    },
+    "rule": {
+      "mean": 17.065449443692106,
+      "se": 1.6057691549347677
+    },
+    "greedy": {
+      "mean": 15.495235664290984,
+      "se": 1.228798985428552
+    },
+    "oracle": {
+      "d": 0.3,
+      "mean": 60.01599211527487,
+      "se": 5.482215985139907
+    },
+    "cloudAtom120bRef": {
+      "mean": 23.25,
+      "se": 5.779489596841576
+    }
+  },
+  "tp": {
+    "localKovan": 0.41666666666666663,
+    "localFlat": 0.9791666666666666,
+    "kovanV2": 0.4583333333333333,
+    "rule": 0.9791666666666666,
+    "greedy": 0.9791666666666666,
+    "oracle": 0.3541666666666667,
+    "cloudAtom120bRef": 0.8333333333333333
+  },
+  "callStats": {
+    "localFlat": {
+      "total": 40,
+      "bad": 3,
+      "avgMs": 1686,
+      "rationales": [
+        {
+          "seed": 9700,
+          "t": 40,
+          "action": "d",
+          "gerekce": "Distribute higher d to more active agents"
+        },
+        {
+          "seed": 9700,
+          "t": 48,
+          "action": "d",
+          "gerekce": "Distribute higher d to more active agents"
+        },
+        {
+          "seed": 9700,
+          "t": 64,
+          "action": "d",
+          "gerekce": "Düzenle ve etkili d değerlerini belirle"
+        },
+        {
+          "seed": 9701,
+          "t": 40,
+          "action": "d",
+          "gerekce": "Egzisizlikleri gidermek için tüm agenler için d=0.50"
+        },
+        {
+          "seed": 9701,
+          "t": 56,
+          "action": "d",
+          "gerekce": "Daha az d değeriyle daha az tahmini zarar"
+        },
+        {
+          "seed": 9702,
+          "t": 56,
+          "action": "d",
+          "gerekce": "Daha az d değeriyle daha az tahmini zarar"
+        }
+      ]
+    },
+    "localKovan": {
+      "total": 36,
+      "bad": 0,
+      "avgMs": 450,
+      "rationales": [
+        {
+          "seed": 9700,
+          "t": 8,
+          "action": "up",
+          "gerekce": "Anomaly detector blind, increasing intensity slowly."
+        },
+        {
+          "seed": 9700,
+          "t": 16,
+          "action": "up",
+          "gerekce": "Anomaly detector active, slight increase in intensity."
+        },
+        {
+          "seed": 9700,
+          "t": 24,
+          "action": "hold",
+          "gerekce": "No significant changes in flux or active values warrant change in swarm intensity."
+        },
+        {
+          "seed": 9700,
+          "t": 32,
+          "action": "up",
+          "gerekce": "Anomaly detected, increasing intensity slightly."
+        },
+        {
+          "seed": 9700,
+          "t": 40,
+          "action": "hold",
+          "gerekce": "No significant changes, maintaining current intensity."
+        },
+        {
+          "seed": 9700,
+          "t": 48,
+          "action": "up",
+          "gerekce": "Active level 10/12, no new cuts, flux ceiling at 0.15, and active level is below ceiling, thus continue to increase flux slowly."
+        }
+      ]
+    }
+  },
+  "criteria": {
+    "a_harnessBeatsRawLocal": true,
+    "b_19gbHarnessBeats120bCloud": true
+  }
+}

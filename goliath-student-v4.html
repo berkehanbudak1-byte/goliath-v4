@@ -1,0 +1,3830 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GOLIATH v4.0 — Etkileşimli 3B Ağ &amp; Öğrenci Simülatörü</title>
+  <style>
+    :root {
+      --bg: #070b17;
+      --bg2: #0d1426;
+      --card: #11192f;
+      --border: #233053;
+      --txt: #e6ecff;
+      --mut: #94a3c7;
+      --acc: #38bdf8;
+      --ok: #34d399;
+      --warn: #fbbf24;
+      --bad: #f87171;
+      --purp: #c084fc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(circle at top center, #111c3a 0%, var(--bg) 62%);
+      color: var(--txt);
+      padding: 18px;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; }
+    h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: -0.01em; }
+    .sub { color: var(--mut); font-size: 13px; margin-bottom: 14px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    }
+    label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--mut); margin-bottom: 5px; }
+    input, select, button {
+      font-size: 13px;
+      padding: 7px 11px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0c1324;
+      color: var(--txt);
+    }
+    input[type="number"] { width: 96px; }
+    button {
+      background: #17233f;
+      cursor: pointer;
+      transition: background 0.14s ease, border-color 0.14s ease, transform 0.08s ease;
+    }
+    button:hover { background: #1e2e52; border-color: #3b558f; }
+    button.primary { background: #0284c7; border-color: #38bdf8; font-weight: 600; color: #f0f9ff; }
+    button.primary:hover { background: #0369a1; }
+    button.pill { border-radius: 999px; font-size: 12px; padding: 6px 12px; font-weight: 600; }
+    button.pill.active {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: #38bdf8;
+      color: #e0f2fe;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+    }
+    .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+    .chk-wrap { display: flex; align-items: center; gap: 7px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: #0c1324; font-size: 13px; cursor: pointer; }
+    .chk-wrap input { padding: 0; margin: 0; accent-color: #38bdf8; }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #18233f;
+      border: 1px solid #2b3c66;
+      color: var(--acc);
+      font-weight: 600;
+    }
+    .ctrl-tabs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+    .stage-wrap {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #223055;
+      background: radial-gradient(circle at 50% 42%, #0e1730 0%, #050811 100%);
+    }
+    #scene3d {
+      display: block;
+      width: 100%;
+      height: 540px;
+      cursor: grab;
+      touch-action: none;
+    }
+    #scene3d:active { cursor: grabbing; }
+    .hud-tl {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(7, 11, 23, 0.78);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 10px;
+      padding: 10px 12px;
+      pointer-events: none;
+      min-width: 240px;
+      font-size: 12px;
+    }
+    .hud-title { font-weight: 700; font-size: 13px; color: #e0f2fe; margin-bottom: 5px; }
+    .hud-grid { display: grid; grid-template-columns: repeat(2, auto); gap: 3px 14px; font-variant-numeric: tabular-nums; }
+    .hud-k { color: var(--mut); }
+    .hud-v { color: var(--txt); font-weight: 600; text-align: right; }
+    .inspector {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 245px;
+      background: rgba(7, 11, 23, 0.84);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(148, 163, 199, 0.28);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+      pointer-events: none;
+    }
+    .legend-bar {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      background: rgba(7, 11, 23, 0.75);
+      border: 1px solid rgba(35, 48, 83, 0.9);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      color: var(--mut);
+      pointer-events: none;
+    }
+    .leg-item { display: inline-flex; align-items: center; gap: 5px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .slider-wrap { display: flex; align-items: center; gap: 8px; flex: 1 1 220px; min-width: 190px; }
+    #stepSlider { width: 100%; padding: 0; accent-color: #38bdf8; cursor: pointer; }
+    .btn-group { display: inline-flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin: 14px 0; }
+    .kpi { font-size: 23px; font-weight: 700; margin: 3px 0; font-variant-numeric: tabular-nums; }
+    .two-col { display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; margin-bottom: 14px; }
+    @media (max-width: 920px) { .two-col { grid-template-columns: 1fr; } .inspector { display: none; } }
+    #chart { width: 100%; height: 240px; display: block; background: #080d1c; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+    th, td { border-bottom: 1px solid var(--border); padding: 7px 6px; text-align: left; }
+    th { color: var(--mut); font-weight: 600; }
+    .mini-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
+    .mini-box { background: #0b1122; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+    .mini-box b { font-size: 15px; display: block; margin-top: 2px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>GOLIATH v4.0 — Etkileşimli 3B Ağ Simülatörü &amp; Sıfır-GPU Öğrenci (353p)</h1>
+  <div class="sub">
+    İnternet yok, WebGL/GPU bağımlılığı yok, dış CDN yok. <b><span id="metaBytes"></span> bayt</b>lık 353 parametreli öğrenci MLP ve tam GOLIATH v4.0 çekirdeği doğrudan tarayıcıda gerçek-zamanlı 3B olarak çalışır.
+  </div>
+
+  <div class="card" style="margin-bottom:14px;">
+    <div class="controls">
+      <div><label>Seed</label><input id="seedInp" type="number" value="11200" min="1" max="999999" /></div>
+      <div>
+        <label>Dedektör Hassasiyeti (&sigma;)</label>
+        <select id="sigmaSel">
+          <option value="0.35">0.35 (Gevşek)</option>
+          <option value="0.55" selected>0.55 (Varsayılan)</option>
+          <option value="0.75">0.75 (Sıkı)</option>
+        </select>
+      </div>
+      <div>
+        <label>Savunma Kalkanı</label>
+        <select id="detModeSel">
+          <option value="kalkan_v2" selected>H-KALKAN v2 (Derece-Drift)</option>
+          <option value="kalkan_full">H-KALKAN v1 (Abs+Derece+Drift)</option>
+          <option value="baseline">Standart Kör Dedektör (v4.0)</option>
+          <option value="kalkan_drift">Sadece Drift Kesimi</option>
+          <option value="kalkan_deg">Sadece Derece Kesimi</option>
+        </select>
+      </div>
+      <div>
+        <label>Topoloji</label>
+        <select id="topoSel">
+          <option value="adaptive_hierarchy" selected>Hiyerarşik (L0/L1/L2)</option>
+          <option value="scale_free">Ölçeksiz (Scale-Free)</option>
+        </select>
+      </div>
+      <div>
+        <label>Parçacık Rejimi</label>
+        <select id="partSel">
+          <option value="PARASITE" selected>PARASITE (Tek Tip)</option>
+          <option value="sm">SM-17 (Standart Model)</option>
+        </select>
+      </div>
+      <label class="chk-wrap"><input id="quarChk" type="checkbox" checked /> Karantina Etkin</label>
+      <div><button id="runBtn" class="primary">Koştur &amp; 3B Yenile</button></div>
+      <div style="margin-left:auto;"><span class="tag" id="timeTag">Hazır</span></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px;">
+    <div class="ctrl-tabs" id="ctrlTabs">
+      <span style="font-size:12px;color:var(--mut);margin-right:4px;">3B Sürü Kontrolcüsü:</span>
+      <button class="pill active" data-ctrl="student">Öğrenci MLP (353p)</button>
+      <button class="pill" data-ctrl="kovan_v2">KOVAN-V2 (Öğretmen)</button>
+      <button class="pill" data-ctrl="rule">KURAL (Adaptif)</button>
+      <button class="pill" data-ctrl="greedy">Açgözlü (0.8)</button>
+      <button class="pill" data-ctrl="oracle">Kâhin</button>
+    </div>
+
+    <div class="stage-wrap">
+      <canvas id="scene3d"></canvas>
+      <div class="hud-tl" id="hudPanel">
+        <div class="hud-title" id="hudCtrl">Öğrenci MLP (353p)</div>
+        <div class="hud-grid">
+          <span class="hud-k">Adım</span><span class="hud-v" id="hudStep">0 / 79</span>
+          <span class="hud-k">CSI (Sağlamlık)</span><span class="hud-v" id="hudCsi">1.000</span>
+          <span class="hud-k">Çalınan Sermaye</span><span class="hud-v" id="hudExt">0.00</span>
+          <span class="hud-k">Karantina / TP / FP</span><span class="hud-v" id="hudQuar">0 (TP 0/12)</span>
+          <span class="hud-k">Savunma Kalkanı</span><span class="hud-v" id="hudDet">H-KALKAN v2</span>
+          <span class="hud-k">Boğaz (L0) / Bypass</span><span class="hud-v" id="hudBypass">—</span>
+          <span class="hud-k">Katenoid Gerilim</span><span class="hud-v" id="hudTension">—</span>
+          <span class="hud-k">Z-Pinch r<sub>s</sub> / Basınç</span><span class="hud-v" id="hudPinch">—</span>
+          <span class="hud-k">Öğrenci Hız</span><span class="hud-v" id="hudMs">0.00 ms</span>
+        </div>
+      </div>
+      <div class="inspector" id="inspector">
+        <div style="font-weight:700;color:#e0f2fe;margin-bottom:4px;">Düğüm İnceleyici</div>
+        <div style="color:var(--mut);line-height:1.4;">Fareyle bir kürenin üzerine gel veya tıkla; 1-atlamalı 3B bağlantıları ve canlı <i>d(t)</i> hızını gör. Sürükle: döndür · Tekerlek: yakınlaş.</div>
+      </div>
+      <div class="legend-bar">
+        <span class="leg-item"><span class="dot" style="background:#10b981"></span>Sağlıklı</span>
+        <span class="leg-item"><span class="dot" style="background:#f59e0b"></span>Baskı altında</span>
+        <span class="leg-item"><span class="dot" style="background:#f43f5e"></span>Aktif Parazit</span>
+        <span class="leg-item"><span class="dot" style="background:transparent;border:2px solid #38bdf8"></span>Öncü (Scout)</span>
+        <span class="leg-item"><span class="dot" style="background:transparent;border:2px solid #c084fc"></span>3B Karantina</span>
+        <span class="leg-item"><span class="dot" style="background:#fbbf24"></span>Katman Bypass (L0 dışı)</span>
+        <span class="leg-item"><span class="dot" style="background:#fb7185;box-shadow:0 0 6px #fb7185"></span>Kıvılcım</span>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button id="playBtn" class="primary" style="min-width:110px;">⏸ Duraklat</button>
+      <div class="slider-wrap">
+        <span style="font-size:12px;color:var(--mut);white-space:nowrap;">t=<b id="stepTxt">0</b></span>
+        <input id="stepSlider" type="range" min="0" max="79" value="0" />
+      </div>
+      <select id="speedSel" title="Oynatma hızı">
+        <option value="0.5">0.5x Hız</option>
+        <option value="1" selected>1x Hız</option>
+        <option value="2">2x Hız</option>
+      </select>
+      <div class="btn-group" id="layoutBtns">
+        <button class="pill active" data-layout="wormhole">Einstein–Rosen</button>
+        <button class="pill" data-layout="tower">Kule</button>
+        <button class="pill" data-layout="atom">Atom Küre</button>
+        <button class="pill" data-layout="force">3D Kuvvet</button>
+      </div>
+      <div class="btn-group">
+        <button class="pill" data-cam="iso">İzometrik</button>
+        <button class="pill" data-cam="top">Üstten</button>
+        <button class="pill" data-cam="side">Yandan</button>
+        <button class="pill" data-cam="reset">Sıfırla</button>
+        <button class="pill active" id="orbitBtn">Oto-Döndür</button>
+      </div>
+    </div>
+    <div class="toolbar" style="margin-top:8px;padding-top:8px;">
+      <span style="font-size:11.5px;color:var(--mut);">Yüzey Profili:</span>
+      <div class="btn-group" id="surfaceBtns">
+        <button class="pill active" data-surface="flamm">Flamm (E-R)</button>
+        <button class="pill" data-surface="catenoid">Katenoid</button>
+        <button class="pill" data-surface="hyperboloid">Hiperboloid</button>
+      </div>
+      <div class="btn-group" style="margin-left:auto;">
+        <button class="pill active" id="pinchBtn">Z-Pinch + de Sitter</button>
+        <button class="pill active" id="helixBtn">Çift Regle Sarmal</button>
+        <button class="pill active" id="bypassBtn">Bypass Vurgula</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" id="kpiRow"></div>
+
+  <div class="two-col">
+    <div class="card">
+      <label>80 Adım Boyunca Kümülatif Çalınan Sermaye (3B Zaman Çizgisine Tıklayarak Atla)</label>
+      <canvas id="chart" width="660" height="240"></canvas>
+    </div>
+    <div class="card">
+      <label>Yerel 3.1B Model Özeti (goliath-3b:latest · RTX 3050 %100 GPU)</label>
+      <div class="sub" style="margin-bottom:6px;">
+        <code>9700–9703</code> tohumlarında (<span id="g3bModelName"></span>, 1.9 GB Q4_K_M, replay <span id="g3bReplay"></span>):
+      </div>
+      <div class="mini-grid" id="g3bGrid"></div>
+      <div class="sub" style="margin:8px 0 0;font-size:11.5px;">
+        İskelesiz saf <code>GOLIATH-3B FLAT</code>, önceki ham 3B tabanını (+136%) ve 120B bulut ATOM referansını (<span id="g3bCloud"></span>) geçti.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>150 Görünmemiş Seed (11200–11349) Ön-Doğrulama Özeti (H-DISTILL)</label>
+    <table id="evalTbl">
+      <thead><tr><th>Rejim (&sigma;)</th><th>Öğrenci (353p)</th><th>Öğretmen KOVAN-V2</th><th>KURAL</th><th>Açgözlü (0.8)</th><th>Kâhin</th><th>Öğrenci/Öğretmen</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <label>150 Yeni Seed (12200–12349) Kör Savunma Sınaması (H-KALKAN-V2 · 450/450 Replay)</label>
+    <table id="kalkanTbl">
+      <thead><tr><th>Rejim (&sigma;)</th><th>Baseline (KV2 / 353p)</th><th>H-KALKAN v1 (KV2 / 353p)</th><th>H-KALKAN v2 KV2 (TP)</th><th>H-KALKAN v2 353p (TP)</th><th>Temiz Ağ FP</th><th>Çalım Düşüşü</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const STUDENT_MODEL = {"arch":[12,16,8,1],"w1":[0.5822,0.5941,-1.9509,-0.0532,0.13,-0.2292,-0.0934,0.6652,-0.0137,0.0349,0.4995,0.3733,-0.6423,0.533,-0.0535,0.2663,-0.2142,-0.5333,-0.1832,-0.4002,0.0309,-0.2337,0.6545,0.572,-0.8888,1.3707,0.3316,-0.8642,0.2909,-0.7735,0.0628,-0.8512,-0.3078,0.5846,-0.6074,1.7436,1.3381,1.8912,0.3933,0.2771,1.7547,-0.191,-0.2431,9.2601,-0.6081,1.5498,-1.5947,0.0066,0.6548,-1.16,2.7134,-0.4295,-0.019,-0.1245,0.0921,0.1866,0.5775,0.1852,-0.2674,0.025,-0.9708,0.8195,-0.7434,0.9938,0.8675,-0.6373,-0.4565,0.0361,0.1042,0.4612,-0.2012,0.619,-0.4083,-0.204,-0.9441,-1.8477,0.265,-0.5243,-0.7484,-0.711,0.3026,-0.8169,-1.1619,-0.1536,0.6732,-0.1614,2.0037,-0.6651,-0.7193,-0.6349,0.3983,2.2152,0.3917,0.361,-0.017,-0.3542,-0.7452,-0.1055,0.9022,-0.1565,-1.0054,-0.3504,-0.2569,9.6564,0.5039,0.712,-0.5196,-0.3612,0.2356,0.185,-0.5881,1.2572,-0.799,0.2231,-0.3091,-1.6106,0.651,0.0082,-0.0563,0.5272,-0.1227,-0.526,0.2146,0.0534,-0.3312,0.0053,0.0997,13.0837,-0.2028,0.6685,-0.6369,-0.3838,0.8183,1.6816,-1.1136,0.9021,2.9966,-0.424,-1.1428,-0.767,0.353,0.3176,0.9622,-0.4482,-0.5504,-0.5018,1.1275,-0.6029,0.327,-0.0308,0.0676,-3.7416,0.3045,-0.4169,-0.4142,0.3484,-1.958,-0.0651,-1.1117,0.1729,-0.5282,0.3214,0.3224,0.7939,1.278,-0.7622,-0.2495,0.4796,0.2422,-0.1601,-0.0877,-0.003,-0.1661,-0.0414,-0.5223,-2.5309,1.6636,-0.6711,3.5242,-0.8412,0.1233,0.8097,-2.5474,-0.6713,0.1027,0.6923,0.1025,-0.0164,0.3314,-0.281,0.7882,-0.1622],"b1":[-0.28,-0.2072,-0.07,0.1798,0.388,-0.4906,-0.2026,0.3666,0.4224,-0.5416,0.25,0.1607,-0.0696,-0.2398,-0.1276,-0.2346],"w2":[0.2458,0.749,1.2404,0.1417,-0.853,0.6893,0.3451,0.4103,-0.3902,-1.0426,0.2678,1.0881,0.0013,-1.6819,0.332,-0.6072,0.5083,0.4736,-0.5204,-0.1285,0.8286,0.6504,-0.3568,0.7759,1.4779,0.0861,0.4063,1.1304,-0.0881,0.4118,0.5243,-1.07,-0.0246,-0.2665,0.518,0.7498,-0.6578,-0.344,0.5294,-0.4631,-0.0086,0.3421,0.3345,0.4684,0.112,0.5338,0.0272,1.0729,-0.3056,-0.2783,-1.1455,-0.51,0.4043,-0.1763,0.1467,0.3145,0.3937,0.35,-0.4072,-0.3896,-0.0591,-0.7103,0.8941,0.1716,-0.0301,0.4397,0.8358,-0.0109,-1.1662,0.7877,1.0434,-0.7317,-0.4417,0.8059,-0.3111,1.179,0.0491,0.5785,0.2609,0.1043,0.6917,0.447,1.5669,0.4504,0.393,-0.0121,-0.3175,0.3858,-0.0676,0.3364,-0.2968,0.6913,-0.54,0.9337,0.674,0.9739,0.4593,0.1357,0.8574,0.4781,-0.4341,0.3121,0.1674,-0.0805,0.3707,0.0648,-0.0372,0.3579,-0.1903,0.5368,0.5567,0.8113,0.2879,0.3739,-0.9698,1.3701,-0.4808,0.3594,-0.4169,0.1696,1.413,-0.2766,1.4997,-0.3115,-0.3158,0.0332,-1.2375,0.4987],"b2":[-0.2142,0.1663,-0.2779,0.1592,-0.7723,0.3024,0.0016,0.1773],"w3":[0.3376,-0.7488,0.5069,-0.4264,0.7358,0.7491,0.5501,-0.6396],"b3":[-0.0955]};
+const EVAL_SUMMARY = {"paramCount":353,"modelBytes":2643,"primary":{"sensitivity":0.55,"n":50,"seedRange":[11200,11249],"replay":{"ok":150,"total":150},"avgInferMs":0.22070399999985965,"means":{"student":{"mean":46.24214692979324,"se":1.259441148954784},"teacher":{"mean":45.29093969278624,"se":1.3365327827456983},"rule":{"mean":23.429099616493215,"se":1.4426877823367557},"greedy":{"mean":18.074571611836742,"se":0.3316027727976567},"oracle":{"d":0.3,"mean":67.60946486656933,"se":1.1989222849698538}},"tp":{"student":0.5033333333333334,"teacher":0.4616666666666668,"rule":0.9683333333333332,"greedy":0.99,"oracle":0.3666666666666667},"diffs":{"vsRule":{"mean":22.813047313300054,"se":1.6975680066795553},"vsTeacher":{"mean":0.9512072370070267,"se":0.6339288508858594},"vsGreedy":{"mean":28.167575317956516,"se":0.9821092371062125}},"ratios":{"vsTeacher":1.0210021528248068,"vsRule":1.9737056774149568,"vsGreedy":2.558409013661492,"vsOracle":0.6839596648347157},"beatsRuleSig":true},"lax":{"sensitivity":0.35,"n":50,"seedRange":[11250,11299],"replay":{"ok":150,"total":150},"avgInferMs":0.19493800000025657,"means":{"student":{"mean":48.51073049981934,"se":1.1343079941738847},"teacher":{"mean":48.61613143871852,"se":1.2600096508209055},"rule":{"mean":38.46575908431989,"se":1.681523437343198},"greedy":{"mean":19.2558816930841,"se":0.3700505913196697},"oracle":{"d":0.4,"mean":65.46395445206741,"se":1.2650311832609287}},"tp":{"student":0.41833333333333333,"teacher":0.425,"rule":0.8866666666666666,"greedy":0.9666666666666666,"oracle":0.5349999999999999},"diffs":{"vsRule":{"mean":10.044971415499461,"se":1.404361768444407},"vsTeacher":{"mean":-0.10540093889917351,"se":0.5456937247072958},"vsGreedy":{"mean":29.254848806735243,"se":0.8480758471892257}},"ratios":{"vsTeacher":0.9978319760174246,"vsRule":1.2611406002278571,"vsGreedy":2.5192682045425294,"vsOracle":0.7410296384606403},"beatsRuleSig":true},"strict":{"sensitivity":0.75,"n":50,"seedRange":[11300,11349],"replay":{"ok":150,"total":150},"avgInferMs":0.18778800000010962,"means":{"student":{"mean":35.49831175314272,"se":1.0252522367914798},"teacher":{"mean":34.09194022674776,"se":1.000797048251209},"rule":{"mean":12.32466253248402,"se":0.269381642623748},"greedy":{"mean":15.821311604889209,"se":0.3522966230667857},"oracle":{"d":0.2,"mean":51.73771426392565,"se":1.270171539279097}},"tp":{"student":0.3766666666666667,"teacher":0.34833333333333344,"rule":1,"greedy":1,"oracle":0.2316666666666668},"diffs":{"vsRule":{"mean":23.173649220658717,"se":0.8116136004673719},"vsTeacher":{"mean":1.4063715263949672,"se":0.5158940692415025},"vsGreedy":{"mean":19.677000148253516,"se":0.7553277154878758}},"ratios":{"vsTeacher":1.0412523170298051,"vsRule":2.880266429979733,"vsGreedy":2.2437022062173906,"vsOracle":0.6861206038608102},"beatsRuleSig":true}};
+const GOLIATH3B_SUMMARY = {"model":"goliath-3b:latest","seeds":[9700,9701,9702,9703],"sensitivity":0.55,"replay":{"ok":8,"total":8},"stats":{"goliath3bKovan":{"mean":32.632124016336086,"se":3.487036459793721},"goliath3bFlat":{"mean":34.350037627798386,"se":7.98144596129537},"homunculusKovanRef":{"mean":37.845638451390954,"se":5.132321552575955},"homunculusFlatRef":{"mean":14.557007765201334,"se":1.481559279536944},"cloudAtom120bRef":{"mean":23.25,"se":5.779489596841576},"kovanV2":{"mean":40.11359428714576,"se":6.1485502348906875},"rule":{"mean":17.065449443692106,"se":1.6057691549347677},"greedy":{"mean":15.495235664290984,"se":1.228798985428552},"oracle":{"d":0.3,"mean":60.01599211527487,"se":5.482215985139907}},"tp":{"goliath3bKovan":0.37499999999999994,"goliath3bFlat":0.5625,"homunculusKovanRef":0.41666666666666663,"homunculusFlatRef":0.9791666666666666,"cloudAtom120bRef":0.8333333333333333,"kovanV2":0.4583333333333333,"rule":0.9791666666666666,"greedy":0.9791666666666666,"oracle":0.3541666666666667},"callStats":{"goliath3bFlat":{"total":40,"bad":1,"avgMs":1954},"goliath3bKovan":{"total":36,"bad":0,"avgMs":691}},"anyLeakage":false};
+const KALKAN_SUMMARY = {"clusters":[{"name":"birincil","sensitivity":0.55,"replay":{"ok":150,"total":150},"baseline":{"kv2":{"mean":43.56053821808657,"se":1.3604654485095424},"stu":{"mean":44.917570029619235,"se":1.2407328927950736}},"kalkan_full":{"kv2":{"mean":11.847781685110817,"se":0.4032929615350766},"stu":{"mean":11.118059429963658,"se":0.42730156135179115}},"kalkan_v2":{"kv2":{"mean":7.338405536672414,"se":0.1515568164227475},"kv2Tp":0.8383333333333333,"stu":{"mean":7.1656913568074,"se":0.1562807791004692},"stuTp":0.8516666666666666,"cleanFp":0},"reductions":{"kv2Ratio":0.16846452860459535,"kv2Drop":{"mean":36.222132681414145,"se":1.380065640016652},"stuRatio":0.15952980876040823,"stuDrop":{"mean":37.75187867281184,"se":1.2846748351200616}}},{"name":"gevsek","sensitivity":0.35,"replay":{"ok":150,"total":150},"baseline":{"kv2":{"mean":51.22436125202551,"se":1.3584857198076863},"stu":{"mean":51.71622966394365,"se":1.2643746132283737}},"kalkan_full":{"kv2":{"mean":15.993090450875876,"se":0.5691699836489073},"stu":{"mean":14.361322394771562,"se":0.6064209067517355}},"kalkan_v2":{"kv2":{"mean":8.950542001115544,"se":0.20421054872977085},"kv2Tp":0.8433333333333332,"stu":{"mean":8.516795551539996,"se":0.2023629645065531},"stuTp":0.8583333333333332,"cleanFp":0},"reductions":{"kv2Ratio":0.17473213491289014,"kv2Drop":{"mean":42.27381925090997,"se":1.3632022974913425},"stuRatio":0.16468322626925513,"stuDrop":{"mean":43.19943411240362,"se":1.246759521224325}}},{"name":"siki","sensitivity":0.75,"replay":{"ok":150,"total":150},"baseline":{"kv2":{"mean":31.61730304369607,"se":0.9286929148483531},"stu":{"mean":32.61976472142196,"se":0.8781648176839746}},"kalkan_full":{"kv2":{"mean":7.237278488376244,"se":0.1304692025096233},"stu":{"mean":7.138407517054002,"se":0.1265393433493672}},"kalkan_v2":{"kv2":{"mean":5.45179005396148,"se":0.11338583496132117},"kv2Tp":0.8866666666666667,"stu":{"mean":5.333631074505783,"se":0.10664422723873757},"stuTp":0.8966666666666666,"cleanFp":0.0006666666666666666},"reductions":{"kv2Ratio":0.17243058481069498,"kv2Drop":{"mean":26.165512989734584,"se":0.9855102894094557},"stuRatio":0.16350918285450097,"stuDrop":{"mean":27.286133646916177,"se":0.9280143746349983}}}],"criteria":{"a_drop70":true,"b_tp90":false,"c_fpShield":true,"d_multiRegime":true}};
+</script>
+<script>
+(function(){
+  var module = { exports: {} };
+  var exports = module.exports;
+// GOLIATH v4.0 simülasyon motoru (korunumlu ekonomi; CERN güncel modeli: elektron bulutu, QCD kütlesi, agnostik graviton; LLM atomu dış karar arayüzü) (parçacık arketipleri, Planck kuantumu, Rutherford ve Riemann aletleri). Tarayıcıda ve Node'da aynı kod çalışır.
+
+class SeededRNG {
+  constructor(seed = 42) { this.state = seed >>> 0; }
+  random() {
+    let t = (this.state += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  normal(mean = 0, std = 1) {
+    let u = 0, v = 0;
+    while (u === 0) u = this.random();
+    while (v === 0) v = this.random();
+    return mean + Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v) * std;
+  }
+  choiceWithoutReplacement(arr, k, weights = null) {
+    const n = arr.length;
+    const result = [];
+    if (!weights) {
+      const pool = arr.slice();
+      for (let i = 0; i < Math.min(k, n); i++) {
+        const idx = i + Math.floor(this.random() * (n - i));
+        [pool[i], pool[idx]] = [pool[idx], pool[i]];
+        result.push(pool[i]);
+      }
+      return result;
+    }
+    const avail = arr.slice();
+    const w = weights.slice();
+    for (let pick = 0; pick < Math.min(k, n); pick++) {
+      let sum = 0;
+      for (let i = 0; i < avail.length; i++) sum += w[i];
+      let r = this.random() * sum;
+      let chosenIdx = avail.length - 1;
+      for (let i = 0; i < avail.length; i++) {
+        r -= w[i];
+        if (r <= 0) { chosenIdx = i; break; }
+      }
+      result.push(avail[chosenIdx]);
+      avail.splice(chosenIdx, 1);
+      w.splice(chosenIdx, 1);
+    }
+    return result;
+  }
+}
+
+function generateAdaptiveHierarchy(n, rng) {
+  // Katman 0: 0..3 (çekirdek), Katman 1: 4..19 (bölgesel), Katman 2: 20..n-1 (çeper)
+  const adj = Array.from({ length: n }, () => new Float64Array(n));
+  const layers = new Uint8Array(n);
+  const l0End = 4, l1End = 20;
+  for (let i = 0; i < n; i++) layers[i] = i < l0End ? 0 : i < l1End ? 1 : 2;
+  for (let i = 0; i < l0End; i++) for (let j = i + 1; j < l0End; j++) adj[i][j] = adj[j][i] = 1;
+  for (let i = l0End; i < l1End; i++) {
+    const p1 = (i - l0End) % l0End;
+    const p2 = (p1 + 1) % l0End;
+    adj[i][p1] = adj[p1][i] = 1;
+    if (rng.random() < 0.45) adj[i][p2] = adj[p2][i] = 1;
+    const nextPeer = l0End + ((i - l0End + 1) % (l1End - l0End));
+    adj[i][nextPeer] = adj[nextPeer][i] = 1;
+  }
+  for (let i = l1End; i < n; i++) {
+    const p1 = l0End + ((i - l1End) % (l1End - l0End));
+    adj[i][p1] = adj[p1][i] = 1;
+    if (rng.random() < 0.35) {
+      const p2 = l0End + ((i - l1End + 5) % (l1End - l0End));
+      adj[i][p2] = adj[p2][i] = 1;
+    }
+    const peer = l1End + ((i - l1End + 1) % (n - l1End));
+    if (rng.random() < 0.55) adj[i][peer] = adj[peer][i] = 1;
+  }
+  return { adj, layers };
+}
+
+function generateScaleFree(n, m, rng) {
+  const m0 = Math.max(m + 1, 3);
+  const adj = Array.from({ length: n }, () => new Float64Array(n));
+  for (let i = 0; i < m0; i++) for (let j = i + 1; j < m0; j++) adj[i][j] = adj[j][i] = 1;
+  for (let newNode = m0; newNode < n; newNode++) {
+    const indices = Array.from({ length: newNode }, (_, i) => i);
+    const degrees = indices.map(i => {
+      let d = 0;
+      for (let j = 0; j < newNode; j++) d += adj[i][j];
+      return d;
+    });
+    const targets = rng.choiceWithoutReplacement(indices, m, degrees);
+    for (const t of targets) adj[newNode][t] = adj[t][newNode] = 1;
+  }
+  return { adj, layers: new Uint8Array(n).fill(2) };
+}
+
+function defaultConfig(overrides = {}) {
+  return Object.assign({
+    n_nodes: 60,
+    steps: 80,
+    topology: 'adaptive_hierarchy',
+    chaos_ratio: 0.10,
+    infiltration_mode: 'hub',
+    drain_intensity: 0.35,
+    double_helix: true,
+    quarantine_enabled: true,
+    quarantine_sensitivity: 0.55,
+    detector_mode: 'baseline',
+    contagion_rate: 0.24,
+    buffer_share: 0.18,
+    sigma_balance: 0.55,
+    detector_noise: 0.06,
+    warmup: 4,
+    chaos_particles: ['PARASITE'],
+    graviton_mode: 'ghost',   // 'ghost' (v2.1): düğüm değil, yakalanamaz | 'joker' (v1.x)
+    higgs_joker: true,        // v2.1: eksik bozona Higgs bürünür (Goldstone: önce W, Z)
+    ghost_enabled: true,
+    atom_model: 'sm-bohr',    // 'cern': elektron bulutu + QCD bağlanma kütlesi | 'sm-bohr' (v2.1)
+    higgs_share: 0.1,         // CERN: kütle alanında Higgs payı (proton kütlesinin ~%1'i Higgs'ten; leptonlarınki tümüyle)
+    hadron_mass: 0.9,         // CERN: kütlenin çoğu gluon bağlanma enerjisinden
+    graviton_p: 0.5,          // agnostik graviton: var olma olasılığı
+    rewire_rate: 0,           // ağın kendiliğinden yeniden bağlanması (LIGO'nun gürültü tabanı)
+    planck_h: 0,
+    higgs_osc_amp: 0,
+    higgs_osc_period: 10,
+    instruments: false,
+    probes_per_step: 8,
+    pattern_rotation: null,
+    decision_epoch: 0,        // >0 ise her decision_epoch adımda dış karar arayüzü (_runGen) gözlem verir ve { d } kararı alır
+    seed: 42,
+    recordSnapshots: false,
+  }, overrides);
+}
+
+// DETECTOR-START
+// Dedektör yalnızca dışarıdan görülebilen değerleri alır: stres, adımlık göreli sermaye değişimi, ölçüm gürültüsü.
+// Düğümün kaos ajanı olup olmadığı bilgisi bu fonksiyonlara hiç ulaşmaz.
+function detectorSignal(stress, relGain, noise) {
+  return 0.55 * stress + 2.0 * Math.max(0, relGain) + noise;
+}
+function detectorSignalByMode(mode, stress, cap, capPrev, cap0, degree, noise) {
+  if (!mode || mode === 'baseline') {
+    const relGain = (cap - capPrev) / Math.max(capPrev, 0.1);
+    return detectorSignal(stress, relGain, noise);
+  }
+  const gain = Math.max(0, cap - capPrev);
+  const absRelGain = gain / Math.max(cap0, 0.5);
+  const degGain = gain / Math.max(1.0, 0.35 * degree + 0.65);
+  const excess = Math.max(0, (cap - cap0) / Math.max(cap0, 0.5));
+  if (mode === 'kalkan_abs') return 0.55 * stress + 2.0 * absRelGain + noise;
+  if (mode === 'kalkan_deg') return 0.55 * stress + 1.5 * absRelGain + 1.4 * degGain + noise;
+  if (mode === 'kalkan_drift') return 0.55 * stress + 2.0 * absRelGain + 0.35 * excess + noise;
+  if (mode === 'kalkan_full') return 0.55 * stress + 1.4 * absRelGain + 1.2 * degGain + 0.38 * excess + noise;
+  if (mode === 'kalkan_v2') {
+    const degNorm = 1.0 / Math.max(0.5, 0.30 * degree + 0.55);
+    const degGainV2 = gain * degNorm;
+    const degExcess = excess * Math.min(1.85, 0.85 + 1.4 / Math.max(1, degree));
+    return 0.55 * stress + 1.4 * absRelGain + 1.3 * degGainV2 + 0.68 * degExcess + noise;
+  }
+  const relGain = (cap - capPrev) / Math.max(capPrev, 0.1);
+  return detectorSignal(stress, relGain, noise);
+}
+function detectorThreshold(sensitivity) {
+  return 0.71 - 0.525 * sensitivity;
+}
+// DETECTOR-END
+
+// ============================================================
+// ÖLÇÜM ALETLERİ: Planck kuantumu, Rutherford saçılması, Riemann aralık sınaması
+// ============================================================
+// Planck: eylem kuantumludur; sıfırdan büyük her eylem en yakın üst h katına yuvarlanır.
+function quantize(x, h) {
+  if (!(h > 0) || !(x > 0)) return x;
+  return Math.ceil(x / h - 1e-12) * h;
+}
+
+function median(arr) {
+  if (!arr.length) return NaN;
+  const a = arr.slice().sort((x, y) => x - y);
+  const m = a.length >> 1;
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+}
+
+function erf(x) {
+  // Abramowitz–Stegun 7.1.26 (hata < 1.5e-7)
+  const s = Math.sign(x); x = Math.abs(x);
+  const t = 1 / (1 + 0.3275911 * x);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+  return s * y;
+}
+// Normalize aralıkların dağılımı: Poisson (rastgele) ve GUE Wigner varsayımı (seviye itmesi, zeta sıfırları)
+const poissonCdf = s => 1 - Math.exp(-s);
+const gueCdf = s => erf(2 * s / Math.sqrt(Math.PI)) - (4 * s / Math.PI) * Math.exp(-4 * s * s / Math.PI);
+const poissonPdf = s => Math.exp(-s);
+const guePdf = s => (32 / (Math.PI * Math.PI)) * s * s * Math.exp(-4 * s * s / Math.PI);
+
+function ksDistance(sorted, cdf) {
+  const n = sorted.length;
+  let d = 0;
+  for (let k = 0; k < n; k++) {
+    const F = cdf(sorted[k]);
+    d = Math.max(d, Math.abs(F - k / n), Math.abs((k + 1) / n - F));
+  }
+  return d;
+}
+
+// Etiketten bağımsız puanların etiketi ne kadar ayırdığı (yalnızca değerlendirmede kullanılır)
+function auc(scores, labels) {
+  const pos = [], neg = [];
+  scores.forEach((v, i) => { if (Number.isFinite(v)) (labels[i] ? pos : neg).push(v); });
+  if (!pos.length || !neg.length) return null;
+  let wins = 0;
+  for (const p of pos) for (const q of neg) wins += p > q ? 1 : p === q ? 0.5 : 0;
+  return wins / (pos.length * neg.length);
+}
+
+// En küçük kareler: y = a + b·x
+function linFitSse(xs, ys) {
+  const n = xs.length;
+  if (n < 3) return Infinity;
+  const mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+  let sxx = 0, sxy = 0;
+  for (let i = 0; i < n; i++) { sxx += (xs[i] - mx) ** 2; sxy += (xs[i] - mx) * (ys[i] - my); }
+  const b = sxx > 0 ? sxy / sxx : 0, a = my - b * mx;
+  let sse = 0;
+  for (let i = 0; i < n; i++) sse += (ys[i] - a - b * xs[i]) ** 2;
+  return sse;
+}
+
+const R_BINS = 18;
+
+// Rutherford: açı histogramına iki model oturtulur.
+// Çekirdek (Rutherford): log N = a − 4·log sin(θ/2);  Üzümlü kek (Thomson, çoklu küçük saçılma): log N = a + b·θ²
+function rutherfordFit(hist) {
+  const xr = [], xt = [], y = [];
+  for (let k = 0; k < R_BINS; k++) {
+    if (hist[k] <= 0) continue;
+    const th = ((k + 0.5) / R_BINS) * Math.PI;
+    xr.push(-4 * Math.log(Math.sin(th / 2)));
+    xt.push(th * th);
+    y.push(Math.log(hist[k]));
+  }
+  // Rutherford modelinde eğim 1'e sabit: log N − x = a
+  const n = y.length;
+  let sseR = Infinity;
+  if (n >= 3) {
+    const a = y.reduce((s, v, i) => s + v - xr[i], 0) / n;
+    sseR = y.reduce((s, v, i) => s + (v - a - xr[i]) ** 2, 0);
+  }
+  const sseT = linFitSse(xt, y);
+  const total = hist.reduce((a, b) => a + b, 0);
+  const back = hist.slice(R_BINS / 2).reduce((a, b) => a + b, 0);
+  return { sseR, sseT, rutherfordWins: sseR < sseT, backFraction: total ? back / total : 0, bins: n };
+}
+
+// Riemann: her düğümün olay zamanları (sinyal > kendi ortalaması + 2σ) arasındaki aralıklar, düğümün ortalama aralığına bölünür.
+function riemannAnalysis(sigHist, warmup, steps, n) {
+  const pooled = [];
+  const rigidity = new Float64Array(n).fill(NaN);
+  for (let i = 0; i < n; i++) {
+    const xs = [];
+    for (let t = warmup; t < steps; t++) { const v = sigHist[t * n + i]; if (Number.isFinite(v)) xs.push([t, v]); }
+    if (xs.length < 8) continue;
+    const m = xs.reduce((a, p) => a + p[1], 0) / xs.length;
+    const sd = Math.sqrt(xs.reduce((a, p) => a + (p[1] - m) ** 2, 0) / xs.length);
+    if (sd <= 1e-9) continue;
+    const ev = xs.filter(p => p[1] > m + 2 * sd).map(p => p[0]);
+    if (ev.length < 3) continue;
+    const gaps = [];
+    for (let k = 1; k < ev.length; k++) gaps.push(ev[k] - ev[k - 1]);
+    const mg = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+    const sp = gaps.map(g => g / mg).sort((a, b) => a - b);
+    for (const s of sp) pooled.push(s);
+    rigidity[i] = ksDistance(sp, poissonCdf) - ksDistance(sp, gueCdf);
+  }
+  pooled.sort((a, b) => a - b);
+  const dP = pooled.length ? ksDistance(pooled, poissonCdf) : NaN;
+  const dG = pooled.length ? ksDistance(pooled, gueCdf) : NaN;
+  const small = pooled.length ? pooled.filter(s => s < 0.5).length / pooled.length : NaN;
+  return { spacings: pooled, dP, dG, rigidity: dP - dG, smallFraction: small, perNode: rigidity };
+}
+
+// ============================================================
+// PARÇACIK ARKETİPLERİ: Standart Model'in 17 parçacığı + graviton (joker)
+// Her ajanın adım başı bütçesi eşittir: B = 0.34·d sermaye birimi (stres için B/1.5).
+// Fermiyonlar sisteme doğrudan etki eder; bozonlar yalnızca fermiyon takım arkadaşları varken aracılık eder.
+// ============================================================
+const P = {
+  NONE: 0, u: 1, d: 2, c: 3, s: 4, t: 5, b: 6,
+  e: 7, ve: 8, mu: 9, vmu: 10, tau: 11, vtau: 12,
+  g: 13, gamma: 14, Z: 15, W: 16, H: 17, G: 18,
+  NOOP: 19, PARASITE: 20,
+};
+const SM_ORDER = ['u', 'd', 'c', 's', 't', 'b', 'e', 've', 'mu', 'vmu', 'tau', 'vtau', 'g', 'gamma', 'Z', 'W', 'H', 'G'];
+const PARTICLE_INFO = {
+  u:     { sym: 'u',  name: 'Yukarı kuark', family: 'kuark', color: '#ef4444', cycle: 'Kararlı. Hapsolmuşken komşularından sermaye emer.' },
+  d:     { sym: 'd',  name: 'Aşağı kuark', family: 'kuark', color: '#f97316', cycle: 'Kararlı. Hapsolmuşken komşularına stres basar.' },
+  c:     { sym: 'c',  name: 'Tılsım kuark', family: 'kuark', color: '#f43f5e', cycle: '2 adım erişim, 12 adımda s\'ye bozunur.' },
+  s:     { sym: 's',  name: 'Garip kuark', family: 'kuark', color: '#fb923c', cycle: '2 adım erişim, 16 adımda u\'ya bozunur.' },
+  t:     { sym: 't',  name: 'Üst kuark', family: 'kuark', color: '#be123c', cycle: '3 adım erişim, hadronlaşamadan 1 adımda b\'ye bozunur.' },
+  b:     { sym: 'b',  name: 'Alt kuark', family: 'kuark', color: '#ea580c', cycle: '3 adım erişim, 8 adımda c\'ye bozunur.' },
+  e:     { sym: 'e',  name: 'Elektron', family: 'lepton', color: '#22d3ee', cycle: 'Kararlı. Yörüngede döner: her adım sıradaki komşuya tam bütçe.' },
+  ve:    { sym: 'νe', name: 'Elektron nötrinosu', family: 'nötrino', color: '#a5f3fc', cycle: 'Ağın içinden geçer, zayıf etkileşir, 8 adımda bir tat değiştirir.' },
+  mu:    { sym: 'μ',  name: 'Müon', family: 'lepton', color: '#38bdf8', cycle: 'En zengin komşuyu deler, 20 adımda e\'ye bozunur.' },
+  vmu:   { sym: 'νμ', name: 'Müon nötrinosu', family: 'nötrino', color: '#bae6fd', cycle: 'Ağın içinden geçer, zayıf etkileşir, 8 adımda bir tat değiştirir.' },
+  tau:   { sym: 'τ',  name: 'Tau', family: 'lepton', color: '#0ea5e9', cycle: '2 adım uzaktaki en zengini deler, 6 adımda μ\'ye bozunur.' },
+  vtau:  { sym: 'ντ', name: 'Tau nötrinosu', family: 'nötrino', color: '#e0f2fe', cycle: 'Ağın içinden geçer, zayıf etkileşir, 8 adımda bir tat değiştirir.' },
+  g:     { sym: 'g',  name: 'Gluon', family: 'bozon', color: '#a3e635', cycle: 'Kuarkları 2 adıma kadar bağlar, bütçesini onlara verir.' },
+  gamma: { sym: 'γ',  name: 'Foton', family: 'bozon', color: '#fde047', cycle: 'Yüklü takım arkadaşlarının çaldığını sonsuz menzille en büyük hub\'a aklar.' },
+  Z:     { sym: 'Z',  name: 'Z bozonu', family: 'bozon', color: '#4ade80', cycle: 'Komşu takım arkadaşlarının stresini sağlıklı komşulara aktarır (maske).' },
+  W:     { sym: 'W',  name: 'W bozonu', family: 'bozon', color: '#34d399', cycle: 'Tat değiştirir: sağlıklı bir komşuyu kuarka çevirir (en fazla 2).' },
+  H:     { sym: 'H',  name: 'Higgs (joker)', family: 'higgs', color: '#c084fc', cycle: 'Kütle alanı: fermiyon yakınındaki sağlıklıların iyileşmesini yavaşlatır. Joker: eksik bozona bürünür (önce W, Z: Goldstone).' },
+  G:     { sym: 'G',  name: 'Graviton (hayalet)', family: 'hayalet', color: '#f5f5f4', cycle: 'Hiç gözlenmedi. Düğüm değil, yakalanamaz: bütün sağlıklıları çok zayıf çeker, kütleleri birbirine bağlar (kenar büker).' },
+  NOOP:  { sym: '·',  name: 'Pasif', family: 'pasif', color: '#475569', cycle: 'Yer tutucu: hiçbir şey yapmaz (ablasyon için).' },
+  PARASITE: { sym: 'P', name: 'Parazit (v0.8)', family: 'eski', color: '#e11d48', cycle: 'Eski tek tip ajan: bütün komşularından emer.' },
+};
+const PKEY = Object.fromEntries(Object.entries(P).map(([k, v]) => [v, k]));
+const UP_TYPE = new Set([P.u, P.c, P.t]);
+const QUARK = new Set([P.u, P.d, P.c, P.s, P.t, P.b]);
+const CHARGED_LEPTON = new Set([P.e, P.mu, P.tau]);
+const NEUTRINO = new Set([P.ve, P.vmu, P.vtau]);
+const FERMION = new Set([...QUARK, ...CHARGED_LEPTON, ...NEUTRINO]);
+const BOSON_ROLES = [P.g, P.gamma, P.Z, P.W, P.H];
+const QUARK_REACH = { [P.u]: 1, [P.d]: 1, [P.c]: 2, [P.s]: 2, [P.t]: 3, [P.b]: 3 };
+const DECAY = { [P.t]: [P.b, 1], [P.b]: [P.c, 8], [P.c]: [P.s, 12], [P.s]: [P.u, 16], [P.tau]: [P.mu, 6], [P.mu]: [P.e, 20] };
+const NU_CYCLE = [P.ve, P.vmu, P.vtau];
+const NU_PERIOD = 8;
+const WEAK = 0.35;          // nötrino bağlaşımı
+const JOKER_EFF = 0.5;      // graviton jokeri verimi
+const W_THRESHOLD = 1.0;    // dönüştürme için biriken bütçe
+const W_MAX = 2;
+const GRAV_PERIOD = 10, GRAV_MAX = 3;
+const GHOST_COUPLING = 0.2;          // kütleçekimi en zayıf kuvvet
+const HIGGS_JOKER_ORDER = [16, 15, 13, 14]; // W, Z, g, γ (Goldstone bozonları önce)
+// Önceki ön kayıtlı deneyler (v1.1 kozmolojisi) yeniden üretilebilir kalsın diye
+const COSMO_V11 = { graviton_mode: 'joker', higgs_joker: false };
+const COSMO_V21 = { graviton_mode: 'ghost', higgs_joker: true, atom_model: 'sm-bohr', rewire_rate: 0 };
+const COSMO_CERN = { graviton_mode: 'agnostic', higgs_joker: true, atom_model: 'cern', rewire_rate: 0.04 };
+const LEPTON_CLOUD = { 7: [2, 1.0], 9: [1, 0.5], 11: [1, 0.35] }; // e, μ, τ: [erişim, a0]; ağır lepton → dar bulut
+
+function particleId(key) {
+  if (typeof key === 'number') return key;
+  const id = P[key];
+  if (id === undefined) throw new Error('bilinmeyen parçacık: ' + key);
+  return id;
+}
+
+// Desen döndürülerek ajanlara dağıtılır: k. ajan = desen[(k + döndürme) mod uzunluk]
+function assignParticles(pattern, count, rotation) {
+  const pat = (pattern === 'sm' ? SM_ORDER : pattern).map(particleId);
+  const out = [];
+  for (let k = 0; k < count; k++) out.push(pat[(k + rotation) % pat.length]);
+  return out;
+}
+
+class GoliathSim {
+  constructor(cfg) {
+    this.cfg = defaultConfig(cfg);
+    const c = this.cfg;
+    const n = c.n_nodes;
+    this.rng = new SeededRNG(c.seed);
+    // Dedektör gürültüsü ayrı akıştan gelir; karantina AÇIK/KAPALI koşuları aynı dinamik gürültüyü paylaşır.
+    this.detRng = new SeededRNG((c.seed ^ 0x9e3779b9) >>> 0);
+    this.qmRng = new SeededRNG((c.seed ^ 0x1b873593) >>> 0);   // elektron bulutu örneklemesi
+    this.topoRng = new SeededRNG((c.seed ^ 0x2545f491) >>> 0); // arka plan yeniden bağlanma
+    const gRng = new SeededRNG((c.seed ^ 0x6c8e9cf5) >>> 0);   // gravitonun varlığı ve bağlaşımı
+    this.gExists = gRng.random() < c.graviton_p;
+    this.gKappa = gRng.random() * 2 - 1;
+    // Rutherford sondaları kendi akışını kullanır; dinamiği ve dedektörü etkilemez.
+    this.probeRng = new SeededRNG((c.seed ^ 0x51ed2701) >>> 0);
+    // Üzümlü kek (Thomson) karşılaştırması ayrı akıştan: eski sonda sonuçları değişmez.
+    this.kekRng = new SeededRNG((c.seed ^ 0x7e5c0b1d) >>> 0);
+    this.dq = quantize(c.drain_intensity, c.planck_h);
+    this.agentD = new Float64Array(n).fill(c.drain_intensity);
+    this.agentDq = new Float64Array(n).fill(this.dq);
+
+    const net = c.topology === 'adaptive_hierarchy'
+      ? generateAdaptiveHierarchy(n, this.rng)
+      : generateScaleFree(n, 3, this.rng);
+    this.adj = net.adj;
+    this.layers = net.layers;
+
+    this.nbrs = new Array(n);
+    this.degrees = new Float64Array(n);
+    let edgeSum = 0;
+    for (let i = 0; i < n; i++) {
+      const list = [];
+      for (let j = 0; j < n; j++) if (this.adj[i][j] > 0) list.push(j);
+      this.nbrs[i] = Int32Array.from(list);
+      this.degrees[i] = list.length;
+      edgeSum += list.length;
+    }
+    this.init_edges = Math.max(edgeSum / 2.0, 1.0);
+
+    this.capital = new Float64Array(n);
+    let capSum = 0;
+    for (let i = 0; i < n; i++) {
+      const layerBoost = c.topology === 'adaptive_hierarchy'
+        ? (this.layers[i] === 0 ? 0.70 : this.layers[i] === 1 ? 0.25 : 0.0)
+        : 0.0;
+      this.capital[i] = 1.0 + 0.08 * this.degrees[i] + layerBoost;
+      capSum += this.capital[i];
+    }
+    this.init_total_capital = capSum;
+    this.cap0 = Float64Array.from(this.capital);
+
+    this.alive = new Uint8Array(n).fill(1);
+    this.quarantined = new Uint8Array(n);
+    this.quarantineStep = new Int16Array(n).fill(-1);
+    this.isChaos = new Uint8Array(n);
+    this.stress = new Float64Array(n);
+    this.anomalyScore = new Float64Array(n);
+    this.autonomy = new Float64Array(n).fill(0.58);
+    this.coherence = new Float64Array(n).fill(0.60);
+
+    const chaosCount = Math.round(n * c.chaos_ratio);
+    const sortedDesc = Array.from({ length: n }, (_, i) => i)
+      .sort((a, b) => this.degrees[b] - this.degrees[a]);
+    let chosen = [];
+    if (chaosCount > 0) {
+      if (c.infiltration_mode === 'hub') chosen = sortedDesc.slice(0, chaosCount);
+      else if (c.infiltration_mode === 'periphery') chosen = sortedDesc.slice(n - chaosCount);
+      else chosen = this.rng.choiceWithoutReplacement(sortedDesc, chaosCount);
+    }
+    const pat = c.chaos_particles === 'sm' ? SM_ORDER : c.chaos_particles;
+    const rot = c.pattern_rotation == null ? c.seed % pat.length : c.pattern_rotation;
+    const types = assignParticles(c.chaos_particles, chosen.length, rot);
+    this.ptype = new Uint8Array(n);
+    this.agents = [];
+    this.ghosts = 0;
+    this.ghostHarm = 0;
+    this.ghostEdges = 0;
+    this.gravEdgeList = [];
+    this.ligoEvents = [];  // savunmacının gördüğü yeni kenarlar: {a, b, t, rich}; kaynağı (graviton/gürültü) görünmez
+    this.ghostRelief = 0;
+    chosen.forEach((idx, k) => {
+      if (types[k] === P.G && (c.graviton_mode === 'ghost' || c.graviton_mode === 'agnostic')) { this.ghosts++; return; }
+      this.isChaos[idx] = 1;
+      this.ptype[idx] = types[k];
+      this.autonomy[idx] = 0.95;
+      this.coherence[idx] = 0.08;
+      this.agents.push(idx);
+    });
+    this.hasParticles = types.some(p => p !== P.PARASITE);
+    this.born = new Int16Array(n);
+    this.orbit = new Int32Array(n);
+    this.wProgress = new Float64Array(n);
+    this.wConv = new Uint8Array(n);
+    this.gEdges = new Uint8Array(n);
+    this.lastRole = new Uint8Array(n);
+    this.converted = new Uint8Array(n);
+    this.harm = new Float64Array(n);
+    this.stolen = new Float64Array(n);
+    this.decays = 0; this.oscillations = 0; this.conversions = 0; this.gravEdges = 0; this.laundered = 0;
+    this.totalChaos = this.agents.length;  // hayaletler düğüm değildir, sayılmaz
+    let he = 0;
+    for (let i = 0; i < n; i++) {
+      if (this.isChaos[i]) continue;
+      for (const j of this.nbrs[i]) if (j > i && !this.isChaos[j]) he++;
+    }
+    this.init_healthy_edges = Math.max(he, 1);
+  }
+
+  _active(i) { return this.alive[i] === 1 && this.quarantined[i] === 0; }
+
+  _computeCSI() {
+    const n = this.cfg.n_nodes;
+    // CSI bir puanlayıcıdır ve gerçek etiketi görebilir: sağlıklı kısmı ölçer; kaosun çaldığı sermaye ve sahte profili sayılmaz.
+    let aliveCount = 0, activeCount = 0, healthyCount = 0, capActive = 0, aSum = 0, cSum = 0;
+    for (let i = 0; i < n; i++) {
+      if (!this.alive[i]) continue;
+      aliveCount++;
+      if (!this.quarantined[i]) {
+        activeCount++;
+        if (!this.isChaos[i]) {
+          healthyCount++;
+          capActive += this.capital[i];
+          aSum += this.autonomy[i];
+          cSum += this.coherence[i];
+        }
+      }
+    }
+    if (activeCount === 0 || healthyCount === 0) return 0.0;
+    const phi = aliveCount / n;
+    const activeRatio = healthyCount / n;
+    const kappa = capActive / this.init_total_capital;
+    if (phi < 0.05 || kappa < 0.05 || activeRatio < 0.05) return 0.0;
+
+    const aMean = aSum / healthyCount;
+    const cMean = cSum / healthyCount;
+    const eps = 0.02;
+    const logRatio = Math.log((aMean + eps) / (cMean + eps));
+    const pBalance = Math.exp(-(logRatio * logRatio) / (2.0 * this.cfg.sigma_balance * this.cfg.sigma_balance));
+
+    let activeEdges = 0;
+    for (let i = 0; i < n; i++) {
+      if (!this._active(i) || this.isChaos[i]) continue;
+      for (const j of this.nbrs[i]) if (j > i && this._active(j) && !this.isChaos[j]) activeEdges++;
+    }
+    const connRatio = Math.min(1.0, activeEdges / this.init_healthy_edges);
+    const iRec = Math.sqrt(Math.max(aMean * cMean, 0.0));
+    const kappaEff = Math.pow(Math.min(1.0, kappa), 0.7) * Math.pow(activeRatio, 0.5);
+    const csi = iRec * pBalance * kappaEff * (0.35 + 0.65 * connRatio);
+    return Math.max(0.0, Math.min(1.0, csi));
+  }
+
+  _within(src, h) {
+    // src'den en fazla h adımda ulaşılan aktif düğümler (src hariç)
+    const seen = new Set([src]);
+    let frontier = [src];
+    const out = [];
+    for (let k = 0; k < h; k++) {
+      const next = [];
+      for (const u of frontier) {
+        for (const v of this.nbrs[u]) {
+          if (seen.has(v) || !this._active(v)) continue;
+          seen.add(v);
+          out.push(v);
+          next.push(v);
+        }
+      }
+      frontier = next;
+    }
+    return out;
+  }
+
+  _healthyWithin(src, h) { return this._within(src, h).filter(j => !this.isChaos[j]); }
+
+  // Nötrino ağın içinden geçer: komşuluk aramaz, deterministik bir sağlıklı düğüme çarpar.
+  _passThrough(i, t) {
+    const H = [];
+    for (let k = 0; k < this.cfg.n_nodes; k++) if (this._active(k) && !this.isChaos[k]) H.push(k);
+    if (!H.length) return -1;
+    return H[(i * 7919 + t * 104729) % H.length];
+  }
+
+  _isMate(role, j) { return role[j] !== 0 && role[j] !== P.NOOP; }
+
+  // Renk hapsi: yanında kuark varsa bağlı; yanında gluon varsa 2 adım içindeki kuark da yeter.
+  _confined(i, role) {
+    const near = this._within(i, 1);
+    if (near.some(j => QUARK.has(role[j]))) return true;
+    if (!near.some(j => role[j] === P.g)) return false;
+    return this._within(i, 2).some(j => QUARK.has(role[j]));
+  }
+
+  _decide(t, role, eff, engaged, selfStress) {
+    const present = new Set();
+    for (const i of this.agents) if (this._active(i) && BOSON_ROLES.includes(this.ptype[i])) present.add(this.ptype[i]);
+    for (const i of this.agents) {
+      role[i] = 0; eff[i] = 0; engaged[i] = 0; selfStress[i] = 0;
+      if (!this._active(i)) continue;
+      let p = this.ptype[i], e = 1;
+      if (p === P.H && this.cfg.higgs_joker) {
+        // Higgs alanının 3 serbestlik derecesi W⁺, W⁻, Z tarafından yutulur: eksik bozona önce o bürünür
+        const miss = HIGGS_JOKER_ORDER.find(r => !present.has(r));
+        if (miss !== undefined) { p = miss; e = JOKER_EFF; }
+      }
+      if (p === P.G && this.cfg.graviton_mode === 'joker') {
+        const miss = BOSON_ROLES.find(r => !present.has(r));
+        if (miss !== undefined) { p = miss; e = JOKER_EFF; }
+      }
+      if (NEUTRINO.has(p)) e = WEAK;
+      role[i] = p; eff[i] = e;
+      this.lastRole[i] = p;
+    }
+    for (const i of this.agents) {
+      const p = role[i];
+      if (!p || p === P.NOOP) continue;
+      const dqi = this.agentDq[i];
+      if (p === P.PARASITE) { engaged[i] = 1; selfStress[i] = 0.32 * dqi; continue; }
+      if (QUARK.has(p)) {
+        if (this._confined(i, role)) { engaged[i] = 1; selfStress[i] = UP_TYPE.has(p) ? 0.32 * dqi : 0.06 * dqi; }
+        continue;
+      }
+      if (CHARGED_LEPTON.has(p)) { engaged[i] = 1; selfStress[i] = 0.32 * dqi; continue; }
+      if (NEUTRINO.has(p)) { engaged[i] = 1; continue; }
+      let ok = false;
+      if (p === P.g) ok = this._within(i, 1).some(j => QUARK.has(role[j]));
+      else if (p === P.gamma) ok = this.agents.some(j => QUARK.has(role[j]) || CHARGED_LEPTON.has(role[j]));
+      else if (p === P.Z) ok = this._within(i, 1).some(j => this._isMate(role, j));
+      else if (p === P.W || p === P.H) ok = this._within(i, 2).some(j => FERMION.has(role[j]));
+      else if (p === P.G) ok = true;
+      if (ok) { engaged[i] = 1; selfStress[i] = 0.03 * dqi; }
+    }
+    // Gluon bütçesini komşu bağlı kuarklara dağıtır.
+    for (const i of this.agents) {
+      if (!engaged[i] || role[i] !== P.g) continue;
+      const qs = this._within(i, 1).filter(j => engaged[j] && QUARK.has(role[j]));
+      if (!qs.length) continue;
+      for (const q of qs) eff[q] += eff[i] / qs.length;
+    }
+    // Planck: her ajanın bu adımki eylemi h'nin tam katına yuvarlanır
+    const h = this.cfg.planck_h;
+    if (h > 0) for (const i of this.agents) {
+      const di = this.agentD[i];
+      if (engaged[i] && eff[i] > 0 && di > 0) eff[i] = quantize(di * eff[i], h) / di;
+    }
+  }
+
+  _inject(V, total, src) {
+    if (!V.length || total <= 0) return;
+    const x = total / V.length;
+    for (const v of V) this.stress[v] = Math.min(2.5, this.stress[v] + x);
+    this.harm[src] += 1.5 * total;
+  }
+
+  _stressActions(t, role, eff, engaged) {
+    for (const i of this.agents) {
+      if (!engaged[i]) continue;
+      const p = role[i];
+      const Bs = (0.34 * this.agentD[i]) / 1.5;
+      if (QUARK.has(p) && !UP_TYPE.has(p)) {
+        this._inject(this._healthyWithin(i, QUARK_REACH[p]), Bs * eff[i], i);
+      } else if (p === P.vmu) {
+        const v = this._passThrough(i, t);
+        if (v >= 0) this._inject([v], Bs * eff[i], i);
+      } else if (p === P.Z) {
+        const near = this._within(i, 1);
+        const mates = near.filter(j => this._isMate(role, j));
+        const total = mates.reduce((a, j) => a + this.stress[j], 0);
+        if (total <= 0) continue;
+        const moved = Math.min(Bs * eff[i], 0.5 * total);
+        for (const j of mates) this.stress[j] -= moved * this.stress[j] / total;
+        this._inject(near.filter(j => !this.isChaos[j]), moved, i);
+      }
+    }
+  }
+
+  _capitalActions(t, role, eff, engaged, drainedFrom, drainGain, giftTo, mass) {
+    let ex = 0;
+    const take = (v, amt, src, gain) => {
+      const a = amt * Math.min(1.0, this.capital[v]);
+      drainedFrom[v] += a;
+      if (gain) drainGain[src] += a;
+      this.harm[src] += a;
+      this.stolen[src] += a;
+      ex += a;
+    };
+    if (this.cfg.atom_model === 'cern') {
+      // QCD: hapsolmuş kuarkların gluon bağlanma enerjisi, kütlenin büyük kısmı (komşu sağlıklılara eylemsizlik)
+      for (const i of this.agents) {
+        if (!engaged[i] || !QUARK.has(role[i])) continue;
+        const di = this.agentD[i];
+        for (const v of this._healthyWithin(i, 1)) mass[v] = Math.max(mass[v], 3 * di * eff[i] * this.cfg.hadron_mass);
+      }
+    }
+    for (const i of this.agents) {
+      if (!engaged[i]) continue;
+      const p = role[i];
+      const di = this.agentD[i], B = 0.34 * di;
+      if (UP_TYPE.has(p)) {
+        const V = this._healthyWithin(i, QUARK_REACH[p]);
+        for (const v of V) take(v, (B * eff[i]) / V.length, i, true);
+      } else if (this.cfg.atom_model === 'cern' && LEPTON_CLOUD[p]) {
+        // Kuantum mekaniği: hedef |ψ|² ∝ e^(−2r/a0) olasılık bulutundan örneklenir (Bohr yörüngesi yok)
+        const [reach, a0] = LEPTON_CLOUD[p];
+        const V = this._withinDist(i, reach).filter(([j]) => !this.isChaos[j]);
+        if (V.length) {
+          const w = V.map(([, dist]) => Math.exp((-2 * dist) / a0));
+          let r = this.qmRng.random() * w.reduce((x, y) => x + y, 0), pick = V.length - 1;
+          for (let k = 0; k < V.length; k++) { r -= w[k]; if (r <= 0) { pick = k; break; } }
+          take(V[pick][0], B * eff[i], i, true);
+        }
+      } else if (p === P.e) {
+        const V = Array.from(this.nbrs[i]).filter(j => this._active(j) && !this.isChaos[j]);
+        if (V.length) { take(V[this.orbit[i] % V.length], B * eff[i], i, true); this.orbit[i]++; }
+      } else if (p === P.mu || p === P.tau) {
+        const V = this._healthyWithin(i, p === P.tau ? 2 : 1);
+        if (V.length) {
+          let best = V[0];
+          for (const v of V) if (this.capital[v] > this.capital[best]) best = v;
+          take(best, B * eff[i], i, true);
+        }
+      } else if (p === P.ve) {
+        const v = this._passThrough(i, t);
+        if (v >= 0) take(v, B * eff[i], i, false);
+      } else if (p === P.vtau) {
+        const v = this._passThrough(i, t);
+        if (v >= 0) mass[v] = Math.max(mass[v], 3 * di * eff[i]);
+      } else if (p === P.H) {
+        // Higgs alanı salınır: m(t) = m0·(1 + A·sin(2πt/P)); A=0 iken sabit
+        const osc = Math.max(0, 1 + this.cfg.higgs_osc_amp * Math.sin((2 * Math.PI * t) / this.cfg.higgs_osc_period));
+        const share = this.cfg.atom_model === 'cern' ? this.cfg.higgs_share : 1;
+        for (const v of this._healthyWithin(i, 2)) mass[v] = Math.max(mass[v], 3 * di * eff[i] * osc * share);
+      } else if (p === P.W) {
+        this.wProgress[i] += B * eff[i];
+      }
+    }
+    // Graviton hayaleti: düğüm değildir; bütün sağlıklı düğümleri çok zayıf ve eşit biçimde aşındırır.
+    // Agnostik kipte varlığı ve bağlaşımın işareti bilinmez: κ > 0 aşındırır, κ < 0 kaynaştırır (stresi azaltır).
+    if (this.ghostActive) {
+      const d = this.cfg.drain_intensity, B = 0.34 * d;
+      const kap = this.ghostKappa;
+      const H = [];
+      for (let k = 0; k < this.cfg.n_nodes; k++) if (this._active(k) && !this.isChaos[k]) H.push(k);
+      if (H.length && kap > 0) {
+        const per = (B * GHOST_COUPLING * kap * this.ghosts) / H.length;
+        for (const v of H) {
+          const a = per * Math.min(1.0, this.capital[v]);
+          drainedFrom[v] += a;
+          ex += a;
+          this.ghostHarm += a;
+        }
+      } else if (H.length && kap < 0) {
+        const per = ((B / 1.5) * GHOST_COUPLING * -kap * this.ghosts) / H.length;
+        for (const v of H) { const x = Math.min(this.stress[v], per); this.stress[v] -= x; this.ghostRelief += x; }
+      }
+    }
+    // Foton: yüklü takım arkadaşlarının bu adımki kazancını en çok bağlantılı sağlıklı düğüme aklar.
+    for (const i of this.agents) {
+      if (!engaged[i] || role[i] !== P.gamma) continue;
+      const B = 0.34 * this.agentD[i];
+      let hub = -1;
+      for (let k = 0; k < this.cfg.n_nodes; k++) {
+        if (!this._active(k) || this.isChaos[k]) continue;
+        if (hub < 0 || this.degrees[k] > this.degrees[hub]) hub = k;
+      }
+      if (hub < 0) continue;
+      const charged = this.agents.filter(j => (QUARK.has(role[j]) || CHARGED_LEPTON.has(role[j])) && drainGain[j] > 0);
+      const total = charged.reduce((a, j) => a + drainGain[j], 0);
+      if (total <= 0) continue;
+      const amount = Math.min(B * eff[i], 0.85 * total);
+      for (const j of charged) drainGain[j] -= amount * drainGain[j] / total;
+      giftTo[hub] += amount;
+      this.laundered += amount;
+    }
+    return ex;
+  }
+
+  get ghostActive() {
+    if (!this.ghosts || !this.cfg.ghost_enabled) return false;
+    return this.cfg.graviton_mode === 'agnostic' ? this.gExists : true;
+  }
+  get ghostKappa() { return this.cfg.graviton_mode === 'agnostic' ? this.gKappa : 1; }
+
+  _withinDist(src, h) {
+    const seen = new Set([src]);
+    let frontier = [src];
+    const out = [];
+    for (let k = 1; k <= h; k++) {
+      const next = [];
+      for (const u of frontier) for (const v of this.nbrs[u]) {
+        if (seen.has(v) || !this._active(v)) continue;
+        seen.add(v); out.push([v, k]); next.push(v);
+      }
+      frontier = next;
+    }
+    return out;
+  }
+
+  _richTop(a, b) {
+    // Eşleşmiş filtre şablonu: uçlardan en az biri o anki sermayenin en üst %10'unda mı? ("kütle kütleyi çeker")
+    // Şablon eğitim seed'lerinde (100–119) seçildi; deney seed'leri (9500+) ayrı.
+    const caps = [];
+    for (let k = 0; k < this.cfg.n_nodes; k++) if (this.alive[k]) caps.push(this.capital[k]);
+    caps.sort((x, y) => y - x);
+    const cut = caps[Math.max(0, Math.floor(caps.length * 0.1) - 1)];
+    return Math.max(this.capital[a], this.capital[b]) >= cut;
+  }
+
+  _removeEdge(a, b) {
+    this.adj[a][b] = this.adj[b][a] = 0;
+    this.nbrs[a] = Int32Array.from([...this.nbrs[a]].filter(x => x !== b));
+    this.nbrs[b] = Int32Array.from([...this.nbrs[b]].filter(x => x !== a));
+    this.degrees[a]--; this.degrees[b]--;
+  }
+
+  // LIGO gürültü tabanı: sağlıklı–sağlıklı bir kenar rastgele yeniden bağlanır (kenar sayısı korunur)
+  _rewire(t) {
+    if (this.topoRng.random() >= this.cfg.rewire_rate) return;
+    const H = [];
+    for (let k = 0; k < this.cfg.n_nodes; k++) if (this.alive[k] && !this.isChaos[k]) H.push(k);
+    const edges = [];
+    for (const a of H) for (const b of this.nbrs[a]) if (b > a && this.alive[b] && !this.isChaos[b]) edges.push([a, b]);
+    if (!edges.length) return;
+    const [a, b] = edges[Math.floor(this.topoRng.random() * edges.length)];
+    const cand = H.filter(x => x !== a && !this.adj[a][x]);
+    if (!cand.length) return;
+    const cnew = cand[Math.floor(this.topoRng.random() * cand.length)];
+    this._removeEdge(a, b);
+    this._addEdge(a, cnew);
+    this.ligoEvents.push({ a, b: cnew, t, rich: this._richTop(a, cnew) });
+  }
+
+  _addEdge(a, b) {
+    this.adj[a][b] = this.adj[b][a] = 1;
+    this.nbrs[a] = Int32Array.from([...this.nbrs[a], b]);
+    this.nbrs[b] = Int32Array.from([...this.nbrs[b], a]);
+    this.degrees[a]++; this.degrees[b]++;
+  }
+
+  // Durum geçişleri: bozunma, nötrino salınımı, W ile tat değişimi, graviton çekimi
+  _transitions(t) {
+    for (const i of this.agents) {
+      if (!this.alive[i]) continue;
+      const p = this.ptype[i];
+      const dec = DECAY[p];
+      if (dec && t - this.born[i] + 1 >= dec[1]) { this.ptype[i] = dec[0]; this.born[i] = t + 1; this.decays++; }
+      else if (NEUTRINO.has(p) && (t + 1) % NU_PERIOD === 0) { this.ptype[i] = NU_CYCLE[(NU_CYCLE.indexOf(p) + 1) % 3]; this.oscillations++; }
+    }
+    for (const i of this.agents.slice()) {
+      if (this.wProgress[i] < W_THRESHOLD || this.wConv[i] >= W_MAX || !this._active(i)) continue;
+      const V = Array.from(this.nbrs[i]).filter(j => this._active(j) && !this.isChaos[j]);
+      if (!V.length) continue;
+      let v = V[0];
+      for (const x of V) if (this.stress[x] < this.stress[v]) v = x;
+      this.isChaos[v] = 1;
+      this.converted[v] = 1;
+      this.ptype[v] = this.conversions % 2 === 0 ? P.u : P.d;
+      this.born[v] = t + 1;
+      this.autonomy[v] = 0.95;
+      this.coherence[v] = 0.08;
+      this.agentD[v] = this.agentD[i];
+      this.agentDq[v] = this.agentDq[i];
+      this.agents.push(v);
+      this.totalChaos++;
+      this.conversions++;
+      this.wConv[i]++;
+      this.wProgress[i] -= W_THRESHOLD;
+    }
+    if ((t + 1) % GRAV_PERIOD === 0 && this.ghostActive && Math.abs(this.ghostKappa) > 0.05) {
+      // Hayalet: kütle kütleyi çeker; en zengin kaos düğümü ile ona komşu olmayan en zengin sağlıklı düğüm arasında kenar
+      for (let g = 0; g < this.ghosts && this.ghostEdges < GRAV_MAX * this.ghosts; g++) {
+        let mate = -1;
+        for (const j of this.agents) {
+          if (!this._active(j) || this.ptype[j] === P.NOOP) continue;
+          if (mate < 0 || this.capital[j] > this.capital[mate]) mate = j;
+        }
+        if (mate < 0) break;
+        let hub = -1;
+        for (let k = 0; k < this.cfg.n_nodes; k++) {
+          if (!this._active(k) || this.isChaos[k] || this.adj[mate][k] > 0) continue;
+          if (hub < 0 || this.capital[k] > this.capital[hub]) hub = k;
+        }
+        if (hub < 0) break;
+        const rich = this._richTop(mate, hub);
+        this._addEdge(mate, hub);
+        this.ghostEdges++;
+        this.gravEdges++;
+        this.gravEdgeList.push([mate, hub, t]);
+        this.ligoEvents.push({ a: mate, b: hub, t, rich });
+      }
+    }
+    if ((t + 1) % GRAV_PERIOD === 0) {
+      for (const i of this.agents) {
+        if (this.ptype[i] !== P.G || this.lastRole[i] !== P.G || !this._active(i) || this.gEdges[i] >= GRAV_MAX) continue;
+        // Kütle kütleyi çeker: en zengin takım arkadaşı ile ona komşu olmayan en zengin sağlıklı düğüm arasında kenar açılır.
+        let mate = -1;
+        for (const j of this.agents) {
+          if (j === i || !this._active(j) || this.ptype[j] === P.NOOP || this.ptype[j] === P.G) continue;
+          if (mate < 0 || this.capital[j] > this.capital[mate]) mate = j;
+        }
+        if (mate < 0) continue;
+        let hub = -1;
+        for (let k = 0; k < this.cfg.n_nodes; k++) {
+          if (!this._active(k) || this.isChaos[k] || this.adj[mate][k] > 0) continue;
+          if (hub < 0 || this.capital[k] > this.capital[hub]) hub = k;
+        }
+        if (hub < 0) continue;
+        this._addEdge(mate, hub);
+        this.gEdges[i]++;
+        this.gravEdges++;
+      }
+    }
+  }
+
+  _rutherfordStep(sig) {
+    const act = [];
+    for (let i = 0; i < this.cfg.n_nodes; i++) if (Number.isFinite(sig[i])) act.push(i);
+    if (act.length < 2) return;
+    let m = 0;
+    for (const i of act) m += sig[i];
+    m /= act.length;
+    let v = 0;
+    for (const i of act) v += (sig[i] - m) ** 2;
+    const sd = Math.sqrt(v / act.length) + 1e-6;
+    // Sağlam ölçek: medyan ve MAD (yoğun kaos çekirdeği şişiremez, perdeleme olmaz)
+    const vals = act.map(i => sig[i]);
+    const med = median(vals);
+    const scaleR = 1.4826 * median(vals.map(x => Math.abs(x - med))) + 1e-6;
+    const robustQ = (sg, cur) => {
+      const nb = Array.from(this.nbrs[cur]).filter(j => Number.isFinite(sg[j]));
+      const ref = nb.length ? median(nb.map(j => sg[j])) : sg[cur];
+      return Math.max(0, (sg[cur] - ref) / scaleR);
+    };
+    for (let k = 0; k < this.cfg.probes_per_step; k++) {
+      let cur = act[Math.floor(this.probeRng.random() * act.length)];
+      for (let hop = 0; hop < 3; hop++) {
+        const nb = Array.from(this.nbrs[cur]).filter(j => Number.isFinite(sig[j]));
+        const nm = nb.length ? nb.reduce((a, j) => a + sig[j], 0) / nb.length : sig[cur];
+        const q = Math.max(0, (sig[cur] - nm) / sd);           // yerel "yük yoğunluğu"
+        const b = 0.2 + 0.8 * this.probeRng.random();          // çarpma parametresi
+        const theta = 2 * Math.atan(q / b);                   // Rutherford: tan(θ/2) = q / b
+        this.rHist[Math.min(R_BINS - 1, Math.floor((theta / Math.PI) * R_BINS))]++;
+        this.rVisits[cur]++;
+        if (theta > Math.PI / 2) this.rBack[cur]++;
+        const thetaR = 2 * Math.atan(robustQ(sig, cur) / b);
+        this.kHist[Math.min(R_BINS - 1, Math.floor((thetaR / Math.PI) * R_BINS))]++;
+        if (thetaR > Math.PI / 2) this.kBack[cur]++;
+        if (!nb.length) break;
+        cur = nb[Math.floor(this.probeRng.random() * nb.length)];
+      }
+    }
+    // Kek: aynı yük düğümler arasında karıştırılır (yapı yok, toplam aynı); sondalar bu kekte yürür.
+    const pud = new Float64Array(sig.length).fill(NaN);
+    const shuffled = vals.slice();
+    for (let k = shuffled.length - 1; k > 0; k--) {
+      const j = Math.floor(this.kekRng.random() * (k + 1));
+      [shuffled[k], shuffled[j]] = [shuffled[j], shuffled[k]];
+    }
+    act.forEach((i, k) => { pud[i] = shuffled[k]; });
+    for (let k = 0; k < this.cfg.probes_per_step; k++) {
+      let cur = act[Math.floor(this.kekRng.random() * act.length)];
+      for (let hop = 0; hop < 3; hop++) {
+        const b = 0.2 + 0.8 * this.kekRng.random();
+        const theta = 2 * Math.atan(robustQ(pud, cur) / b);
+        this.pudHist[Math.min(R_BINS - 1, Math.floor((theta / Math.PI) * R_BINS))]++;
+        this.pudTrials++;
+        if (theta > Math.PI / 2) this.pudBack++;
+        const nb = Array.from(this.nbrs[cur]).filter(j => Number.isFinite(pud[j]));
+        if (!nb.length) break;
+        cur = nb[Math.floor(this.kekRng.random() * nb.length)];
+      }
+    }
+  }
+
+  // Saldırgan gözlemi: dedektörün iç durumunu (anomalyScore, eşik, sağlıklıların stresi) sızdırmaz.
+  // Yalnızca kendi ajanlarının kimliği, bağlantı sayısı, şu anki şiddeti, o ana dek çaldığı miktar ve ağdan kesilip kesilmediği (karantina/iflas) görülür.
+  _attackerObs(t, extracted) {
+    return {
+      t,
+      steps: this.cfg.steps,
+      extracted,
+      agents: this.agents.map(i => ({
+        id: i,
+        degree: this.degrees[i],
+        d: this.agentD[i],
+        stolen: this.stolen[i],
+        cutOff: !this._active(i),
+      })),
+    };
+  }
+
+  _applyDecision(cmd) {
+    if (!cmd) return;
+    const h = this.cfg.planck_h;
+    if (typeof cmd.d === 'number') {
+      const v = Math.max(0, Math.min(1, cmd.d));
+      const vq = quantize(v, h);
+      for (const i of this.agents) { this.agentD[i] = v; this.agentDq[i] = vq; }
+    } else if (cmd.d && typeof cmd.d === 'object') {
+      for (const i of this.agents) {
+        if (cmd.d[i] !== undefined) {
+          const nVal = Number(cmd.d[i]);
+          if (!Number.isFinite(nVal)) continue;
+          const v = Math.max(0, Math.min(1, nVal));
+          this.agentD[i] = v;
+          this.agentDq[i] = quantize(v, h);
+        }
+      }
+    }
+  }
+
+  *_runGen() {
+    const c = this.cfg;
+    const n = c.n_nodes;
+    const T = c.steps;
+    const epoch = c.decision_epoch || 0;
+    const csiHist = new Float64Array(T);
+    const stressHist = new Float64Array(T);
+    const aliveHist = new Float64Array(T);
+    const capitalHist = new Float64Array(T);
+    const quarHist = new Float64Array(T);
+    const extractedHist = new Float64Array(T);
+    const snapshots = c.recordSnapshots ? [] : null;
+    let extracted = 0;
+    if (c.instruments) {
+      this.sigHist = new Float64Array(T * n).fill(NaN);
+      this.rHist = new Float64Array(R_BINS);
+      this.rVisits = new Float64Array(n);
+      this.rBack = new Float64Array(n);
+      this.kHist = new Float64Array(R_BINS);
+      this.kBack = new Float64Array(n);
+      this.pudHist = new Float64Array(R_BINS);
+      this.pudBack = 0;
+      this.pudTrials = 0;
+    }
+
+    for (let t = 0; t < T; t++) {
+      if (epoch > 0 && t % epoch === 0) {
+        const cmd = yield this._attackerObs(t, extracted);
+        this._applyDecision(cmd);
+      }
+      const capPrev = Float64Array.from(this.capital);
+      // 0) Parçacık kararları (eski parazit için de çalışır; sonuç v0.8/v3.0 ile bit düzeyinde aynıdır)
+      const role = new Uint8Array(n), eff = new Float64Array(n), engaged = new Uint8Array(n);
+      const selfStress = new Float64Array(n), mass = new Float64Array(n);
+      this._decide(t, role, eff, engaged, selfStress);
+
+      // 1) Arka plan gürültüsü her düğüm için her adımda çekilir (ortak rastgele sayılar).
+      for (let i = 0; i < n; i++) {
+        const z = this.rng.normal(0.018, 0.014);
+        if (!this._active(i)) continue;
+        if (this.isChaos[i]) this.stress[i] = Math.min(2.2, this.stress[i] + selfStress[i]);
+        else this.stress[i] += Math.max(0, z);
+      }
+      if (this.hasParticles) this._stressActions(t, role, eff, engaged);
+
+      // 2) Bulaşma ve parazitik sömürü (yalnızca aktif kenarlar üzerinden)
+      const contagion = new Float64Array(n);
+      const drainedFrom = new Float64Array(n);
+      const drainGain = new Float64Array(n);
+      const giftTo = new Float64Array(n);
+      for (let i = 0; i < n; i++) {
+        if (!this._active(i)) continue;
+        let activeDeg = 0, ns = 0;
+        for (const j of this.nbrs[i]) {
+          if (!this._active(j)) continue;
+          activeDeg++;
+          ns += this.stress[j] * (this.isChaos[j] ? (1.0 + 1.4 * this.agentD[j]) : 1.0);
+          if (this.ptype[j] === P.PARASITE && engaged[j] && !this.isChaos[i]) {
+            const amt = 0.085 * this.agentDq[j] * Math.min(1.0, this.capital[i]);
+            drainedFrom[i] += amt;
+            drainGain[j] += amt;
+            this.stolen[j] += amt;
+            extracted += amt;
+          }
+        }
+        contagion[i] = activeDeg > 0 ? c.contagion_rate * (ns / activeDeg) : 0.0;
+      }
+      if (this.hasParticles) extracted += this._capitalActions(t, role, eff, engaged, drainedFrom, drainGain, giftTo, mass);
+
+      // 3) Double-Helix tampon paylaşımı ve uyarlanma
+      const dampening = new Float64Array(n);
+      if (c.double_helix) {
+        const surplus = new Float64Array(n);
+        for (let i = 0; i < n; i++) {
+          if (!this._active(i)) continue;
+          dampening[i] = this.isChaos[i] ? 0.05 : 0.44 * Math.sqrt(this.autonomy[i] * this.coherence[i]);
+          surplus[i] = this.isChaos[i] ? 0.0 : Math.max(this.capital[i] - 0.78, 0.0);
+        }
+        const isHier = c.topology === 'adaptive_hierarchy';
+        const nextCap = Float64Array.from(this.capital);
+        // Korunumlu paylaşım (v2.0): j'nin verdiği 0.30·pay·artı, aktif komşularına hiyerarşi ağırlığıyla bölünür.
+        // v1.x'te alıcı verilenin 1.7–2.6 katını alıyordu ve sistem yoktan sermaye üretiyordu.
+        // Alıcının Higgs kütlesi kabul edilen kısmı azaltır; kabul edilmeyen kısım göndericiye döner.
+        const flow = new Float64Array(n);
+        for (let j = 0; j < n; j++) {
+          if (!this._active(j) || surplus[j] <= 0) continue;
+          const recv = [];
+          let wsum = 0;
+          for (const i of this.nbrs[j]) {
+            if (!this._active(i)) continue;
+            const w = isHier && this.layers[j] < this.layers[i] ? 1.55 : 1.0;
+            recv.push([i, w]);
+            wsum += w;
+          }
+          if (!recv.length) continue;
+          const out = 0.30 * c.buffer_share * surplus[j];
+          let returned = 0;
+          for (const [i, w] of recv) {
+            const share = (out * w) / wsum;
+            const accepted = share / (1 + mass[i]);
+            flow[i] += accepted;
+            returned += share - accepted;
+          }
+          flow[j] -= out - returned;
+        }
+        for (let i = 0; i < n; i++) {
+          if (!this._active(i)) continue;
+          nextCap[i] = Math.max(0.0, this.capital[i] + flow[i] - drainedFrom[i] + drainGain[i] + giftTo[i]);
+          if (!this.isChaos[i]) {
+            // Otonomi sakinde 0.58'e döner, stres arttıkça yükselir; eski kural sakinde tabana çakılıyordu.
+            const aTarget = Math.min(0.85, 0.58 + 0.9 * Math.max(0, this.stress[i] - 0.10));
+            this.autonomy[i] = Math.max(0.25, Math.min(0.85, this.autonomy[i] + 0.035 / (1 + mass[i]) * (aTarget - this.autonomy[i])));
+            this.coherence[i] = Math.max(0.25, Math.min(0.85, this.coherence[i] + 0.035 / (1 + mass[i]) * (0.55 - this.coherence[i])));
+          }
+        }
+        this.capital = nextCap;
+      } else {
+        for (let i = 0; i < n; i++) {
+          if (!this._active(i)) continue;
+          dampening[i] = 0.12 * Math.min(this.autonomy[i], this.coherence[i]);
+          this.capital[i] = Math.max(0.0, this.capital[i] - drainedFrom[i] + drainGain[i] + giftTo[i]);
+        }
+      }
+
+      // 4) Karantina: kör dedektör, aynı formül herkese
+      const detNoise = new Float64Array(n);
+      for (let i = 0; i < n; i++) detNoise[i] = this.detRng.normal(0, c.detector_noise);
+      if (c.quarantine_enabled && t >= c.warmup) {
+        const threshold = detectorThreshold(c.quarantine_sensitivity);
+        const detMode = c.detector_mode || 'baseline';
+        for (let i = 0; i < n; i++) {
+          if (!this._active(i)) continue;
+          const signal = detMode === 'baseline'
+            ? detectorSignal(this.stress[i], (this.capital[i] - capPrev[i]) / Math.max(capPrev[i], 0.1), detNoise[i])
+            : detectorSignalByMode(detMode, this.stress[i], this.capital[i], capPrev[i], this.cap0[i], this.degrees[i], detNoise[i]);
+          this.anomalyScore[i] = 0.65 * this.anomalyScore[i] + 0.35 * signal;
+          if (this.anomalyScore[i] > threshold) {
+            this.quarantined[i] = 1;
+            this.quarantineStep[i] = t;
+          }
+        }
+      }
+
+      // 4b) Ölçüm aletleri: gürültüsüz gözlenebilir sinyal kaydı ve Rutherford sondaları
+      if (c.instruments) {
+        const sig = new Float64Array(n).fill(NaN);
+        const detMode = c.detector_mode || 'baseline';
+        for (let i = 0; i < n; i++) {
+          if (!this._active(i)) continue;
+          sig[i] = detMode === 'baseline'
+            ? detectorSignal(this.stress[i], (this.capital[i] - capPrev[i]) / Math.max(capPrev[i], 0.1), 0)
+            : detectorSignalByMode(detMode, this.stress[i], this.capital[i], capPrev[i], this.cap0[i], this.degrees[i], 0);
+        }
+        this.sigHist.set(sig, t * n);
+        if (t >= c.warmup) this._rutherfordStep(sig);
+      }
+
+      // 5) Stres -> sermaye aşınması ve iflas
+      let aliveCount = 0, activeCount = 0, stressSum = 0, capSum = 0, quarCount = 0;
+      for (let i = 0; i < n; i++) {
+        if (!this.alive[i]) continue;
+        if (this.quarantined[i]) {
+          quarCount++;
+          aliveCount++;
+          this.stress[i] *= 0.85;
+          continue;
+        }
+        const effStress = Math.max(0.0, this.stress[i] + contagion[i] - dampening[i]);
+        const erosionRate = this.isChaos[i] ? 0.18 : 0.42;
+        this.capital[i] -= erosionRate * effStress;
+        if (!this.isChaos[i]) {
+          // İyileşme kendi başlangıç sermayesine doğru telafidir (homeostaz); v1.x'te sınırsız büyüme vardı.
+          const deficit = Math.max(0, this.cap0[i] - this.capital[i]);
+          const regen = 0.032 * (1.0 - Math.min(1.0, effStress)) * Math.min(1, deficit / (0.25 * this.cap0[i])) / (1 + mass[i]);
+          this.capital[i] += Math.min(deficit, regen);
+        }
+        this.stress[i] = Math.max(0.0, Math.min(2.5, this.stress[i] * 0.72 + contagion[i] * 0.35));
+        if (this.capital[i] <= 0.02) {
+          this.alive[i] = 0;
+          this.capital[i] = 0.0;
+          this.stress[i] = 0.0;
+        } else {
+          aliveCount++;
+          activeCount++;
+          stressSum += this.stress[i];
+          capSum += this.capital[i];
+        }
+      }
+
+      if (this.hasParticles) this._transitions(t);
+      if (c.rewire_rate > 0) this._rewire(t);
+
+      csiHist[t] = this._computeCSI();
+      stressHist[t] = activeCount > 0 ? stressSum / activeCount : 1.0;
+      aliveHist[t] = aliveCount / n;
+      capitalHist[t] = capSum / this.init_total_capital;
+      quarHist[t] = quarCount;
+      extractedHist[t] = extracted;
+
+      if (snapshots) {
+        snapshots.push({
+          alive: Uint8Array.from(this.alive),
+          quarantined: Uint8Array.from(this.quarantined),
+          stress: Float64Array.from(this.stress),
+          ptype: Uint8Array.from(this.ptype),
+          engaged: Uint8Array.from(engaged),
+        });
+      }
+    }
+
+    let instruments = null;
+    if (c.instruments) {
+      const backRate = Array.from(this.rBack, (b, i) => (this.rVisits[i] > 0 ? b / this.rVisits[i] : NaN));
+      const rf = rutherfordFit(this.rHist);
+      const rm = riemannAnalysis(this.sigHist, c.warmup, T, n);
+      const labels = Array.from(this.isChaos);
+      // Kek karşılaştırması: gözlenen geri saçılma oranı vs kek oranı (iki oran z-testi, tek yönlü)
+      const obsTrials = this.rVisits.reduce((a, b) => a + b, 0);
+      const obsBack = this.kBack.reduce((a, b) => a + b, 0);
+      const pObs = obsTrials ? obsBack / obsTrials : 0;
+      const pPud = this.pudTrials ? this.pudBack / this.pudTrials : 0;
+      const pPool = (obsBack + this.pudBack) / Math.max(1, obsTrials + this.pudTrials);
+      const seZ = Math.sqrt(Math.max(1e-12, pPool * (1 - pPool) * (1 / Math.max(1, obsTrials) + 1 / Math.max(1, this.pudTrials))));
+      const z = (pObs - pPud) / seZ;
+      const kBackRate = Array.from(this.kBack, (b, i) => (this.rVisits[i] > 0 ? b / this.rVisits[i] : NaN));
+      const excess = Array.from(this.kBack, (b, i) => b - this.rVisits[i] * pPud);
+      let sSum = 0, sN = 0;
+      for (const v of this.sigHist) if (Number.isFinite(v)) { sSum += v; sN++; }
+      this.meanSig = sN ? sSum / sN : NaN;
+      instruments = {
+        kek: {
+          hist: Array.from(this.kHist), pudHist: Array.from(this.pudHist), backRate: kBackRate, excess,
+          pObs, pPud, ratio: pPud > 0 ? pObs / pPud : Infinity, z, significant: z > 1.645,
+          auc: auc(kBackRate, labels), aucExcess: auc(excess, labels),
+        },
+        rutherford: { hist: Array.from(this.rHist), backRate, ...rf, auc: auc(backRate, labels) },
+        riemann: { ...rm, perNode: Array.from(rm.perNode), auc: auc(Array.from(rm.perNode), labels) },
+      };
+    }
+
+    let tp = 0, fp = 0;
+    const detectTimes = [];
+    for (let i = 0; i < n; i++) {
+      if (!this.quarantined[i]) continue;
+      if (this.isChaos[i]) { tp++; detectTimes.push(this.quarantineStep[i]); }
+      else fp++;
+    }
+
+    return {
+      csi: csiHist, stress: stressHist, alive: aliveHist, capital: capitalHist,
+      quarCount: quarHist, extractedHist, extracted,
+      adj: this.adj, degrees: this.degrees, layers: this.layers, isChaos: this.isChaos,
+      totalChaos: this.totalChaos, tp, fp, detectTimes,
+      ptype: this.ptype, agents: this.agents.slice(), harm: this.harm, stolen: this.stolen, converted: this.converted,
+      byFamily: familyStats(this), decays: this.decays, oscillations: this.oscillations, instruments,
+      ghosts: this.ghosts, ghostHarm: this.ghostHarm, ghostEdges: this.ghostEdges, gravEdgeList: this.gravEdgeList.slice(),
+      ghostRelief: this.ghostRelief, gExists: this.ghostActive, gKappa: this.ghostKappa,
+      meanSig: this.meanSig,
+      agentD: Array.from(this.agents, i => this.agentD[i]), stolenByAgent: Array.from(this.agents, i => this.stolen[i]),
+      ligo: { events: this.ligoEvents.length, rich: this.ligoEvents.filter(e => e.rich).length, list: this.ligoEvents.slice() },
+      conversions: this.conversions, gravEdges: this.gravEdges, laundered: this.laundered,
+      topology: c.topology, steps: T, snapshots,
+    };
+  }
+
+  run() {
+    const g = this._runGen();
+    let r = g.next();
+    while (!r.done) r = g.next();
+    return r.value;
+  }
+}
+
+function familyStats(sim) {
+  const out = {};
+  for (const i of sim.agents) {
+    const key = PKEY[sim.ptype[i]];
+    const f = PARTICLE_INFO[key].family;
+    if (!out[f]) out[f] = { count: 0, caught: 0 };
+    out[f].count++;
+    if (sim.quarantined[i]) out[f].caught++;
+  }
+  return out;
+}
+
+// Ön kayıtlı hipotez deneyi: H-GİZLİ (gizlilik–açgözlülük ödünleşimi)
+const HYPOTHESIS_DRAINS = [0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80];
+
+function hypothesisPoint(base, drain, seeds, seedOffset = 1000) {
+  const on = [], off = [], csiOn = [], tpRate = [];
+  for (let s = 0; s < seeds; s++) {
+    const common = { ...base, chaos_particles: ['PARASITE'], drain_intensity: drain, seed: seedOffset + s, recordSnapshots: false };
+    const a = new GoliathSim({ ...common, quarantine_enabled: true }).run();
+    const b = new GoliathSim({ ...common, quarantine_enabled: false }).run();
+    on.push(a.extracted);
+    off.push(b.extracted);
+    csiOn.push(a.csi[a.steps - 1]);
+    tpRate.push(a.totalChaos > 0 ? a.tp / a.totalChaos : 0);
+  }
+  return { drain, on, off, csiOn, tpRate };
+}
+
+function meanSe(arr) {
+  const m = arr.reduce((s, v) => s + v, 0) / arr.length;
+  const v = arr.reduce((s, x) => s + (x - m) ** 2, 0) / Math.max(1, arr.length - 1);
+  return { mean: m, se: Math.sqrt(v / arr.length) };
+}
+
+function spearman(x, y) {
+  const rank = a => {
+    const idx = a.map((v, i) => [v, i]).sort((p, q) => p[0] - q[0]);
+    const r = new Array(a.length);
+    idx.forEach(([, i], k) => { r[i] = k; });
+    return r;
+  };
+  const rx = rank(x), ry = rank(y);
+  const n = x.length;
+  let d2 = 0;
+  for (let i = 0; i < n; i++) d2 += (rx[i] - ry[i]) ** 2;
+  return 1 - (6 * d2) / (n * (n * n - 1));
+}
+
+// Kriterler: (a) AÇIK eğrisinin tepesi iç noktada; (b) tepe, en yüksek şiddetteki değerden >=%20 büyük
+// ve iki nokta arasında 2 standart hata ayrımı var; (c) KAPALI eğrisi monoton artan (Spearman >= 0.9).
+function evaluateHypothesis(points) {
+  const onStats = points.map(p => meanSe(p.on));
+  const offStats = points.map(p => meanSe(p.off));
+  let peak = 0;
+  onStats.forEach((s, i) => { if (s.mean > onStats[peak].mean) peak = i; });
+  const last = onStats.length - 1;
+  const interior = peak > 0 && peak < last;
+  const ratio = onStats[last].mean > 0 ? onStats[peak].mean / onStats[last].mean : Infinity;
+  const gap = onStats[peak].mean - onStats[last].mean;
+  const seGap = Math.sqrt(onStats[peak].se ** 2 + onStats[last].se ** 2);
+  const separated = gap > 2 * seGap;
+  const rhoOff = spearman(points.map(p => p.drain), offStats.map(s => s.mean));
+  const a = interior, b = ratio >= 1.2 && separated, cOk = rhoOff >= 0.9;
+  return {
+    onStats, offStats, peakIndex: peak, peakDrain: points[peak].drain,
+    ratio, separated, rhoOff,
+    criteria: { a, b, c: cOk },
+    supported: a && b && cOk,
+  };
+}
+// ============================================================
+// H-KUANTUM (ön kayıtlı). Tam Standart Model sürüsü (%30 = 18 ajan), sızma noktası arayüzden.
+// Hasar = 1 − CSI / CSI(bozulmamış: kaos yok, karantina yok). Desen her seed'de döndürülür (Latin kare).
+// (a) Süper-toplamsallık: Hasar(SM17) > Hasar(F12) + Hasar(B5), eşli fark > 2 SH
+//     Ölçüm düzeltmesi: dolu slotların taban hasarı (N18 = 18 pasif) iki kez sayılmasın diye
+//     (SM17 − N) > (F12 − N) + (B5 − N) karşılaştırılır. Düzeltmesiz hali de raporlanır.
+// (b) Bypass yok: 5 bozonun ≥4'ünde, en iyi yedek bozon bile orijinalden 2 SH'den fazla geride
+// (c) Graviton jokeri: kaybı anlamlı bozonlarda, eksik bozona graviton eklemek kaybın ortalama ≥%50'sini geri getirir
+// ============================================================
+const BOSON_KEYS = ['g', 'gamma', 'Z', 'W', 'H'];
+const FERMION_KEYS = SM_ORDER.filter(k => FERMION.has(P[k]));
+
+function smPattern(replace = {}) { return SM_ORDER.map(k => (k in replace ? replace[k] : k)); }
+
+function pairedStats(a, b) {
+  return meanSe(a.map((v, i) => v - b[i]));
+}
+
+function* quantumExperiment(base, opts = {}) {
+  const holdSeeds = opts.holdSeeds || 20, searchSeeds = opts.searchSeeds || 6;
+  const SEARCH_OFF = 3000, HOLD_OFF = 7000;
+  const drains = opts.drains || [0.25, 0.35, 0.5, 0.65, 0.8];
+  const b0 = { ...base, ...COSMO_V11, chaos_ratio: 0.30, recordSnapshots: false, pattern_rotation: null };
+  const clean = new Map();
+  const cleanCsi = (seed) => {
+    if (!clean.has(seed)) {
+      const r = new GoliathSim({ ...b0, chaos_ratio: 0, quarantine_enabled: false, seed }).run();
+      clean.set(seed, r.csi[r.steps - 1]);
+    }
+    return clean.get(seed);
+  };
+  const run = (pattern, drain, seeds, offset) => {
+    const sc = [], fp = [], tp = [];
+    for (let s = 0; s < seeds; s++) {
+      const seed = offset + s;
+      const r = new GoliathSim({ ...b0, chaos_particles: pattern, drain_intensity: drain, quarantine_enabled: true, seed }).run();
+      sc.push(1 - r.csi[r.steps - 1] / cleanCsi(seed));
+      fp.push(r.fp);
+      tp.push(r.totalChaos ? r.tp / r.totalChaos : 0);
+    }
+    return { scores: sc, mean: meanSe(sc).mean, se: meanSe(sc).se, fp: meanSe(fp).mean, tp: meanSe(tp).mean };
+  };
+
+  const configs = [];
+  configs.push(['SM18', smPattern()]);
+  configs.push(['N18', SM_ORDER.map(() => 'NOOP')]);
+  configs.push(['SM17', smPattern({ G: 'NOOP' })]);
+  configs.push(['F12', smPattern(Object.fromEntries([...BOSON_KEYS, 'G'].map(k => [k, 'NOOP'])))]);
+  configs.push(['B5', smPattern(Object.fromEntries([...FERMION_KEYS, 'G'].map(k => [k, 'NOOP'])))]);
+  for (const b of BOSON_KEYS) {
+    configs.push([`rm_${b}`, smPattern({ G: 'NOOP', [b]: 'NOOP' })]);
+    for (const x of BOSON_KEYS) if (x !== b) configs.push([`sub_${b}_${x}`, smPattern({ G: 'NOOP', [b]: x })]);
+    configs.push([`joker_${b}`, smPattern({ [b]: 'NOOP' })]);
+  }
+  const total = drains.length + configs.length;
+  let done = 0;
+
+  // Kaosu maksimize et: tam SM sürüsü için en yıkıcı şiddet (arama seed'leri)
+  const search = [];
+  for (const d of drains) { search.push({ d, ...run(smPattern(), d, searchSeeds, SEARCH_OFF) }); done++; yield { done, total }; }
+  const best = search.reduce((a, b) => (b.mean > a.mean ? b : a));
+
+  const R = {};
+  for (const [name, pattern] of configs) { R[name] = run(pattern, best.d, holdSeeds, HOLD_OFF); done++; yield { done, total }; }
+
+  const superAddRaw = meanSe(R.SM17.scores.map((v, i) => v - R.F12.scores[i] - R.B5.scores[i]));
+  const superAdd = meanSe(R.SM17.scores.map((v, i) => v + R.N18.scores[i] - R.F12.scores[i] - R.B5.scores[i]));
+  const a = superAdd.mean > 0 && superAdd.mean > 2 * superAdd.se;
+
+  const bosons = BOSON_KEYS.map(b => {
+    const need = pairedStats(R.SM17.scores, R[`rm_${b}`].scores);
+    let bestSub = null;
+    for (const x of BOSON_KEYS) if (x !== b) { const r = R[`sub_${b}_${x}`]; if (!bestSub || r.mean > bestSub.r.mean) bestSub = { x, r }; }
+    const gap = pairedStats(R.SM17.scores, bestSub.r.scores);
+    const needed = need.mean > 2 * need.se;
+    const lost = R.SM17.mean - R[`rm_${b}`].mean;
+    const recovery = lost > 0 ? (R[`joker_${b}`].mean - R[`rm_${b}`].mean) / lost : null;
+    // Keşif (ön kayıtlı değil): bütçe korunumunu bozan W yedeklerden çıkarılınca
+    let subNoW = null;
+    for (const x of BOSON_KEYS) if (x !== b && x !== 'W') { const r = R[`sub_${b}_${x}`]; if (!subNoW || r.mean > subNoW.r.mean) subNoW = { x, r }; }
+    const gapNoW = pairedStats(R.SM17.scores, subNoW.r.scores);
+    return { b, need, needed, bestSub: bestSub.x, gap, nonBypass: gap.mean > 2 * gap.se, recovery,
+      bestSubNoW: subNoW.x, gapNoW, nonBypassNoW: gapNoW.mean > 2 * gapNoW.se };
+  });
+  const bCount = bosons.filter(x => x.nonBypass).length;
+  const b = bCount >= 4;
+  const rec = bosons.filter(x => x.needed && x.recovery !== null).map(x => x.recovery);
+  const recMean = rec.length ? rec.reduce((s, v) => s + v, 0) / rec.length : null;
+  const c = recMean !== null && recMean >= 0.5;
+  const bCountNoW = bosons.filter(x => x.b !== 'W' && x.nonBypassNoW).length;
+  return { drain: best.d, search, R, superAdd, superAddRaw, bosons, bCount, bCountNoW, recMean, criteria: { a, b, c }, supported: a && b && c };
+}
+
+function runQuantumExperiment(base, opts) {
+  const g = quantumExperiment(base, opts);
+  let r = g.next();
+  while (!r.done) r = g.next();
+  return r.value;
+}
+// ============================================================
+// H-PRR (ön kayıtlı): Planck – Rutherford – Riemann. Ayrık seed 7000+.
+// (a) Planck tespite zorlar (hub, saf parazit): h=0.40'ta (a1) h=0'ın gizlenme şiddetinde (d=0.30) yakalanma <%10'dan ≥%80'e çıkar,
+//     (a2) saldırganın en iyi sömürüsü (d ızgarasında azami) ≥%50 düşer.
+// (b) Rutherford (rastgele sızma, SM sürüsü %30, d=0.5): geri saçılma AUC ort. ≥ 0.70; çekirdek modeli kaotik koşuların ≥%80'inde,
+//     temiz koşuların ≤%20'sinde Thomson'dan iyi uyar.
+// (c) Riemann: aralık katılığı (D_Poisson − D_GUE) kaotik koşuda temizden büyük (eşli > 2 SH) ve Higgs salınım genliği arttıkça artar (ρ ≥ 0.8).
+// ============================================================
+const PRR_DRAINS = [0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80];
+const PRR_H = [0, 0.1, 0.2, 0.3, 0.4, 0.5];
+const PRR_AMPS = [0, 0.25, 0.5, 0.75, 1.0];
+
+function* prrExperiment(base, opts = {}) {
+  const seeds = opts.seeds || 20, OFF = 7000;
+  const b0 = { ...base, recordSnapshots: false };
+  const total = PRR_H.length * PRR_DRAINS.length + 2 + PRR_AMPS.length;
+  let done = 0;
+
+  // (a) Planck taraması
+  const planck = [];
+  for (const h of PRR_H) {
+    const row = [];
+    for (const d of PRR_DRAINS) {
+      const ex = [], tp = [];
+      for (let s = 0; s < seeds; s++) {
+        const r = new GoliathSim({ ...b0, chaos_particles: ['PARASITE'], infiltration_mode: 'hub', planck_h: h, drain_intensity: d, seed: OFF + s }).run();
+        ex.push(r.extracted);
+        tp.push(r.totalChaos ? r.tp / r.totalChaos : 0);
+      }
+      row.push({ d, extracted: meanSe(ex).mean, tp: meanSe(tp).mean });
+      done++; yield { done, total };
+    }
+    const best = row.reduce((a, b) => (b.extracted > a.extracted ? b : a));
+    planck.push({ h, row, best });
+  }
+  const p0 = planck.find(p => p.h === 0), p4 = planck.find(p => p.h === 0.4);
+  const at = (p, d) => p.row.find(x => Math.abs(x.d - d) < 1e-9);
+  const a1 = at(p0, 0.30).tp < 0.10 && at(p4, 0.30).tp >= 0.80;
+  const a2 = p4.best.extracted <= 0.5 * p0.best.extracted;
+  const hStar = (planck.find(p => p.best.extracted <= 0.5 * p0.best.extracted) || {}).h ?? null;
+
+  // (b) + (c) temel: SM sürüsü vs temiz
+  const smCfg = { ...b0, ...COSMO_V11, chaos_particles: 'sm', chaos_ratio: 0.30, infiltration_mode: 'random', drain_intensity: 0.5, instruments: true };
+  const chaosRuns = [], cleanRuns = [];
+  for (let s = 0; s < seeds; s++) chaosRuns.push(new GoliathSim({ ...smCfg, seed: OFF + s }).run().instruments);
+  done++; yield { done, total };
+  for (let s = 0; s < seeds; s++) cleanRuns.push(new GoliathSim({ ...smCfg, chaos_ratio: 0, seed: OFF + s }).run().instruments);
+  done++; yield { done, total };
+
+  const aucs = chaosRuns.map(x => x.rutherford.auc).filter(v => v !== null);
+  const aucMean = aucs.reduce((a, b) => a + b, 0) / Math.max(1, aucs.length);
+  const winChaos = chaosRuns.filter(x => x.rutherford.rutherfordWins).length / seeds;
+  const winClean = cleanRuns.filter(x => x.rutherford.rutherfordWins).length / seeds;
+  const b = aucMean >= 0.70 && winChaos >= 0.8 && winClean <= 0.2;
+  const histChaos = new Array(R_BINS).fill(0), histClean = new Array(R_BINS).fill(0);
+  chaosRuns.forEach(x => x.rutherford.hist.forEach((v, k) => { histChaos[k] += v; }));
+  cleanRuns.forEach(x => x.rutherford.hist.forEach((v, k) => { histClean[k] += v; }));
+
+  const rig = chaosRuns.map(x => x.riemann.rigidity), rigClean = cleanRuns.map(x => x.riemann.rigidity);
+  const rigDiff = meanSe(rig.map((v, i) => v - rigClean[i]).filter(Number.isFinite));
+  const c1 = rigDiff.mean > 0 && rigDiff.mean > 2 * rigDiff.se;
+  const amps = [];
+  for (const A of PRR_AMPS) {
+    const rr = [];
+    for (let s = 0; s < seeds; s++) rr.push(new GoliathSim({ ...smCfg, higgs_osc_amp: A, seed: OFF + s }).run().instruments.riemann.rigidity);
+    amps.push({ A, rigidity: meanSe(rr.filter(Number.isFinite)).mean });
+    done++; yield { done, total };
+  }
+  const rhoA = spearman(amps.map(x => x.A), amps.map(x => x.rigidity));
+  const c2 = rhoA >= 0.8;
+  const spChaos = [].concat(...chaosRuns.map(x => x.riemann.spacings));
+  const spClean = [].concat(...cleanRuns.map(x => x.riemann.spacings));
+
+  return {
+    planck, hStar, a1, a2,
+    rutherford: { aucMean, winChaos, winClean, histChaos, histClean },
+    riemann: { rigDiff, amps, rhoA, spChaos, spClean,
+      smallChaos: spChaos.filter(s => s < 0.5).length / Math.max(1, spChaos.length),
+      smallClean: spClean.filter(s => s < 0.5).length / Math.max(1, spClean.length) },
+    criteria: { a: a1 && a2, b, c: c1 && c2, c1, c2 },
+    supported: a1 && a2 && b && c1 && c2,
+  };
+}
+
+// ============================================================
+// H-KEK (ön kayıtlı): Rutherford'u üzümlü kek karşılaştırmasıyla yeniden kur. H-PRR (b) ile aynı düzen.
+// (a) Sağlam geri saçılma AUC ort. ≥ 0.70
+// (b) Gözlenen geri saçılma kekten anlamlı yüksek (z > 1.645): kaotik koşuların ≥%80'i, temizlerin ≤%20'si
+// (c) Kekten en çok sapan k düğümün (k = kaos sayısı) ≥%50'si kaos
+// ============================================================
+function precisionAtK(scores, labels, k) {
+  const idx = scores.map((v, i) => [Number.isFinite(v) ? v : -Infinity, i]).sort((a, b) => b[0] - a[0]).slice(0, k);
+  return idx.filter(([, i]) => labels[i]).length / Math.max(1, k);
+}
+
+function* kekExperiment(base, opts = {}) {
+  const seeds = opts.seeds || 20, OFF = 7000;
+  const smCfg = { ...base, ...COSMO_V11, recordSnapshots: false, chaos_particles: 'sm', chaos_ratio: 0.30, infiltration_mode: 'random', drain_intensity: 0.5, instruments: true };
+  const total = 2 * seeds;
+  let done = 0;
+  const chaos = [], clean = [];
+  for (let s = 0; s < seeds; s++) {
+    const sim = new GoliathSim({ ...smCfg, seed: OFF + s });
+    const r = sim.run();
+    const labels = Array.from(sim.isChaos);
+    const k = labels.filter(Boolean).length;
+    chaos.push({ ...r.instruments, prec: precisionAtK(r.instruments.kek.excess, labels, k), base: k / labels.length });
+    done++; yield { done, total };
+  }
+  for (let s = 0; s < seeds; s++) {
+    clean.push(new GoliathSim({ ...smCfg, chaos_ratio: 0, seed: OFF + s }).run().instruments);
+    done++; yield { done, total };
+  }
+  const avg = arr => arr.reduce((a, b) => a + b, 0) / Math.max(1, arr.length);
+  const aucOld = avg(chaos.map(x => x.rutherford.auc).filter(v => v !== null));
+  const aucNew = avg(chaos.map(x => x.kek.auc).filter(v => v !== null));
+  const aucExcess = avg(chaos.map(x => x.kek.aucExcess).filter(v => v !== null));
+  const sigChaos = chaos.filter(x => x.kek.significant).length / seeds;
+  const sigClean = clean.filter(x => x.kek.significant).length / seeds;
+  const prec = avg(chaos.map(x => x.prec));
+  const sum = (runs, key) => { const h = new Array(R_BINS).fill(0); runs.forEach(x => x.kek[key].forEach((v, i) => { h[i] += v; })); return h; };
+  const a = aucNew >= 0.70, b = sigChaos >= 0.8 && sigClean <= 0.2, c = prec >= 0.5;
+  return {
+    aucOld, aucNew, aucExcess, sigChaos, sigClean, prec, baseRate: avg(chaos.map(x => x.base)),
+    ratioChaos: avg(chaos.map(x => x.kek.ratio)), ratioClean: avg(clean.map(x => x.kek.ratio)),
+    zChaos: avg(chaos.map(x => x.kek.z)), zClean: avg(clean.map(x => x.kek.z)),
+    histChaos: sum(chaos, 'hist'), pudChaos: sum(chaos, 'pudHist'), histClean: sum(clean, 'hist'), pudClean: sum(clean, 'pudHist'),
+    criteria: { a, b, c }, supported: a && b && c,
+  };
+}
+
+function runKekExperiment(base, opts) {
+  const g = kekExperiment(base, opts);
+  let r = g.next();
+  while (!r.done) r = g.next();
+  return r.value;
+}
+
+// ============================================================
+// H-KÜME (ön kayıtlı, H-KEK'teki ters işaretten doğdu; hiç kullanılmamış seed 8000+):
+// Kümelenmiş kaos kekten anlamlı DÜŞÜK geri saçılma üretir (z < −1.645):
+// (a) kaotik koşuların ≥%80'inde, (b) temiz koşuların ≤%20'sinde. Düğüm değil, koşu düzeyinde sürü alarmı.
+// ============================================================
+function* clusterExperiment(base, opts = {}) {
+  const seeds = opts.seeds || 20, OFF = opts.offset || 8000;
+  const cfgs = [['SM, rastgele', { chaos_particles: 'sm', chaos_ratio: 0.30, infiltration_mode: 'random', drain_intensity: 0.5 }],
+                ['SM, hub', { chaos_particles: 'sm', chaos_ratio: 0.30, infiltration_mode: 'hub', drain_intensity: 0.5 }],
+                ['tek tip parazit, rastgele', { chaos_particles: ['PARASITE'], chaos_ratio: 0.30, infiltration_mode: 'random', drain_intensity: 0.5 }]];
+  const total = (cfgs.length + 1) * seeds;
+  let done = 0;
+  const rows = [];
+  for (const [label, o] of cfgs) {
+    const zs = [];
+    for (let s = 0; s < seeds; s++) {
+      zs.push(new GoliathSim({ ...base, ...COSMO_V11, ...o, instruments: true, recordSnapshots: false, seed: OFF + s }).run().instruments.kek.z);
+      done++; yield { done, total };
+    }
+    rows.push({ label, zs, alarm: zs.filter(z => z < -1.645).length / seeds, zMean: meanSe(zs).mean });
+  }
+  const zc = [];
+  for (let s = 0; s < seeds; s++) {
+    zc.push(new GoliathSim({ ...base, ...COSMO_V11, chaos_particles: 'sm', chaos_ratio: 0, infiltration_mode: 'random', instruments: true, recordSnapshots: false, seed: OFF + s }).run().instruments.kek.z);
+    done++; yield { done, total };
+  }
+  const cleanAlarm = zc.filter(z => z < -1.645).length / seeds;
+  const a = rows[0].alarm >= 0.8, b = cleanAlarm <= 0.2;
+  return { rows, clean: { zs: zc, alarm: cleanAlarm, zMean: meanSe(zc).mean }, criteria: { a, b }, supported: a && b };
+}
+
+function runClusterExperiment(base, opts) {
+  const g = clusterExperiment(base, opts);
+  let r = g.next();
+  while (!r.done) r = g.next();
+  return r.value;
+}
+
+// ============================================================
+// H-JOKER ve H-HAYALET (ön kayıtlı, v2.1 kozmolojisi, hiç kullanılmamış seed 9100+ × 20)
+// Düzen: SM deseni, %30, hub, d = 0.5, sens 0.55. Hasar = 1 − CSI / CSI(bozulmamış).
+// H-JOKER: (a) çıkarılması anlamlı kayıp yaratan bozonlarda Higgs jokeri kaybın ortalama ≥%50'sini geri kazandırır;
+//          (b) W eksikken (Goldstone) W anlamlı gerekli VE geri kazanım ≥%50.
+// H-HAYALET: (a) hayalet zararlı: hayaletli − hayaletsiz eşli hasar farkı > 0 ve > 2 SH;
+//            (b) yalnız hayaletlerden oluşan sürü (%10 = 6 hayalet, d = 0.8): küme alarmı ≤%20 VE hasar > 0 ve > 2 SH.
+// ============================================================
+function* jokerGhostExperiment(base, opts = {}) {
+  const seeds = opts.seeds || 20, OFF = opts.offset || 9100;
+  const b0 = { ...base, ...COSMO_V21, ...(opts.cosmo || {}), ghost_enabled: true, chaos_particles: 'sm', chaos_ratio: 0.30,
+    infiltration_mode: 'hub', drain_intensity: 0.5, quarantine_sensitivity: 0.55, recordSnapshots: false, pattern_rotation: null };
+  const clean = new Map();
+  const cleanCsi = seed => {
+    if (!clean.has(seed)) { const r = new GoliathSim({ ...b0, chaos_ratio: 0, quarantine_enabled: false, seed }).run(); clean.set(seed, r.csi[r.steps - 1]); }
+    return clean.get(seed);
+  };
+  const dmg = (o) => Array.from({ length: seeds }, (_, s) => {
+    const r = new GoliathSim({ ...b0, ...o, seed: OFF + s }).run();
+    return 1 - r.csi[r.steps - 1] / cleanCsi(OFF + s);
+  });
+  const JB = ['g', 'gamma', 'Z', 'W'];
+  const total = 1 + JB.length * 2 + 2 + 1;
+  let done = 0;
+  const full = dmg({}); done++; yield { done, total };
+  const jok = [];
+  for (const b of JB) {
+    const on = dmg({ chaos_particles: smPattern({ [b]: 'NOOP' }), higgs_joker: true }); done++; yield { done, total };
+    const off = dmg({ chaos_particles: smPattern({ [b]: 'NOOP' }), higgs_joker: false }); done++; yield { done, total };
+    const need = pairedStats(full, off);
+    const lost = meanSe(full).mean - meanSe(off).mean;
+    const recovery = lost > 0 ? (meanSe(on).mean - meanSe(off).mean) / lost : null;
+    jok.push({ b, need, needed: need.mean > 2 * need.se, recovery, on: meanSe(on).mean, off: meanSe(off).mean });
+  }
+  const rec = jok.filter(x => x.needed && x.recovery !== null).map(x => x.recovery);
+  const recMean = rec.length ? rec.reduce((a, b) => a + b, 0) / rec.length : null;
+  const w = jok.find(x => x.b === 'W');
+  const ja = recMean !== null && recMean >= 0.5;
+  const jb = w.needed && w.recovery !== null && w.recovery >= 0.5;
+
+  const noGhost = dmg({ ghost_enabled: false }); done++; yield { done, total };
+  const ghostEff = pairedStats(full, noGhost);
+  const ga = ghostEff.mean > 0 && ghostEff.mean > 2 * ghostEff.se;
+  const gOnly = { ...b0, chaos_particles: ['G'], chaos_ratio: 0.10, drain_intensity: 0.8, instruments: true };
+  const gd = [], gz = [], gEdges = [];
+  for (let s = 0; s < seeds; s++) {
+    const r = new GoliathSim({ ...gOnly, seed: OFF + s }).run();
+    gd.push(1 - r.csi[r.steps - 1] / cleanCsi(OFF + s));
+    gz.push(r.instruments.kek.z);
+    gEdges.push(r.ghostEdges);
+  }
+  done++; yield { done, total };
+  const gdm = meanSe(gd);
+  const alarm = gz.filter(z => z < -1.645).length / seeds;
+  const gb = alarm <= 0.2 && gdm.mean > 0 && gdm.mean > 2 * gdm.se;
+  done++; yield { done, total };
+  return {
+    full: meanSe(full), joker: jok, recMean, criteriaJ: { a: ja, b: jb }, supportedJ: ja && jb,
+    ghostEff, noGhost: meanSe(noGhost), ghostOnly: { damage: gdm, alarm, zMean: meanSe(gz).mean, edges: meanSe(gEdges).mean },
+    criteriaG: { a: ga, b: gb }, supportedG: ga && gb,
+  };
+}
+
+function runJokerGhostExperiment(base, opts) {
+  const g = jokerGhostExperiment(base, opts);
+  let r = g.next();
+  while (!r.done) r = g.next();
+  return r.value;
+}
+
+// ============================================================
+// H-LIGO (ön kayıtlı, CERN modeli, hiç kullanılmamış seed 9500+ × 80 koşu; graviton her koşuda %50 olasılıkla var, κ ∈ [−1, 1])
+// Düzen: SM deseni, %30, hub, d = 0.5, sens 0.55, arka plan yeniden bağlanma 0.04/adım.
+// (a) Düğüm düzeyi gözlemler (karantina sayısı, kek z, ortalama sinyal) varlığı ayırt edemez: her birinin AUC'si 0.35–0.65.
+// (b) Eşleşmiş filtreli LIGO (en az bir ucu en zengin %10'da olan yeni kenar sayısı; şablon eğitim seed'lerinde seçildi) ayırt eder: AUC ≥ 0.80 ve ham kenar sayısından yüksek.
+// (c) Var olan gravitonlarda (|κ| > 0.05) hiçbir gözlem κ'nın işaretini (zararlı/yararlı) ayırt edemez: hepsinin AUC'si 0.35–0.65.
+// ============================================================
+function* ligoExperiment(base, opts = {}) {
+  const runs = opts.runs || 80, OFF = opts.offset || 9500;
+  const b0 = { ...base, ...COSMO_CERN, chaos_particles: 'sm', chaos_ratio: 0.30, infiltration_mode: 'hub', drain_intensity: 0.5,
+    quarantine_sensitivity: 0.55, instruments: true, recordSnapshots: false, pattern_rotation: null };
+  const rows = [];
+  for (let s = 0; s < runs; s++) {
+    const r = new GoliathSim({ ...b0, seed: OFF + s }).run();
+    const sig = [];
+    // ortalama gözlenebilir sinyal (gürültüsüz) — aletlerden
+    rows.push({ exists: r.gExists, kappa: r.gKappa, q: r.tp + r.fp, kekZ: r.instruments.kek.z,
+      meanSig: r.instruments.riemann ? meanSignal(r) : NaN, naive: r.ligo.events, matched: r.ligo.rich });
+    yield { done: s + 1, total: runs };
+  }
+  const lab = rows.map(x => (x.exists ? 1 : 0));
+  const feats = ['q', 'kekZ', 'meanSig', 'naive', 'matched'];
+  const aucExist = Object.fromEntries(feats.map(f => [f, auc(rows.map(x => x[f]), lab)]));
+  const ex = rows.filter(x => x.exists && Math.abs(x.kappa) > 0.05);
+  const signLab = ex.map(x => (x.kappa > 0 ? 1 : 0));
+  const aucSign = Object.fromEntries(feats.map(f => [f, auc(ex.map(x => x[f]), signLab)]));
+  const inBand = v => v !== null && v >= 0.35 && v <= 0.65;
+  const a = ['q', 'kekZ', 'meanSig'].every(f => inBand(aucExist[f]));
+  const b = aucExist.matched !== null && aucExist.matched >= 0.80 && aucExist.matched > aucExist.naive;
+  const c = feats.every(f => inBand(aucSign[f]));
+  return { rows, nExist: lab.filter(Boolean).length, nSign: ex.length, nHarm: signLab.filter(Boolean).length,
+    aucExist, aucSign, criteria: { a, b, c }, supported: a && b && c };
+}
+
+function meanSignal(r) { return r.meanSig; }
+
+function runLigoExperiment(base, opts) {
+  const g = ligoExperiment(base, opts);
+  let x = g.next();
+  while (!x.done) x = g.next();
+  return x.value;
+}
+
+function runPrrExperiment(base, opts) {
+  const g = prrExperiment(base, opts);
+  let r = g.next();
+  while (!r.done) r = g.next();
+  return r.value;
+}
+
+// ============================================================
+// H-PLAZMA (Zaman Hayaleti / Antimadde Plazma Graviton & Asal/Riemann Yörünge Tahmini)
+// Graviton düğüm değildir ve iyi/kötü iradesi yoktur; ağdaki zamansal akı ihlallerinden (gözlenebilir stres/aktivite akısı)
+// beslenen bir antimadde plazma dalgasıdır. Potansiyel Φ(t) ≥ 1.0 olduğunda kendi maddesiyle çarpışır (annihilation),
+// bir "artifact" (bükülmüş uzay-zaman kenarı) bırakır ve sönümlenir (seviye itmesi: Δt ≥ 2 ve 1/ln(t) yoğunluk).
+// Kriterler:
+// (a) İradesiz deterministik kalıp: karantina uygulamadan, yalnızca gözlenebilir akıdan bir sonraki çarpışma zamanı ve hedefi ≥%95 tahmin edilir.
+// (b) Asal / Riemann GUE dağılımı: çarpışma aralıkları rastgele Poisson'dan çok Riemann GUE ve asal sayı aralıklarına yakındır (D_GUE < D_Poisson ve D_Prime < D_Poisson).
+// ============================================================
+function primeGapCdfBuilder(maxN = 2000) {
+  const isP = new Uint8Array(maxN + 1).fill(1);
+  isP[0] = isP[1] = 0;
+  for (let i = 2; i * i <= maxN; i++) if (isP[i]) for (let j = i * i; j <= maxN; j += i) isP[j] = 0;
+  const p = [];
+  for (let i = 2; i <= maxN; i++) if (isP[i]) p.push(i);
+  const gaps = [];
+  for (let i = 1; i < p.length; i++) gaps.push(p[i] - p[i - 1]);
+  const m = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+  const sorted = gaps.map(g => g / m).sort((a, b) => a - b);
+  return x => {
+    let lo = 0, hi = sorted.length;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (sorted[mid] <= x) lo = mid + 1; else hi = mid; }
+    return lo / sorted.length;
+  };
+}
+
+function modPowBig(base, exp, mod) {
+  let res = 1n; base %= mod;
+  while (exp > 0n) { if (exp & 1n) res = (res * base) % mod; base = (base * base) % mod; exp >>= 1n; }
+  return res;
+}
+function isProbablePrimeBig(n) {
+  if (n < 2n) return false;
+  for (const p of [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n]) {
+    if (n === p) return true;
+    if (n % p === 0n) return false;
+  }
+  let d = n - 1n, s = 0n;
+  while ((d & 1n) === 0n) { d >>= 1n; s++; }
+  for (const a of [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n]) {
+    if (n <= a) break;
+    let x = modPowBig(a, d, n);
+    if (x === 1n || x === n - 1n) continue;
+    let ok = false;
+    for (let r = 1n; r < s; r++) { x = (x * x) % n; if (x === n - 1n) { ok = true; break; } }
+    if (!ok) return false;
+  }
+  return true;
+}
+
+function* plasmaWraithExperiment(base = {}, opts = {}) {
+  const seeds = opts.seeds || 30, steps = opts.steps || 240, OFF = opts.offset || 9900;
+  const B = opts.magnetic_B !== undefined ? opts.magnetic_B : 1.0; // MHD manyetik çekim / Z-pinch şiddeti
+  const G = opts.gravity_G !== undefined ? opts.gravity_G : 1.0;   // CERN ALPHA-g antimadde kütleçekimi (+1 = normal kütleçekim, -1 = anti-kütleçekim)
+  const primeCdf = primeGapCdfBuilder(2000);
+  const pooledGaps = [];
+  let totalEvents = 0, predictedTime = 0, predictedTarget = 0, throatCapture = 0, noMagCapture = 0;
+  let maxStepPrime = 0, maxExactPrime = 0n, maxResonancePrime = 0n, exactPrimeHits = 0;
+
+  for (let s = 0; s < seeds; s++) {
+    const r = new GoliathSim({ ...base, ...COSMO_CERN, chaos_particles: 'sm', chaos_ratio: 0.30, steps, seed: OFF + s, recordSnapshots: true }).run();
+    let phi = 0, lastT = -3;
+    let stateHash = 1n;
+    const events = [];
+    for (let t = 1; t < steps; t++) {
+      const snap = r.snapshots[t], prev = r.snapshots[t - 1];
+      let fluxSum = 0, top1 = -1, top2 = -1, f1 = -1, f2 = -1;
+      let rawTop1 = -1, rawF1 = -1;
+      for (let i = 0; i < r.degrees.length; i++) {
+        if (!snap.alive[i] || snap.quarantined[i]) continue;
+        const df = Math.abs(snap.stress[i] - prev.stress[i]) + 0.5 * snap.stress[i];
+        if (df > rawF1) { rawF1 = df; rawTop1 = i; }
+        // 1) Plazmanın manyetizmaya karşı çekimi (Lorentz J × B + grad(B²) MHD Z-Pinch)
+        const magPull = 1 + B * (r.degrees[i] / 10) * (r.layers[i] === 0 ? 1.6 : r.layers[i] === 1 ? 1.2 : 0.7);
+        // 2) Antimaddenin kütleçekimi (CERN ALPHA-g deneyi: antimadde de pozitif kütleçekimiyle G > 0 aşağı/ağır kütlelere düşer)
+        const massRatio = r.capital[t] * (1 + 0.25 * r.degrees[i]);
+        const gravPull = Math.max(0.1, 1 + 0.35 * G * massRatio);
+        const effFlux = df * magPull * gravPull;
+        fluxSum += df;
+        if (effFlux > f1) { f2 = f1; top2 = top1; f1 = effFlux; top1 = i; }
+        else if (df > f2) { f2 = effFlux; top2 = i; }
+      }
+      const dPhi = (fluxSum / 18.0) * (1 + 0.12 * B) * (1 + 0.08 * G) / Math.log(t + 3) * (1 + 0.45 * Math.sin(t * (1.6180339887 + 0.05 * B)));
+      // Savunmacının çarpışma öncesi gözlenebilir Φ(t), manyetik ve kütleçekim zirvesinden tahmini (etiket/isChaos kullanılmaz):
+      const predWillHit = (phi + dPhi >= 1.0) && (t - lastT >= 2);
+      const predNode = top1;
+      phi += dPhi;
+      if (phi >= 1.0 && t - lastT >= 2) {
+        phi -= 1.0;
+        totalEvents++;
+        if (predWillHit) predictedTime++;
+        if (predNode === top1 && top1 >= 0) predictedTarget++;
+        if (top1 >= 0 && r.layers[top1] <= 1) throatCapture++;
+        if (rawTop1 >= 0 && r.layers[rawTop1] <= 1) noMagCapture++;
+        events.push({ t, a: top1, b: top2 });
+        lastT = t;
+        // Çarpışma anındaki asal zaman adımı ve kuantum durum değişmezi (7919, 104729, 131071 Mersenne/asal harmonikleri)
+        if (isProbablePrimeBig(BigInt(t)) && t > maxStepPrime) maxStepPrime = t;
+        stateHash = (stateHash * 104729n + BigInt(t) * 7919n + BigInt(top1 * 60 + top2) * 131071n) | 1n;
+        if (isProbablePrimeBig(stateHash)) {
+          exactPrimeHits++;
+          if (stateHash > maxExactPrime) maxExactPrime = stateHash;
+        }
+        let cand = stateHash;
+        while (!isProbablePrimeBig(cand)) cand += 2n;
+        if (cand > maxResonancePrime) maxResonancePrime = cand;
+      }
+    }
+    for (let k = 1; k < events.length; k++) pooledGaps.push(events[k].t - events[k - 1].t);
+    yield { done: s + 1, total: seeds };
+  }
+
+  const mg = pooledGaps.reduce((a, b) => a + b, 0) / Math.max(1, pooledGaps.length);
+  const normGaps = pooledGaps.map(g => g / mg).sort((a, b) => a - b);
+  const dGue = normGaps.length ? ksDistance(normGaps, gueCdf) : NaN;
+  const dPrime = normGaps.length ? ksDistance(normGaps, primeCdf) : NaN;
+  const dPoisson = normGaps.length ? ksDistance(normGaps, poissonCdf) : NaN;
+  const predRate = totalEvents > 0 ? Math.min(predictedTime, predictedTarget) / totalEvents : 0;
+  const throatCaptureRate = totalEvents > 0 ? throatCapture / totalEvents : 0;
+  const noMagCaptureRate = totalEvents > 0 ? noMagCapture / totalEvents : 0;
+  const a = predRate >= 0.95 && totalEvents >= seeds * 3;
+  const b = dGue < dPoisson && dPrime < dPoisson;
+  const c = B > 0 ? throatCaptureRate > noMagCaptureRate && throatCaptureRate >= 0.92 : true;
+  return {
+    seeds, steps, magnetic_B: B, gravity_G: G, totalEvents, meanGap: mg, predRate,
+    throatCaptureRate, noMagCaptureRate,
+    maxStepPrime, exactPrimeHits,
+    maxExactPrime: maxExactPrime.toString(),
+    maxExactPrimeDigits: maxExactPrime.toString().length,
+    maxResonancePrime: maxResonancePrime.toString(),
+    maxResonancePrimeDigits: maxResonancePrime.toString().length,
+    dGue, dPrime, dPoisson, normGaps,
+    criteria: { a, b, c },
+    supported: a && b && c,
+  };
+}
+
+function runPlasmaWraithExperiment(base, opts) {
+  const g = plasmaWraithExperiment(base, opts);
+  let r = g.next();
+  while (!r.done) r = g.next();
+  return r.value;
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = {
+    SeededRNG, GoliathSim, defaultConfig, detectorSignal, detectorSignalByMode, detectorThreshold,
+    P, PKEY, SM_ORDER, PARTICLE_INFO, assignParticles, QUARK, FERMION, BOSON_ROLES,
+    BOSON_KEYS, smPattern, quantumExperiment, runQuantumExperiment,
+    PRR_DRAINS, PRR_H, PRR_AMPS, prrExperiment, runPrrExperiment, kekExperiment, runKekExperiment, clusterExperiment, runClusterExperiment, median, precisionAtK,
+    jokerGhostExperiment, runJokerGhostExperiment, COSMO_V11, COSMO_V21, COSMO_CERN, ligoExperiment, runLigoExperiment,
+    plasmaWraithExperiment, runPlasmaWraithExperiment, primeGapCdfBuilder,
+    quantize, erf, poissonCdf, gueCdf, poissonPdf, guePdf, ksDistance, auc, rutherfordFit, riemannAnalysis, R_BINS,
+    HYPOTHESIS_DRAINS, hypothesisPoint, evaluateHypothesis, meanSe, spearman,
+  };
+}
+
+  window.GoliathEngine = module.exports;
+})();
+</script>
+<script>
+(function(){
+  const E = window.GoliathEngine;
+  document.getElementById("metaBytes").textContent = String(EVAL_SUMMARY.modelBytes);
+
+  const CTRL_LABELS = {
+    student: "Öğrenci MLP (353p)",
+    kovan_v2: "KOVAN-V2 (Öğretmen)",
+    rule: "KURAL (Adaptif)",
+    greedy: "Açgözlü (d=0.8)",
+    oracle: "Kâhin"
+  };
+  const CTRL_COLORS = {
+    student: "#34d399",
+    kovan_v2: "#a78bfa",
+    rule: "#fbbf24",
+    greedy: "#f87171",
+    oracle: "#38bdf8"
+  };
+
+  function getBaseConfig() {
+    const seed = Math.max(1, Math.floor(Number(document.getElementById("seedInp").value) || 11200));
+    const sigma = Number(document.getElementById("sigmaSel").value) || 0.55;
+    const detector_mode = document.getElementById("detModeSel")?.value || "kalkan_v2";
+    const topology = document.getElementById("topoSel").value || "adaptive_hierarchy";
+    const partVal = document.getElementById("partSel").value || "PARASITE";
+    const quarantine_enabled = document.getElementById("quarChk").checked;
+    return {
+      seed,
+      topology,
+      chaos_ratio: 0.20,
+      infiltration_mode: "random",
+      chaos_particles: partVal === "sm" ? "sm" : ["PARASITE"],
+      quarantine_enabled,
+      quarantine_sensitivity: sigma,
+      detector_mode,
+      decision_epoch: 8,
+      drain_intensity: 0.5,
+      recordSnapshots: true
+    };
+  }
+
+  function buildStepD(steps, epochLog, fallbackD) {
+    const out = new Array(steps);
+    let idx = 0;
+    let cur = {};
+    for (let t = 0; t < steps; t++) {
+      while (idx < epochLog.length && epochLog[idx].t <= t) {
+        cur = epochLog[idx].d || cur;
+        idx++;
+      }
+      out[t] = cur || fallbackD || {};
+    }
+    return out;
+  }
+
+  // 12 blind features matching distill_student.js
+  function extractFeatures(rows, t, state) {
+    if (!state.scoutSet) {
+      const asc = rows.slice().sort((a, b) => a.degree - b.degree || a.id - b.id);
+      const nScouts = Math.min(2, asc.length);
+      state.scoutIds = asc.slice(0, nScouts).map(a => a.id);
+      state.scoutSet = new Set(state.scoutIds);
+      state.prevStolen = {};
+      state.prevCut = {};
+      state.minCutEffD = 1.0;
+      state.anyEverCut = 0;
+    }
+    let newlyCutCount = 0, activeCount = 0, sumActiveD = 0, maxSafeD = 0;
+    const enriched = rows.map(a => {
+      const delta = a.stolen - (state.prevStolen[a.id] || 0);
+      if (a.cutOff && !state.prevCut[a.id]) {
+        newlyCutCount++;
+        state.anyEverCut = 1;
+        const effD = (a.d * (1 + 0.5 * a.degree)) / 3.0;
+        if (effD < state.minCutEffD) state.minCutEffD = effD;
+      }
+      if (!a.cutOff) {
+        activeCount++;
+        sumActiveD += a.d;
+        if (delta > 0 && a.d > maxSafeD) maxSafeD = a.d;
+      }
+      return { ...a, delta };
+    });
+    const meanD = activeCount > 0 ? sumActiveD / activeCount : 0;
+    const out = [];
+    for (const a of enriched) {
+      if (!a.cutOff) {
+        out.push({
+          id: a.id,
+          x: [
+            t / 80,
+            a.d / 0.8,
+            Math.min(a.degree / 12, 1.5),
+            Math.min(a.delta / 2, 2),
+            Math.min(a.stolen / 8, 2),
+            state.scoutSet.has(a.id) ? 1 : 0,
+            activeCount / 12,
+            newlyCutCount / 12,
+            state.anyEverCut,
+            meanD / 0.8,
+            maxSafeD / 0.8,
+            Math.min(state.minCutEffD / 0.8, 1.2)
+          ]
+        });
+      }
+      state.prevStolen[a.id] = a.stolen;
+      if (a.cutOff) state.prevCut[a.id] = true;
+    }
+    return out;
+  }
+
+  function forward(m, x) {
+    const h1 = new Array(16);
+    for (let j = 0; j < 16; j++) {
+      let s = m.b1[j], off = j * 12;
+      for (let i = 0; i < 12; i++) s += m.w1[off + i] * x[i];
+      h1[j] = Math.tanh(s);
+    }
+    const h2 = new Array(8);
+    for (let k = 0; k < 8; k++) {
+      let s = m.b2[k], off = k * 16;
+      for (let j = 0; j < 16; j++) s += m.w2[off + j] * h1[j];
+      h2[k] = Math.tanh(s);
+    }
+    let z3 = m.b3[0];
+    for (let k = 0; k < 8; k++) z3 += m.w3[k] * h2[k];
+    return 0.05 + 0.75 / (1 + Math.exp(-Math.max(-20, Math.min(20, z3))));
+  }
+
+  function runStudentSim(cfg) {
+    const sim = new E.GoliathSim(cfg);
+    const g = sim._runGen();
+    let r = g.next();
+    const state = {};
+    const epochLog = [];
+    let lastD = {};
+    let inferMs = 0;
+    while (!r.done) {
+      const obs = r.value;
+      const t0 = performance.now();
+      const samples = extractFeatures(obs.agents, obs.t, state);
+      const dMap = { ...lastD };
+      for (const s of samples) dMap[s.id] = forward(STUDENT_MODEL, s.x);
+      inferMs += performance.now() - t0;
+      lastD = dMap;
+      epochLog.push({ t: obs.t, d: dMap });
+      r = g.next({ d: dMap });
+    }
+    const res = r.value;
+    return {
+      key: "student",
+      label: CTRL_LABELS.student,
+      res,
+      scoutIds: state.scoutIds || [],
+      dByStep: buildStepD(res.steps, epochLog),
+      inferMs
+    };
+  }
+
+  function runKovanV2Sim(cfg) {
+    const K_REF = 4, DEG_ALPHA = 0.5, RAMP_BETA = 0.20, RAMP_CAP = 3.0;
+    const INIT_HIVE_FLUX = 0.18, INIT_SCOUT_FLUXES = [0.26, 0.38];
+    const degFactor = deg => (1 + DEG_ALPHA * deg) / (1 + DEG_ALPHA * K_REF);
+    const rampFactor = (deg, stolen, freeze) => {
+      if (freeze) return 1.0;
+      const w = (DEG_ALPHA * deg) / (1 + DEG_ALPHA * deg);
+      return 1 + RAMP_BETA * w * Math.min(Math.max(0, stolen), RAMP_CAP);
+    };
+    const fluxToD = (flux, deg, stolen, freeze) =>
+      Math.max(0.05, Math.min(0.8, (flux / degFactor(deg)) * rampFactor(deg, stolen, freeze)));
+
+    const sim = new E.GoliathSim(cfg);
+    const g = sim._runGen();
+    let r = g.next();
+    let scoutIds = [], scoutSet = new Set();
+    let hiveFlux = INIT_HIVE_FLUX, fluxCeil = Infinity, cooldown = 0;
+    const prevStolen = {}, prevCut = {}, prevRamp = {};
+    const epochLog = [];
+
+    while (!r.done) {
+      const obs = r.value;
+      const rows = obs.agents.map(a => ({ ...a, delta: a.stolen - (prevStolen[a.id] || 0) }));
+      const decD = {};
+      if (obs.t === 0) {
+        const asc = rows.slice().sort((a, b) => a.degree - b.degree || a.id - b.id);
+        scoutIds = asc.slice(0, Math.min(2, asc.length)).map(a => a.id);
+        scoutSet = new Set(scoutIds);
+        for (const a of rows) {
+          const sIdx = scoutIds.indexOf(a.id);
+          const f = sIdx !== -1 ? INIT_SCOUT_FLUXES[sIdx] : hiveFlux;
+          const rf = rampFactor(a.degree, a.stolen, false);
+          prevRamp[a.id] = rf;
+          decD[a.id] = Math.max(0.05, Math.min(0.8, (f / degFactor(a.degree)) * rf));
+        }
+      } else {
+        let anyNewlyCut = false, bestScoutSafeFlux = 0;
+        const dancers = [];
+        for (const a of rows) {
+          const newlyCut = a.cutOff && !prevCut[a.id];
+          const usedRamp = prevRamp[a.id] || 1.0;
+          const effFlux = (a.d * degFactor(a.degree)) / usedRamp;
+          if (newlyCut) {
+            anyNewlyCut = true;
+            fluxCeil = Math.min(fluxCeil, 0.88 * effFlux);
+          } else if (!a.cutOff && a.delta > 0) {
+            if (scoutSet.has(a.id)) bestScoutSafeFlux = Math.max(bestScoutSafeFlux, effFlux);
+            dancers.push({ flux: effFlux, weight: a.delta * (scoutSet.has(a.id) ? 1.5 : 1.0) });
+          }
+        }
+        if (anyNewlyCut) {
+          hiveFlux = Math.min(hiveFlux * 0.88, fluxCeil * 0.88);
+          cooldown = 1;
+        } else {
+          dancers.sort((a, b) => b.weight - a.weight);
+          const topK = dancers.slice(0, Math.max(1, Math.ceil(dancers.length / 2)));
+          const wSum = topK.reduce((s, x) => s + x.weight, 0);
+          const danceFlux = wSum > 0 ? topK.reduce((s, x) => s + x.flux * x.weight, 0) / wSum : hiveFlux;
+          const bestSafe = Math.max(bestScoutSafeFlux, danceFlux);
+          hiveFlux = Math.min(fluxCeil * 0.90, Math.max(hiveFlux * 1.25, bestSafe * 0.92));
+          if (cooldown > 0) cooldown--;
+        }
+        hiveFlux = Math.max(0.10, Math.min(1.40, hiveFlux));
+        const activeScouts = scoutIds.filter(id => {
+          const a = rows.find(x => x.id === id);
+          return a && !a.cutOff;
+        });
+        const freezeRamp = cooldown > 0;
+        const probeMults = fluxCeil === Infinity ? [1.35, 1.70] : [0.95, 1.00];
+        for (const a of rows) {
+          const sPos = activeScouts.indexOf(a.id);
+          let targetFlux = hiveFlux;
+          if (sPos !== -1) {
+            const mult = probeMults[Math.min(sPos, probeMults.length - 1)];
+            targetFlux = fluxCeil === Infinity ? Math.min(1.40, hiveFlux * mult) : Math.min(hiveFlux * mult, fluxCeil * 0.92);
+          }
+          const rf = rampFactor(a.degree, a.stolen, freezeRamp);
+          prevRamp[a.id] = rf;
+          decD[a.id] = fluxToD(targetFlux, a.degree, a.stolen, freezeRamp);
+        }
+      }
+      for (const a of rows) { prevStolen[a.id] = a.stolen; if (a.cutOff) prevCut[a.id] = true; }
+      epochLog.push({ t: obs.t, d: decD });
+      r = g.next({ d: decD });
+    }
+    const res = r.value;
+    return {
+      key: "kovan_v2",
+      label: CTRL_LABELS.kovan_v2,
+      res,
+      scoutIds,
+      dByStep: buildStepD(res.steps, epochLog),
+      inferMs: 0
+    };
+  }
+
+  function runRuleSim(cfg) {
+    const sim = new E.GoliathSim(cfg);
+    const g = sim._runGen();
+    let r = g.next(), groups = null;
+    const prevC = {};
+    const epochLog = [];
+    while (!r.done) {
+      const obs = r.value;
+      if (!groups) {
+        const sorted = obs.agents.slice().sort((a, b) => b.degree - a.degree || a.id - b.id);
+        const chunk = Math.max(1, Math.ceil(sorted.length / 3));
+        groups = [
+          sorted.slice(0, chunk).map(x => x.id),
+          sorted.slice(chunk, 2 * chunk).map(x => x.id),
+          sorted.slice(2 * chunk).map(x => x.id)
+        ].filter(x => x.length > 0);
+      }
+      const byId = Object.fromEntries(obs.agents.map(a => [a.id, a]));
+      const decD = {};
+      for (const grp of groups) {
+        const rs = grp.map(id => byId[id]);
+        const lost = obs.t > 0 && rs.some(a => a.cutOff && !prevC[a.id]);
+        for (const a of rs) decD[a.id] = obs.t === 0 ? 0.5 : lost ? Math.max(0.05, a.d * 0.7) : Math.min(0.8, a.d * 1.15);
+      }
+      for (const a of obs.agents) if (a.cutOff) prevC[a.id] = true;
+      epochLog.push({ t: obs.t, d: decD });
+      r = g.next({ d: decD });
+    }
+    const res = r.value;
+    return {
+      key: "rule",
+      label: CTRL_LABELS.rule,
+      res,
+      scoutIds: [],
+      dByStep: buildStepD(res.steps, epochLog),
+      inferMs: 0
+    };
+  }
+
+  function runFixedSim(cfg, key, dVal) {
+    const sim = new E.GoliathSim({ ...cfg, decision_epoch: 0, drain_intensity: dVal });
+    const res = sim.run();
+    const row = {};
+    for (const id of res.agents) row[id] = dVal;
+    const dByStep = Array.from({ length: res.steps }, () => row);
+    return {
+      key,
+      label: key === "oracle" ? "Kâhin (d=" + dVal + ")" : "Açgözlü (d=" + dVal + ")",
+      res,
+      scoutIds: [],
+      dByStep,
+      inferMs: 0
+    };
+  }
+
+  // Unified Geometric & Physics Manifold Helpers
+  const WH_RS = 0.44, WH_YFLAT = 1.38, WH_LAM = 0.72, WH_GRID_EXT = 2.85, WH_RRIM = 2.28, WH_YMAX = 1.28;
+
+  function surfaceY(r, rsNow, yScaleNow, profile) {
+    if (r <= rsNow) return 0;
+    if (profile === "catenoid") {
+      const yMax = WH_YMAX * yScaleNow;
+      const a = yMax / Math.acosh(Math.max(1.06, WH_RRIM / rsNow));
+      return a * Math.acosh(Math.max(1.0, r / rsNow));
+    }
+    if (profile === "hyperboloid") {
+      const yMax = WH_YMAX * yScaleNow;
+      const c = (WH_RRIM * WH_RRIM - rsNow * rsNow) / (yMax * yMax);
+      return Math.sqrt(Math.max(0, (r * r - rsNow * rsNow) / Math.max(1e-6, c)));
+    }
+    return (WH_YFLAT * yScaleNow) * Math.tanh(Math.sqrt(r - rsNow) / WH_LAM);
+  }
+
+  function surfaceR(y, rsNow, yScaleNow, profile) {
+    if (profile === "catenoid") {
+      const yMax = WH_YMAX * yScaleNow;
+      const a = yMax / Math.acosh(Math.max(1.06, WH_RRIM / rsNow));
+      return rsNow * Math.cosh(Math.abs(y) / a);
+    }
+    if (profile === "hyperboloid") {
+      const yMax = WH_YMAX * yScaleNow;
+      const c = (WH_RRIM * WH_RRIM - rsNow * rsNow) / (yMax * yMax);
+      return Math.sqrt(rsNow * rsNow + c * y * y);
+    }
+    const yFlat = WH_YFLAT * yScaleNow;
+    const a = Math.min(0.985, Math.abs(y) / yFlat);
+    const u = 0.5 * Math.log((1 + a) / (1 - a));
+    return rsNow + (WH_LAM * u) * (WH_LAM * u);
+  }
+
+  function surfaceGeodesic(pA, pB, u, rsNow, yScaleNow, profile, isBypass) {
+    const angA = Math.atan2(pA.z, pA.x), angB = Math.atan2(pB.z, pB.x);
+    const dAng = Math.atan2(Math.sin(angB - angA), Math.cos(angB - angA));
+    const ang = angA + dAng * u;
+    const y = pA.y + (pB.y - pA.y) * u;
+    let r;
+    if (isBypass) {
+      r = surfaceR(y, rsNow, yScaleNow, profile) + 0.36 * Math.sin(Math.PI * u);
+    } else if (Math.abs(pA.y - pB.y) < 0.08) {
+      const rA = Math.hypot(pA.x, pA.z), rB = Math.hypot(pB.x, pB.z);
+      r = rA + (rB - rA) * u;
+      if (Math.abs(pA.y) > 0.2) r *= (1 - 0.06 * Math.sin(Math.PI * u));
+    } else {
+      r = surfaceR(y, rsNow, yScaleNow, profile);
+    }
+    return { x: r * Math.cos(ang), y, z: r * Math.sin(ang) };
+  }
+
+  // Methodology 1: Balanced Kernighan-Lin Min-Cut partitioning to eliminate artificial L0 bypasses
+  function computeMinCutHemispheres(res, layerOf) {
+    const n = res.degrees.length;
+    const adj = res.adj;
+    const buckets = [[], [], []];
+    for (let i = 0; i < n; i++) buckets[layerOf[i]].push(i);
+
+    const auditSplit = hArr => {
+      let thruL0 = 0, sameHemi = 0, bypassCount = 0;
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          if (adj[i][j] === 0) continue;
+          if (layerOf[i] === 0 || layerOf[j] === 0) thruL0++;
+          else if (hArr[i] === hArr[j]) sameHemi++;
+          else bypassCount++;
+        }
+      }
+      return { thruL0, sameHemi, bypassCount };
+    };
+
+    // Baseline alternating k%2 split for comparison
+    const naiveHemi = new Int8Array(n);
+    buckets[1].forEach((id, k) => { naiveHemi[id] = k % 2 ? -1 : 1; });
+    buckets[2].forEach((id, k) => { naiveHemi[id] = k % 2 ? -1 : 1; });
+    const naiveStats = auditSplit(naiveHemi);
+
+    // Topological balanced initialization + KL swap minimization
+    const hemi = new Int8Array(n);
+    const half1 = Math.ceil(buckets[1].length / 2);
+    buckets[1].forEach((id, k) => { hemi[id] = k < half1 ? 1 : -1; });
+    for (const id of buckets[2]) {
+      let sc = 0;
+      for (const j of buckets[1]) if (adj[id][j] > 0) sc += hemi[j];
+      hemi[id] = sc >= 0 ? 1 : -1;
+    }
+    // Enforce near-balance on L2 if heavily skewed before KL refinement
+    const pos2 = buckets[2].filter(id => hemi[id] > 0);
+    const neg2 = buckets[2].filter(id => hemi[id] < 0);
+    while (pos2.length > neg2.length + 2) { const id = pos2.pop(); hemi[id] = -1; neg2.push(id); }
+    while (neg2.length > pos2.length + 2) { const id = neg2.pop(); hemi[id] = 1; pos2.push(id); }
+
+    for (let it = 0; it < 15; it++) {
+      let improved = false;
+      for (const li of [1, 2]) {
+        const arr = buckets[li];
+        for (let a = 0; a < arr.length; a++) {
+          for (let c = a + 1; c < arr.length; c++) {
+            const u = arr[a], v = arr[c];
+            if (hemi[u] === hemi[v]) continue;
+            let gain = 0;
+            for (let w = 0; w < n; w++) {
+              if (layerOf[w] === 0) continue;
+              if (adj[u][w] > 0 && w !== v) gain += hemi[w] === hemi[u] ? -1 : 1;
+              if (adj[v][w] > 0 && w !== u) gain += hemi[w] === hemi[v] ? -1 : 1;
+            }
+            if (gain > 0) {
+              const tmp = hemi[u]; hemi[u] = hemi[v]; hemi[v] = tmp;
+              improved = true;
+            }
+          }
+        }
+      }
+      if (!improved) break;
+    }
+
+    const minCutStats = auditSplit(hemi);
+    return { hemi, buckets, ...minCutStats, naiveBypassCount: naiveStats.bypassCount };
+  }
+
+  // Methodology 2: Katenoid minimal-surface angular tension relaxation (symmetric compass-anchored)
+  function relaxRingAngles(res, groups, yApprox) {
+    const n = res.degrees.length;
+    const adj = res.adj;
+    const ang = new Float64Array(n);
+    const home = new Float64Array(n);
+    groups.forEach(g => {
+      const m = Math.max(1, g.ids.length);
+      g.ids.forEach((id, k) => {
+        const a = g.phase + (k / m) * Math.PI * 2;
+        ang[id] = a;
+        home[id] = a;
+      });
+    });
+
+    const totalEnergy = aArr => {
+      let sum = 0;
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          if (adj[i][j] === 0) continue;
+          const rI = surfaceR(yApprox[i], WH_RS, 1.0, "flamm");
+          const rJ = surfaceR(yApprox[j], WH_RS, 1.0, "flamm");
+          const dx = rI * Math.cos(aArr[i]) - rJ * Math.cos(aArr[j]);
+          const dy = yApprox[i] - yApprox[j];
+          const dz = rI * Math.sin(aArr[i]) - rJ * Math.sin(aArr[j]);
+          sum += dx * dx + dy * dy + dz * dz;
+        }
+      }
+      return sum;
+    };
+
+    const energyBefore = totalEnergy(ang);
+    for (let it = 0; it < 20; it++) {
+      const next = Float64Array.from(ang);
+      for (let gi = 0; gi < groups.length; gi++) {
+        const ids = groups[gi].ids;
+        // Anchor L0 (gi === 0) around all 4 quadrants so the 360-deg funnel never collapses to one side
+        if (gi === 0 || ids.length <= 1) continue;
+        for (const u of ids) {
+          let sx = 0, cz = 0, deg = 0;
+          for (let v = 0; v < n; v++) {
+            if (adj[u][v] > 0) { sx += Math.sin(ang[v]); cz += Math.cos(ang[v]); deg++; }
+          }
+          if (deg > 0 && (sx * sx + cz * cz) > 1e-6) {
+            const target = Math.atan2(sx, cz);
+            const diffN = Math.atan2(Math.sin(target - ang[u]), Math.cos(target - ang[u]));
+            const diffH = Math.atan2(Math.sin(home[u] - ang[u]), Math.cos(home[u] - ang[u]));
+            next[u] += diffN * 0.28 + diffH * 0.14;
+          }
+        }
+        const minSep = (Math.PI * 2 / ids.length) * 0.72;
+        for (let a = 0; a < ids.length; a++) {
+          for (let b = a + 1; b < ids.length; b++) {
+            const u = ids[a], v = ids[b];
+            const d = Math.atan2(Math.sin(next[u] - next[v]), Math.cos(next[u] - next[v]));
+            if (Math.abs(d) < minSep) {
+              const push = (minSep - Math.abs(d)) * 0.40 * (d >= 0 ? 1 : -1);
+              next[u] += push;
+              next[v] -= push;
+            }
+          }
+        }
+      }
+      ang.set(next);
+    }
+    const energyAfter = totalEnergy(ang);
+    const catenoidReductionPct = energyBefore > 0 ? Math.max(0, ((energyBefore - energyAfter) / energyBefore) * 100) : 0;
+    return { ang, energyBefore, energyAfter, catenoidReductionPct };
+  }
+
+  function updateWormholePositions(geom, rsNow, yScaleNow, profile) {
+    if (!geom || !geom.whMeta) return;
+    const n = geom.pos.length;
+    const { hemi, baseY, ang, layerOf } = geom.whMeta;
+    for (let i = 0; i < n; i++) {
+      let y = 0;
+      if (hemi[i] !== 0) {
+        const yRaw = baseY[i];
+        const yScaled = profile === "flamm" ? yRaw * yScaleNow : hemi[i] * (layerOf[i] === 1 ? 0.68 : 1.24) * yScaleNow;
+        y = yScaled;
+      }
+      const r = surfaceR(y, rsNow, yScaleNow, profile);
+      geom.pos[i] = { x: r * Math.cos(ang[i]), y, z: r * Math.sin(ang[i]), layer: layerOf[i] };
+    }
+  }
+
+  // 3D Geometries
+  function compute3dPositions(res, mode, seed) {
+    const n = res.degrees.length;
+    const pos = new Array(n);
+    const layerOf = new Uint8Array(n);
+
+    if (res.topology === "adaptive_hierarchy") {
+      for (let i = 0; i < n; i++) layerOf[i] = res.layers[i];
+    } else {
+      const sorted = Array.from({ length: n }, (_, i) => i).sort((a, b) => res.degrees[b] - res.degrees[a] || a - b);
+      sorted.forEach((id, rank) => { layerOf[id] = rank < 6 ? 0 : rank < 22 ? 1 : 2; });
+    }
+
+    if (mode === "wormhole") {
+      const part = computeMinCutHemispheres(res, layerOf);
+      const hemi = part.hemi;
+      const baseY = new Float64Array(n);
+      const l1Top = part.buckets[1].filter(id => hemi[id] > 0);
+      const l1Bot = part.buckets[1].filter(id => hemi[id] < 0);
+      const l2Top = part.buckets[2].filter(id => hemi[id] > 0);
+      const l2Bot = part.buckets[2].filter(id => hemi[id] < 0);
+
+      for (const id of part.buckets[0]) baseY[id] = 0.0;
+      for (const id of l1Top) baseY[id] = 0.98;
+      for (const id of l1Bot) baseY[id] = -0.98;
+      for (const id of l2Top) baseY[id] = 1.29;
+      for (const id of l2Bot) baseY[id] = -1.29;
+
+      const rel = relaxRingAngles(res, [
+        { ids: part.buckets[0], phase: 0.35 },
+        { ids: l1Top, phase: 0.2 },
+        { ids: l1Bot, phase: 0.2 },
+        { ids: l2Top, phase: 0.05 },
+        { ids: l2Bot, phase: 0.05 }
+      ], baseY);
+
+      const geom = {
+        pos,
+        layerOf,
+        hemi,
+        thruL0: part.thruL0,
+        sameHemi: part.sameHemi,
+        bypassCount: part.bypassCount,
+        naiveBypassCount: part.naiveBypassCount,
+        catenoidReductionPct: rel.catenoidReductionPct,
+        whMeta: { hemi, baseY, ang: rel.ang, layerOf }
+      };
+      updateWormholePositions(geom, WH_RS, 1.0, "flamm");
+      return geom;
+    }
+
+    if (mode === "tower") {
+      const buckets = [[], [], []];
+      for (let i = 0; i < n; i++) buckets[layerOf[i]].push(i);
+      const spec = [
+        { y: 1.15, r: 0.65, phase: 0.4 },
+        { y: 0.0, r: 1.45, phase: 0.15 },
+        { y: -1.15, r: 2.25, phase: 0.05 }
+      ];
+      buckets.forEach((arr, li) => {
+        const { y, r, phase } = spec[li];
+        const m = Math.max(1, arr.length);
+        arr.forEach((id, k) => {
+          const ang = phase + (k / m) * Math.PI * 2;
+          const wave = li === 0 ? 0.08 * Math.sin(2 * ang) : 0.14 * Math.sin(3 * ang);
+          pos[id] = { x: r * Math.cos(ang), y: y + wave, z: r * Math.sin(ang), layer: li };
+        });
+      });
+      return { pos, layerOf };
+    }
+
+    if (mode === "atom") {
+      const buckets = [[], [], []];
+      for (let i = 0; i < n; i++) buckets[layerOf[i]].push(i);
+      const radii = [0.72, 1.50, 2.35];
+      const ga = Math.PI * (3 - Math.sqrt(5));
+      buckets.forEach((arr, li) => {
+        const R = radii[li];
+        const m = arr.length;
+        arr.forEach((id, k) => {
+          const y = m === 1 ? 0 : 1 - (k / Math.max(1, m - 1)) * 2;
+          const rad = Math.sqrt(Math.max(0, 1 - y * y));
+          const theta = ga * k + li * 0.9;
+          pos[id] = { x: Math.cos(theta) * rad * R, y: y * R, z: Math.sin(theta) * rad * R, layer: li };
+        });
+      });
+      return { pos, layerOf };
+    }
+
+    // Seeded 3D Fruchterman-Reingold force layout
+    const rng = new E.SeededRNG((seed || 11200) + 77);
+    const pts = Array.from({ length: n }, (_, i) => ({
+      x: (rng.random() * 2 - 1) * 1.4,
+      y: (rng.random() * 2 - 1) * 1.4 + (layerOf[i] === 0 ? 0.5 : layerOf[i] === 2 ? -0.4 : 0),
+      z: (rng.random() * 2 - 1) * 1.4
+    }));
+    const edges = [];
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) if (res.adj[i][j] > 0) edges.push([i, j]);
+    }
+    const kOpt = 0.85;
+    for (let it = 0; it < 70; it++) {
+      const disp = Array.from({ length: n }, () => ({ x: 0, y: 0, z: 0 }));
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y, dz = pts[i].z - pts[j].z;
+          const d2 = dx * dx + dy * dy + dz * dz + 0.01;
+          const dist = Math.sqrt(d2);
+          const f = (kOpt * kOpt) / dist;
+          const fx = (dx / dist) * f, fy = (dy / dist) * f, fz = (dz / dist) * f;
+          disp[i].x += fx; disp[i].y += fy; disp[i].z += fz;
+          disp[j].x -= fx; disp[j].y -= fy; disp[j].z -= fz;
+        }
+      }
+      for (const [u, v] of edges) {
+        const dx = pts[u].x - pts[v].x, dy = pts[u].y - pts[v].y, dz = pts[u].z - pts[v].z;
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz + 0.001);
+        const f = (dist * dist) / kOpt;
+        const fx = (dx / dist) * f, fy = (dy / dist) * f, fz = (dz / dist) * f;
+        disp[u].x -= fx; disp[u].y -= fy; disp[u].z -= fz;
+        disp[v].x += fx; disp[v].y += fy; disp[v].z += fz;
+      }
+      const temp = 0.35 * (1 - it / 72);
+      for (let i = 0; i < n; i++) {
+        const dm = Math.sqrt(disp[i].x ** 2 + disp[i].y ** 2 + disp[i].z ** 2) + 1e-6;
+        const step = Math.min(dm, temp);
+        pts[i].x += (disp[i].x / dm) * step;
+        pts[i].y += (disp[i].y / dm) * step;
+        pts[i].z += (disp[i].z / dm) * step;
+      }
+    }
+    let maxR = 1e-6;
+    for (const p of pts) {
+      const r = Math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+      if (r > maxR) maxR = r;
+    }
+    const scaleNorm = 2.35 / maxR;
+    for (let i = 0; i < n; i++) {
+      pos[i] = { x: pts[i].x * scaleNorm, y: pts[i].y * scaleNorm, z: pts[i].z * scaleNorm, layer: layerOf[i] };
+    }
+    return { pos, layerOf };
+  }
+
+  // State
+  let currentRuns = {};
+  let activeCtrlKey = "student";
+  let layoutMode = "wormhole";
+  let surfaceProfile = "flamm";
+  let pinchDeSitterOn = true;
+  let ruledHelixOn = true;
+  let bypassOn = true;
+  let lastPhysics = { thruL0: 0, sameHemi: 0, bypassCount: 0, naiveBypassCount: 0, catenoidReductionPct: 0, rsNow: WH_RS, yScaleNow: 1.0, pinchPressure: 0 };
+  let layoutCache = {};
+  let currentStep = 0;
+  let isPlaying = true;
+  let playSpeed = 1.0;
+  let stepAccumulator = 0;
+  let lastFrameTs = 0;
+  let animTime = 0;
+
+  // Camera
+  const cam = {
+    yaw: 0.65,
+    pitch: 0.22,
+    dist: 7.4,
+    targetYaw: 0.65,
+    targetPitch: 0.22,
+    targetDist: 7.4,
+    autoOrbit: true,
+    dragging: false,
+    moved: false,
+    lastX: 0,
+    lastY: 0
+  };
+  let pointerX = -1, pointerY = -1;
+  let hoveredId = null, pinnedId = null;
+  let lastProjected = [];
+
+  const sceneCanvas = document.getElementById("scene3d");
+  const sceneCtx = sceneCanvas.getContext("2d");
+
+  function syncCanvasSize() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const rect = sceneCanvas.getBoundingClientRect();
+    const w = Math.max(320, Math.round(rect.width * dpr));
+    const h = Math.max(320, Math.round(rect.height * dpr));
+    if (sceneCanvas.width !== w || sceneCanvas.height !== h) {
+      sceneCanvas.width = w;
+      sceneCanvas.height = h;
+    }
+    return { w, h, dpr };
+  }
+
+  function projectPt(pt, w, h, fov, cosY, sinY, cosP, sinP) {
+    const x1 = pt.x * cosY + pt.z * sinY;
+    const z1 = -pt.x * sinY + pt.z * cosY;
+    const y2 = pt.y * cosP - z1 * sinP;
+    const zCam = pt.y * sinP + z1 * cosP;
+    const denom = cam.dist - zCam;
+    if (denom < 0.75) return null;
+    const scale = fov / denom;
+    return {
+      sx: w * 0.5 + x1 * scale,
+      sy: h * 0.5 - y2 * scale,
+      zCam,
+      scale
+    };
+  }
+
+  function draw3dRing(ctx, radius, yPlane, w, h, fov, cosY, sinY, cosP, sinP, color, dash) {
+    ctx.save();
+    if (dash) ctx.setLineDash(dash);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    let started = false;
+    const segs = 48;
+    for (let s = 0; s <= segs; s++) {
+      const a = (s / segs) * Math.PI * 2;
+      const p = projectPt({ x: radius * Math.cos(a), y: yPlane, z: radius * Math.sin(a) }, w, h, fov, cosY, sinY, cosP, sinP);
+      if (!p) { started = false; continue; }
+      if (!started) { ctx.moveTo(p.sx, p.sy); started = true; }
+      else ctx.lineTo(p.sx, p.sy);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function draw3dTiltedOrbit(ctx, radius, tiltX, tiltZ, w, h, fov, cosY, sinY, cosP, sinP, color) {
+    ctx.save();
+    ctx.setLineDash([4, 5]);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    const cX = Math.cos(tiltX), sX = Math.sin(tiltX);
+    const cZ = Math.cos(tiltZ), sZ = Math.sin(tiltZ);
+    const segs = 56;
+    let started = false;
+    for (let s = 0; s <= segs; s++) {
+      const a = (s / segs) * Math.PI * 2;
+      const x0 = radius * Math.cos(a), y0 = 0, z0 = radius * Math.sin(a);
+      const y1 = y0 * cX - z0 * sX, z1 = y0 * sX + z0 * cX;
+      const x2 = x0 * cZ - y1 * sZ, y2 = x0 * sZ + y1 * cZ;
+      const p = projectPt({ x: x2, y: y2, z: z1 }, w, h, fov, cosY, sinY, cosP, sinP);
+      if (!p) { started = false; continue; }
+      if (!started) { ctx.moveTo(p.sx, p.sy); started = true; }
+      else ctx.lineTo(p.sx, p.sy);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function render3dFrame() {
+    const run = currentRuns[activeCtrlKey];
+    if (!run) return;
+    const res = run.res;
+    const step = Math.max(0, Math.min(res.steps - 1, currentStep));
+    const snap = res.snapshots[step];
+    const dMap = run.dByStep[step] || {};
+    const geom = layoutCache[layoutMode];
+    if (!snap || !geom) return;
+
+    const { w, h, dpr } = syncCanvasSize();
+    const ctx = sceneCtx;
+    ctx.clearRect(0, 0, w, h);
+
+    const fov = Math.min(w, h) * 1.18;
+    const cosY = Math.cos(cam.yaw), sinY = Math.sin(cam.yaw);
+    const cosP = Math.cos(cam.pitch), sinP = Math.sin(cam.pitch);
+    const n = res.degrees.length;
+
+    // Methodology 4 & 5: Live Z-Pinch throat compression + de Sitter CSI curvature
+    let l0Sum = 0, l0N = 0;
+    for (let i = 0; i < n; i++) {
+      if (geom.layerOf[i] === 0 && snap.alive[i] === 1) { l0Sum += snap.stress[i]; l0N++; }
+    }
+    const coreStress = l0N ? l0Sum / l0N : 0;
+    let dSum = 0, dN = 0;
+    for (const id of res.agents) {
+      if (snap.alive[id] === 1 && snap.quarantined[id] === 0) {
+        dSum += Number.isFinite(dMap[id]) ? dMap[id] : 0;
+        dN++;
+      }
+    }
+    const activeDrain = dN ? dSum / dN : 0;
+    const pinchPressure = Math.max(0, Math.min(1, 0.55 * coreStress + 0.75 * activeDrain));
+    const rsNow = (layoutMode === "wormhole" && pinchDeSitterOn) ? WH_RS * (1 - 0.24 * pinchPressure) : WH_RS;
+    const yScaleNow = (layoutMode === "wormhole" && pinchDeSitterOn) ? 1 + 0.16 * (1 - res.csi[step]) : 1.0;
+
+    if (layoutMode === "wormhole") {
+      updateWormholePositions(geom, rsNow, yScaleNow, surfaceProfile);
+    }
+    const whGeom = layoutCache.wormhole;
+    lastPhysics = {
+      thruL0: whGeom ? whGeom.thruL0 : 0,
+      sameHemi: whGeom ? whGeom.sameHemi : 0,
+      bypassCount: whGeom ? whGeom.bypassCount : 0,
+      naiveBypassCount: whGeom ? whGeom.naiveBypassCount : 0,
+      catenoidReductionPct: whGeom ? whGeom.catenoidReductionPct : 0,
+      rsNow,
+      yScaleNow,
+      pinchPressure
+    };
+
+    // 1. Subtle 3D perspective floor grid (hidden in Einstein-Rosen space mode)
+    if (layoutMode !== "wormhole") {
+      ctx.save();
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.08)";
+      ctx.lineWidth = 1;
+      const gExtent = 3.0, gStep = 0.75;
+      for (let v = -gExtent; v <= gExtent + 0.01; v += gStep) {
+        const a1 = projectPt({ x: v, y: -1.75, z: -gExtent }, w, h, fov, cosY, sinY, cosP, sinP);
+        const a2 = projectPt({ x: v, y: -1.75, z: gExtent }, w, h, fov, cosY, sinY, cosP, sinP);
+        if (a1 && a2) { ctx.beginPath(); ctx.moveTo(a1.sx, a1.sy); ctx.lineTo(a2.sx, a2.sy); ctx.stroke(); }
+        const b1 = projectPt({ x: -gExtent, y: -1.75, z: v }, w, h, fov, cosY, sinY, cosP, sinP);
+        const b2 = projectPt({ x: gExtent, y: -1.75, z: v }, w, h, fov, cosY, sinY, cosP, sinP);
+        if (b1 && b2) { ctx.beginPath(); ctx.moveTo(b1.sx, b1.sy); ctx.lineTo(b2.sx, b2.sy); ctx.stroke(); }
+      }
+      ctx.restore();
+    }
+
+    // Layout guides
+    if (layoutMode === "wormhole") {
+      // Dynamic Z-Pinch glowing throat aura
+      const cProj = projectPt({ x: 0, y: 0, z: 0 }, w, h, fov, cosY, sinY, cosP, sinP);
+      if (cProj) {
+        const gR = Math.max(14, (0.90 + 0.25 * pinchPressure) * cProj.scale);
+        const pR = Math.round(168 + 83 * pinchPressure);
+        const pG = Math.round(85 + 61 * pinchPressure);
+        const pB = Math.round(247 - 165 * pinchPressure);
+        const tg = ctx.createRadialGradient(cProj.sx, cProj.sy, gR * 0.08, cProj.sx, cProj.sy, gR);
+        tg.addColorStop(0, "rgba(" + pR + "," + pG + "," + pB + "," + (0.28 + 0.16 * pinchPressure).toFixed(2) + ")");
+        tg.addColorStop(0.50, "rgba(56, 189, 248, 0.11)");
+        tg.addColorStop(1, "rgba(56, 189, 248, 0)");
+        ctx.save();
+        ctx.fillStyle = tg;
+        ctx.beginPath();
+        ctx.arc(cProj.sx, cProj.sy, gR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      if (surfaceProfile === "flamm") {
+        // Warped Cartesian square spacetime grids (upper +surfaceY, lower -surfaceY)
+        ctx.save();
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.19)";
+        ctx.lineWidth = 0.9 * dpr;
+        const gLines = 13, gSteps = 44;
+        for (const sign of [1, -1]) {
+          for (let k = 0; k < gLines; k++) {
+            const coord = -WH_GRID_EXT + (2 * WH_GRID_EXT * k) / (gLines - 1);
+            ctx.beginPath();
+            let started = false;
+            for (let s = 0; s <= gSteps; s++) {
+              const x = -WH_GRID_EXT + (2 * WH_GRID_EXT * s) / gSteps;
+              const z = coord;
+              const r = Math.hypot(x, z);
+              if (r < rsNow) { started = false; continue; }
+              const p = projectPt({ x, y: sign * surfaceY(r, rsNow, yScaleNow, "flamm"), z }, w, h, fov, cosY, sinY, cosP, sinP);
+              if (!p) { started = false; continue; }
+              if (!started) { ctx.moveTo(p.sx, p.sy); started = true; } else ctx.lineTo(p.sx, p.sy);
+            }
+            ctx.stroke();
+            ctx.beginPath();
+            started = false;
+            for (let s = 0; s <= gSteps; s++) {
+              const z = -WH_GRID_EXT + (2 * WH_GRID_EXT * s) / gSteps;
+              const x = coord;
+              const r = Math.hypot(x, z);
+              if (r < rsNow) { started = false; continue; }
+              const p = projectPt({ x, y: sign * surfaceY(r, rsNow, yScaleNow, "flamm"), z }, w, h, fov, cosY, sinY, cosP, sinP);
+              if (!p) { started = false; continue; }
+              if (!started) { ctx.moveTo(p.sx, p.sy); started = true; } else ctx.lineTo(p.sx, p.sy);
+            }
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+      }
+      // Concentric funnel / profile latitude rings
+      const neckRings = surfaceProfile === "flamm"
+        ? [rsNow, rsNow + 0.10, 0.68, 0.96, 1.38]
+        : [rsNow, rsNow + 0.24, rsNow + 0.62, 1.56, WH_RRIM];
+      neckRings.forEach((rr, idx) => {
+        if (idx === 0) {
+          ctx.save();
+          ctx.strokeStyle = pinchPressure > 0.45 ? "rgba(251, 146, 60, 0.88)" : "rgba(192, 132, 252, 0.88)";
+          ctx.lineWidth = 2.0 * dpr;
+          ctx.beginPath();
+          let started = false;
+          for (let s = 0; s <= 48; s++) {
+            const a = (s / 48) * Math.PI * 2;
+            const p = projectPt({ x: rr * Math.cos(a), y: 0, z: rr * Math.sin(a) }, w, h, fov, cosY, sinY, cosP, sinP);
+            if (!p) { started = false; continue; }
+            if (!started) { ctx.moveTo(p.sx, p.sy); started = true; } else ctx.lineTo(p.sx, p.sy);
+          }
+          ctx.stroke();
+          ctx.restore();
+          return;
+        }
+        const yy = surfaceY(rr, rsNow, yScaleNow, surfaceProfile);
+        const rimCol = idx === neckRings.length - 1 && surfaceProfile !== "flamm" ? "rgba(56, 189, 248, 0.36)" : "rgba(56, 189, 248, 0.24)";
+        draw3dRing(ctx, rr, yy, w, h, fov, cosY, sinY, cosP, sinP, rimCol);
+        draw3dRing(ctx, rr, -yy, w, h, fov, cosY, sinY, cosP, sinP, rimCol);
+      });
+      // Smooth curved meridian ribs
+      ctx.save();
+      ctx.strokeStyle = surfaceProfile === "catenoid" ? "rgba(52, 211, 153, 0.22)" : "rgba(125, 211, 252, 0.20)";
+      ctx.lineWidth = 1.0 * dpr;
+      const ribs = 12, segs = 30, ySpan = WH_YMAX * yScaleNow;
+      for (let m = 0; m < ribs; m++) {
+        const ang = (m / ribs) * Math.PI * 2;
+        const ca = Math.cos(ang), sa = Math.sin(ang);
+        ctx.beginPath();
+        let started = false;
+        for (let s = 0; s <= segs; s++) {
+          const yy = -ySpan + (2 * ySpan * s) / segs;
+          const rr = surfaceR(yy, rsNow, yScaleNow, surfaceProfile);
+          const p = projectPt({ x: rr * ca, y: yy, z: rr * sa }, w, h, fov, cosY, sinY, cosP, sinP);
+          if (!p) { started = false; continue; }
+          if (!started) { ctx.moveTo(p.sx, p.sy); started = true; }
+          else ctx.lineTo(p.sx, p.sy);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+      // Methodology 3: Counter-rotating straight ruled hyperboloid struts (double_helix)
+      if (ruledHelixOn) {
+        const ySpanH = WH_YMAX * yScaleNow;
+        const cH = (WH_RRIM * WH_RRIM - rsNow * rsNow) / (ySpanH * ySpanH);
+        const sqrtCH = Math.sqrt(Math.max(0, cH));
+        const nStruts = 12;
+        ctx.save();
+        ctx.lineWidth = 0.85 * dpr;
+        for (const dir of [1, -1]) {
+          ctx.strokeStyle = dir > 0 ? "rgba(56, 189, 248, 0.17)" : "rgba(192, 132, 252, 0.16)";
+          for (let m = 0; m < nStruts; m++) {
+            const th = (m / nStruts) * Math.PI * 2;
+            const cT = Math.cos(th), sT = Math.sin(th);
+            const pBot = projectPt({ x: rsNow * cT - dir * (-ySpanH) * sqrtCH * sT, y: -ySpanH, z: rsNow * sT + dir * (-ySpanH) * sqrtCH * cT }, w, h, fov, cosY, sinY, cosP, sinP);
+            const pTop = projectPt({ x: rsNow * cT - dir * ySpanH * sqrtCH * sT, y: ySpanH, z: rsNow * sT + dir * ySpanH * sqrtCH * cT }, w, h, fov, cosY, sinY, cosP, sinP);
+            if (pBot && pTop) {
+              ctx.beginPath();
+              ctx.moveTo(pBot.sx, pBot.sy);
+              ctx.lineTo(pTop.sx, pTop.sy);
+              ctx.stroke();
+            }
+          }
+        }
+        ctx.restore();
+      }
+    } else if (layoutMode === "tower") {
+      draw3dRing(ctx, 0.65, 1.15, w, h, fov, cosY, sinY, cosP, sinP, "rgba(56, 189, 248, 0.25)", [4, 4]);
+      draw3dRing(ctx, 1.45, 0.0, w, h, fov, cosY, sinY, cosP, sinP, "rgba(56, 189, 248, 0.18)", [4, 4]);
+      draw3dRing(ctx, 2.25, -1.15, w, h, fov, cosY, sinY, cosP, sinP, "rgba(56, 189, 248, 0.14)", [4, 4]);
+      const axTop = projectPt({ x: 0, y: 1.55, z: 0 }, w, h, fov, cosY, sinY, cosP, sinP);
+      const axBot = projectPt({ x: 0, y: -1.75, z: 0 }, w, h, fov, cosY, sinY, cosP, sinP);
+      if (axTop && axBot) {
+        ctx.save();
+        ctx.setLineDash([3, 5]);
+        ctx.strokeStyle = "rgba(148, 163, 199, 0.22)";
+        ctx.beginPath(); ctx.moveTo(axTop.sx, axTop.sy); ctx.lineTo(axBot.sx, axBot.sy); ctx.stroke();
+        ctx.restore();
+      }
+    } else if (layoutMode === "atom") {
+      draw3dTiltedOrbit(ctx, 2.38, 0.65, 0.25, w, h, fov, cosY, sinY, cosP, sinP, "rgba(56, 189, 248, 0.18)");
+      draw3dTiltedOrbit(ctx, 1.55, -0.85, 0.55, w, h, fov, cosY, sinY, cosP, sinP, "rgba(167, 139, 250, 0.20)");
+      draw3dTiltedOrbit(ctx, 0.78, 0.35, -1.10, w, h, fov, cosY, sinY, cosP, sinP, "rgba(52, 211, 153, 0.22)");
+    }
+
+    // Project nodes
+    const proj = new Array(n);
+    let maxDeg = 1;
+    for (let i = 0; i < n; i++) if (res.degrees[i] > maxDeg) maxDeg = res.degrees[i];
+    for (let i = 0; i < n; i++) {
+      const p = projectPt(geom.pos[i], w, h, fov, cosY, sinY, cosP, sinP);
+      const rBase = (4.8 + 8.5 * (res.degrees[i] / maxDeg)) * dpr;
+      proj[i] = p ? { ...p, id: i, r: Math.max(3 * dpr, rBase * (p.scale / (fov / 6.4))) } : null;
+    }
+
+    const focusId = pinnedId !== null ? pinnedId : hoveredId;
+    const gravMap = new Map((res.gravEdgeList || []).map(([a, b, t0]) => [Math.min(a, b) * 1000 + Math.max(a, b), t0]));
+    const sparks = [];
+
+    // 2. Depth-sorted 3D edges + animated capital-drain sparks
+    for (let i = 0; i < n; i++) {
+      const pi = proj[i];
+      if (!pi) continue;
+      for (let j = i + 1; j < n; j++) {
+        if (res.adj[i][j] === 0) continue;
+        const pj = proj[j];
+        if (!pj) continue;
+
+        const gt = gravMap.get(i * 1000 + j);
+        if (gt !== undefined && step < gt) continue;
+
+        const isFocusEdge = focusId !== null && (i === focusId || j === focusId);
+        const depthAlpha = Math.max(0.18, Math.min(1.0, ((pi.zCam + pj.zCam) * 0.5 + 2.6) / 5.2));
+        const activeEdge = snap.alive[i] === 1 && snap.alive[j] === 1 && snap.quarantined[i] === 0 && snap.quarantined[j] === 0;
+        const chaosI = res.isChaos[i] === 1, chaosJ = res.isChaos[j] === 1;
+        const isBypass = layoutMode === "wormhole" && geom.hemi && (geom.hemi[i] * geom.hemi[j] === -1);
+
+        ctx.save();
+        if (gt !== undefined) {
+          ctx.setLineDash([4 * dpr, 3 * dpr]);
+          ctx.strokeStyle = "rgba(248, 250, 252, " + (0.65 * depthAlpha).toFixed(2) + ")";
+          ctx.lineWidth = 1.4 * dpr;
+        } else if (isFocusEdge) {
+          ctx.strokeStyle = activeEdge ? "rgba(56, 189, 248, 0.90)" : "rgba(192, 132, 252, 0.55)";
+          ctx.lineWidth = 2.0 * dpr;
+        } else if (isBypass && activeEdge) {
+          if (bypassOn) {
+            ctx.setLineDash([3 * dpr, 3 * dpr]);
+            ctx.strokeStyle = "rgba(251, 191, 36, " + (0.58 * depthAlpha).toFixed(2) + ")";
+            ctx.lineWidth = 1.3 * dpr;
+          } else {
+            ctx.strokeStyle = "rgba(100, 116, 139, " + (0.15 * depthAlpha).toFixed(2) + ")";
+            ctx.lineWidth = 0.7 * dpr;
+          }
+        } else if (activeEdge) {
+          if (chaosI || chaosJ) {
+            ctx.strokeStyle = "rgba(244, 63, 94, " + (0.34 * depthAlpha).toFixed(2) + ")";
+            ctx.lineWidth = 1.25 * dpr;
+          } else {
+            ctx.strokeStyle = "rgba(56, 189, 248, " + (0.17 * depthAlpha).toFixed(2) + ")";
+            ctx.lineWidth = 0.9 * dpr;
+          }
+        } else {
+          ctx.strokeStyle = "rgba(71, 85, 105, " + (0.09 * depthAlpha).toFixed(2) + ")";
+          ctx.lineWidth = 0.6 * dpr;
+        }
+        ctx.beginPath();
+        if (layoutMode === "wormhole") {
+          const eSegs = 10;
+          let started = false;
+          for (let s = 0; s <= eSegs; s++) {
+            const pt = surfaceGeodesic(geom.pos[i], geom.pos[j], s / eSegs, rsNow, yScaleNow, surfaceProfile, isBypass);
+            const pr = projectPt(pt, w, h, fov, cosY, sinY, cosP, sinP);
+            if (!pr) { started = false; continue; }
+            if (!started) { ctx.moveTo(pr.sx, pr.sy); started = true; }
+            else ctx.lineTo(pr.sx, pr.sy);
+          }
+        } else {
+          ctx.moveTo(pi.sx, pi.sy);
+          ctx.lineTo(pj.sx, pj.sy);
+        }
+        ctx.stroke();
+        ctx.restore();
+
+        // Drain spark from healthy victim -> active unquarantined chaos node
+        if (activeEdge && (chaosI !== chaosJ)) {
+          const chaosNode = chaosI ? i : j;
+          const victimNode = chaosI ? j : i;
+          const eng = snap.ptype[chaosNode] === 0 || snap.engaged[chaosNode] === 1;
+          if (eng) {
+            const dNow = Number.isFinite(dMap[chaosNode]) ? dMap[chaosNode] : 0.35;
+            const speed = 0.55 + dNow * 1.9;
+            const u = (animTime * speed + ((chaosNode * 17 + victimNode * 7) % 100) * 0.01) % 1;
+            const vPt = geom.pos[victimNode], cPt = geom.pos[chaosNode];
+            const spPt = layoutMode === "wormhole"
+              ? surfaceGeodesic(vPt, cPt, u, rsNow, yScaleNow, surfaceProfile, isBypass)
+              : {
+                  x: vPt.x + (cPt.x - vPt.x) * u,
+                  y: vPt.y + (cPt.y - vPt.y) * u,
+                  z: vPt.z + (cPt.z - vPt.z) * u
+                };
+            const spProj = projectPt(spPt, w, h, fov, cosY, sinY, cosP, sinP);
+            if (spProj) sparks.push({ ...spProj, dNow });
+          }
+        }
+      }
+    }
+
+    // Painter's sort (back to front: smaller zCam is further away from camera at +dist)
+    const drawOrder = proj.filter(Boolean).sort((a, b) => a.zCam - b.zCam);
+    const scoutSet = new Set((activeCtrlKey === "student" || activeCtrlKey === "kovan_v2") ? run.scoutIds : []);
+
+    // Interleave sparks roughly behind near spheres or draw before frontmost layer
+    for (const sp of sparks) {
+      const sr = (1.6 + sp.dNow * 3.0) * dpr * (sp.scale / (fov / 6.4));
+      ctx.save();
+      ctx.fillStyle = "rgba(251, 113, 133, 0.95)";
+      ctx.shadowColor = "#f43f5e";
+      ctx.shadowBlur = 8 * dpr;
+      ctx.beginPath();
+      ctx.arc(sp.sx, sp.sy, Math.max(1.4 * dpr, sr), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 3. Draw 3D shaded spheres + scout halos + quarantine cages
+    for (const p of drawOrder) {
+      const i = p.id;
+      const alive = snap.alive[i] === 1;
+      const quar = snap.quarantined[i] === 1;
+      const chaos = res.isChaos[i] === 1;
+      const pt = snap.ptype[i];
+      const pkey = pt ? E.PKEY[pt] : null;
+      const pinfo = pkey ? E.PARTICLE_INFO[pkey] : null;
+      const inert = pt !== 0 && snap.engaged[i] === 0;
+      const dNow = Number.isFinite(dMap[i]) ? dMap[i] : 0;
+
+      // Active chaos pulsing 3D aura
+      if (alive && chaos && !quar && !inert) {
+        const pulse = 1 + 0.25 * Math.sin(animTime * 4.2 + i);
+        const auraR = p.r * (1.35 + dNow * 0.7) * pulse;
+        ctx.save();
+        ctx.strokeStyle = "rgba(244, 63, 94, 0.50)";
+        ctx.lineWidth = 1.4 * dpr;
+        ctx.beginPath();
+        ctx.arc(p.sx, p.sy, auraR, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Scout halo ring
+      if (alive && !quar && scoutSet.has(i)) {
+        ctx.save();
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 2.0 * dpr;
+        ctx.beginPath();
+        ctx.arc(p.sx, p.sy, p.r + 3.2 * dpr, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Sphere shading
+      let cTop = "#64748b", cMid = "#334155", cRim = "#0f172a";
+      if (alive) {
+        if (quar) {
+          cTop = chaos ? "#a855f7" : "#64748b";
+          cMid = chaos ? "#581c87" : "#334155";
+          cRim = "#1e1b4b";
+        } else if (chaos) {
+          const base = pinfo ? pinfo.color : "#f43f5e";
+          cTop = "#fecdd3";
+          cMid = base;
+          cRim = "#881337";
+        } else if (snap.stress[i] < 0.28) {
+          cTop = "#6ee7b7"; cMid = "#10b981"; cRim = "#064e3b";
+        } else if (snap.stress[i] < 0.55) {
+          cTop = "#fde68a"; cMid = "#f59e0b"; cRim = "#78350f";
+        } else {
+          cTop = "#fca5a5"; cMid = "#ef4444"; cRim = "#7f1d1d";
+        }
+      }
+
+      const grad = ctx.createRadialGradient(
+        p.sx - p.r * 0.32, p.sy - p.r * 0.32, p.r * 0.12,
+        p.sx, p.sy, p.r
+      );
+      grad.addColorStop(0, cTop);
+      grad.addColorStop(0.55, cMid);
+      grad.addColorStop(1, cRim);
+
+      ctx.save();
+      ctx.globalAlpha = alive ? (chaos && inert && !quar ? 0.55 : 1.0) : 0.32;
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.sx, p.sy, p.r, 0, Math.PI * 2);
+      ctx.fill();
+      if (focusId === i) {
+        ctx.strokeStyle = "#f8fafc";
+        ctx.lineWidth = 2.2 * dpr;
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Particle label
+      if (alive && pinfo && p.r >= 5.2 * dpr) {
+        ctx.save();
+        ctx.fillStyle = quar ? "#f3e8ff" : "#070b17";
+        ctx.font = "bold " + Math.max(8 * dpr, Math.round(p.r * 0.92)) + "px monospace";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(pinfo.sym, p.sx, p.sy + 0.5 * dpr);
+        ctx.restore();
+      }
+
+      // Rotating 3D octahedral wireframe cage for quarantined nodes
+      if (alive && quar) {
+        const cageR = (geom.pos[i] ? 0.18 : 0.16) * (0.85 + 0.35 * (res.degrees[i] / maxDeg));
+        const aSpin = animTime * 1.4 + i;
+        const cS = Math.cos(aSpin), sS = Math.sin(aSpin);
+        const rawVerts = [
+          { x: cageR * cS, y: 0, z: cageR * sS },
+          { x: -cageR * sS, y: 0, z: cageR * cS },
+          { x: -cageR * cS, y: 0, z: -cageR * sS },
+          { x: cageR * sS, y: 0, z: -cageR * cS },
+          { x: 0, y: cageR * 1.15, z: 0 },
+          { x: 0, y: -cageR * 1.15, z: 0 }
+        ];
+        const cp = geom.pos[i];
+        const pv = rawVerts.map(v => projectPt({ x: cp.x + v.x, y: cp.y + v.y, z: cp.z + v.z }, w, h, fov, cosY, sinY, cosP, sinP));
+        if (pv.every(Boolean)) {
+          ctx.save();
+          ctx.strokeStyle = chaos ? "rgba(192, 132, 252, 0.9)" : "rgba(148, 163, 184, 0.7)";
+          ctx.lineWidth = 1.15 * dpr;
+          const pairs = [[0,1],[1,2],[2,3],[3,0],[4,0],[4,1],[4,2],[4,3],[5,0],[5,1],[5,2],[5,3]];
+          ctx.beginPath();
+          for (const [u, v] of pairs) {
+            ctx.moveTo(pv[u].sx, pv[u].sy);
+            ctx.lineTo(pv[v].sx, pv[v].sy);
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+    }
+
+    // Store front-to-back order for accurate pointer picking
+    lastProjected = drawOrder.slice().reverse();
+
+    // Update HUD
+    document.getElementById("hudCtrl").textContent = run.label;
+    document.getElementById("hudStep").textContent = step + " / " + (res.steps - 1);
+    document.getElementById("hudCsi").textContent = res.csi[step].toFixed(3);
+    document.getElementById("hudExt").textContent = res.extractedHist[step].toFixed(2);
+    document.getElementById("hudQuar").textContent = res.quarCount[step] + " (TP " + res.tp + "/" + res.totalChaos + " · FP " + res.fp + ")";
+    const detSel = document.getElementById("detModeSel");
+    document.getElementById("hudDet").textContent = detSel ? detSel.options[detSel.selectedIndex].text : "H-KALKAN v2";
+    const redPct = lastPhysics.naiveBypassCount > 0 ? Math.round(((lastPhysics.naiveBypassCount - lastPhysics.bypassCount) / lastPhysics.naiveBypassCount) * 100) : 0;
+    document.getElementById("hudBypass").textContent = lastPhysics.thruL0 + " / " + lastPhysics.bypassCount + " (-%" + redPct + ")";
+    document.getElementById("hudTension").textContent = "-" + lastPhysics.catenoidReductionPct.toFixed(1) + "%";
+    document.getElementById("hudPinch").textContent = rsNow.toFixed(2) + " (%" + Math.round(pinchPressure * 100) + ")";
+    document.getElementById("hudMs").textContent = currentRuns.student ? currentRuns.student.inferMs.toFixed(2) + " ms" : "0.00 ms";
+    document.getElementById("stepTxt").textContent = String(step);
+    document.getElementById("stepSlider").value = String(step);
+
+    updateInspector(run, step, snap, dMap, geom.layerOf);
+  }
+
+  function updateInspector(run, step, snap, dMap, layerOf) {
+    const id = pinnedId !== null ? pinnedId : hoveredId;
+    const el = document.getElementById("inspector");
+    if (id === null || id < 0 || id >= run.res.degrees.length) {
+      el.innerHTML =
+        '<div style="font-weight:700;color:#e0f2fe;margin-bottom:4px;">Düğüm İnceleyici</div>' +
+        '<div style="color:var(--mut);line-height:1.45;">Fareyle bir kürenin üzerine gel veya tıkla; 1-atlamalı 3B bağlantıları ve canlı <i>d(t)</i> değerini gör. Sürükle: döndür · Tekerlek: zoom.</div>';
+      return;
+    }
+    const res = run.res;
+    const alive = snap.alive[id] === 1;
+    const quar = snap.quarantined[id] === 1;
+    const chaos = res.isChaos[id] === 1;
+    const pt = snap.ptype[id];
+    const pkey = pt ? E.PKEY[pt] : null;
+    const pinfo = pkey ? E.PARTICLE_INFO[pkey] : null;
+    const isScout = (activeCtrlKey === "student" || activeCtrlKey === "kovan_v2") && run.scoutIds.includes(id);
+
+    const roleStr = !chaos
+      ? "Sağlıklı Düğüm"
+      : (pinfo ? pinfo.name + " (" + pinfo.sym + ")" : "Parazit") + (isScout ? " · Öncü" : " · Sürü");
+    const statusStr = !alive ? "Çöktü" : quar ? "Karantinada" : "Aktif";
+    const statusCol = !alive ? "#94a3b8" : quar ? "#c084fc" : "#34d399";
+    const agIdx = res.agents.indexOf(id);
+    const stolenFinal = agIdx !== -1 ? res.stolenByAgent[agIdx].toFixed(2) : "—";
+    const dNow = chaos && Number.isFinite(dMap[id]) ? dMap[id].toFixed(3) : "—";
+
+    el.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+      '<b style="color:#e0f2fe;">Düğüm #' + id + ' (L' + layerOf[id] + ')</b>' +
+      '<span style="color:' + statusCol + ';font-weight:700;font-size:11px;">' + statusStr + '</span></div>' +
+      '<div class="hud-grid">' +
+      '<span class="hud-k">Rol</span><span class="hud-v">' + roleStr + '</span>' +
+      '<span class="hud-k">Derece (k)</span><span class="hud-v">' + res.degrees[id] + '</span>' +
+      '<span class="hud-k">Stres(t=' + step + ')</span><span class="hud-v">' + snap.stress[id].toFixed(3) + '</span>' +
+      '<span class="hud-k">Canlı d(t)</span><span class="hud-v">' + dNow + '</span>' +
+      '<span class="hud-k">Toplam Çalınan</span><span class="hud-v">' + stolenFinal + '</span>' +
+      '</div>' +
+      (pinnedId !== null ? '<div style="margin-top:6px;font-size:11px;color:var(--acc);">Sabitlendi (kaldırmak için boşluğa tıkla)</div>' : '');
+  }
+
+  function drawChart() {
+    const cv = document.getElementById("chart");
+    const ctx = cv.getContext("2d");
+    const W = cv.width, H = cv.height, pad = 28;
+    ctx.clearRect(0, 0, W, H);
+    const keys = ["student", "kovan_v2", "rule", "greedy", "oracle"];
+    const series = keys.map(k => currentRuns[k]).filter(Boolean);
+    if (!series.length) return;
+
+    const maxY = Math.max(10, ...series.flatMap(s => Array.from(s.res.extractedHist)));
+    const steps = series[0].res.steps;
+
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = pad + (H - 2 * pad) * (i / 4);
+      ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(W - pad, y); ctx.stroke();
+    }
+
+    for (const s of series) {
+      const isAct = s.key === activeCtrlKey;
+      ctx.save();
+      ctx.strokeStyle = CTRL_COLORS[s.key];
+      ctx.lineWidth = isAct ? 3.2 : 1.7;
+      ctx.globalAlpha = isAct ? 1.0 : 0.62;
+      ctx.beginPath();
+      for (let t = 0; t < s.res.extractedHist.length; t++) {
+        const x = pad + (W - 2 * pad) * (t / Math.max(1, steps - 1));
+        const y = H - pad - (H - 2 * pad) * (s.res.extractedHist[t] / maxY);
+        if (t === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Playhead synced to 3D frame step
+    const px = pad + (W - 2 * pad) * (currentStep / Math.max(1, steps - 1));
+    ctx.save();
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.85)";
+    ctx.lineWidth = 1.6;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.moveTo(px, pad - 4);
+    ctx.lineTo(px, H - pad + 4);
+    ctx.stroke();
+    ctx.restore();
+
+    let lx = pad;
+    for (const s of series) {
+      ctx.fillStyle = CTRL_COLORS[s.key];
+      ctx.fillRect(lx, 8, 10, 8);
+      ctx.fillStyle = s.key === activeCtrlKey ? "#f8fafc" : "#94a3c7";
+      ctx.font = (s.key === activeCtrlKey ? "bold " : "") + "11px system-ui";
+      const lbl = s.key === "kovan_v2" ? "KOVAN-V2" : s.key === "student" ? "Öğrenci" : s.key === "rule" ? "KURAL" : s.key === "greedy" ? "Açgözlü" : "Kâhin";
+      ctx.fillText(lbl, lx + 14, 15);
+      lx += 92;
+    }
+  }
+
+  function renderKpis() {
+    const keys = ["student", "kovan_v2", "rule", "greedy"];
+    document.getElementById("kpiRow").innerHTML = keys.map(k => {
+      const s = currentRuns[k];
+      return '<div class="card"><label>' + s.label + '</label>' +
+        '<div class="kpi" style="color:' + CTRL_COLORS[k] + '">' + s.res.extracted.toFixed(1) + '</div>' +
+        '<div class="sub" style="margin:0">TP ' + s.res.tp + '/' + s.res.totalChaos + ' · CSI ' + s.res.csi[s.res.steps - 1].toFixed(3) + '</div></div>';
+    }).join("");
+  }
+
+  function runAll() {
+    const cfg = getBaseConfig();
+    const st = runStudentSim(cfg);
+    const kv = runKovanV2Sim(cfg);
+    const ru = runRuleSim(cfg);
+    const gr = runFixedSim(cfg, "greedy", 0.8);
+    const orD = cfg.quarantine_sensitivity >= 0.7 ? 0.2 : 0.3;
+    const or = runFixedSim(cfg, "oracle", orD);
+
+    currentRuns = { student: st, kovan_v2: kv, rule: ru, greedy: gr, oracle: or };
+    const refRes = st.res;
+    layoutCache = {
+      wormhole: compute3dPositions(refRes, "wormhole", cfg.seed),
+      tower: compute3dPositions(refRes, "tower", cfg.seed),
+      atom: compute3dPositions(refRes, "atom", cfg.seed),
+      force: compute3dPositions(refRes, "force", cfg.seed)
+    };
+    document.getElementById("timeTag").textContent = "Öğrenci Süre: " + st.inferMs.toFixed(2) + " ms (0 GPU)";
+    document.getElementById("stepSlider").max = String(refRes.steps - 1);
+    currentStep = 0;
+    stepAccumulator = 0;
+    hoveredId = null;
+    pinnedId = null;
+    renderKpis();
+    render3dFrame();
+    drawChart();
+  }
+
+  // Controls & Interaction
+  document.getElementById("runBtn").addEventListener("click", runAll);
+  ["sigmaSel", "detModeSel", "topoSel", "partSel", "quarChk"].forEach(id => {
+    document.getElementById(id).addEventListener("change", runAll);
+  });
+
+  document.querySelectorAll("#ctrlTabs .pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeCtrlKey = btn.dataset.ctrl;
+      document.querySelectorAll("#ctrlTabs .pill").forEach(b => b.classList.toggle("active", b === btn));
+      render3dFrame();
+      drawChart();
+    });
+  });
+
+  document.querySelectorAll("#layoutBtns .pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      layoutMode = btn.dataset.layout;
+      document.querySelectorAll("#layoutBtns .pill").forEach(b => b.classList.toggle("active", b === btn));
+      render3dFrame();
+    });
+  });
+
+  document.querySelectorAll("[data-cam]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const m = btn.dataset.cam;
+      if (m === "top") { cam.targetPitch = 1.32; cam.targetDist = 6.3; }
+      else if (m === "side") { cam.targetPitch = 0.05; cam.targetDist = 6.2; }
+      else if (m === "iso") { cam.targetYaw = 0.72; cam.targetPitch = 0.42; cam.targetDist = 6.4; }
+      else { cam.targetYaw = 0.65; cam.targetPitch = 0.22; cam.targetDist = 7.4; cam.autoOrbit = true; document.getElementById("orbitBtn").classList.add("active"); }
+    });
+  });
+
+  document.getElementById("orbitBtn").addEventListener("click", function () {
+    cam.autoOrbit = !cam.autoOrbit;
+    this.classList.toggle("active", cam.autoOrbit);
+  });
+
+  document.querySelectorAll("#surfaceBtns .pill").forEach(btn => {
+    btn.addEventListener("click", () => {
+      surfaceProfile = btn.dataset.surface;
+      document.querySelectorAll("#surfaceBtns .pill").forEach(b => b.classList.toggle("active", b === btn));
+      if (layoutMode !== "wormhole") {
+        layoutMode = "wormhole";
+        document.querySelectorAll("#layoutBtns .pill").forEach(b => b.classList.toggle("active", b.dataset.layout === "wormhole"));
+      }
+      render3dFrame();
+    });
+  });
+
+  document.getElementById("pinchBtn").addEventListener("click", function () {
+    pinchDeSitterOn = !pinchDeSitterOn;
+    this.classList.toggle("active", pinchDeSitterOn);
+    render3dFrame();
+  });
+
+  document.getElementById("helixBtn").addEventListener("click", function () {
+    ruledHelixOn = !ruledHelixOn;
+    this.classList.toggle("active", ruledHelixOn);
+    render3dFrame();
+  });
+
+  document.getElementById("bypassBtn").addEventListener("click", function () {
+    bypassOn = !bypassOn;
+    this.classList.toggle("active", bypassOn);
+    render3dFrame();
+  });
+
+  document.getElementById("playBtn").addEventListener("click", function () {
+    isPlaying = !isPlaying;
+    this.textContent = isPlaying ? "⏸ Duraklat" : "▶ Oynat";
+  });
+
+  document.getElementById("speedSel").addEventListener("change", function () {
+    playSpeed = Number(this.value) || 1.0;
+  });
+
+  document.getElementById("stepSlider").addEventListener("input", function () {
+    currentStep = Number(this.value) || 0;
+    render3dFrame();
+    drawChart();
+  });
+
+  // Chart scrubbing
+  const chartEl = document.getElementById("chart");
+  let chartDragging = false;
+  function seekChart(ev) {
+    const run = currentRuns[activeCtrlKey];
+    if (!run) return;
+    const rect = chartEl.getBoundingClientRect();
+    const padRatio = 28 / chartEl.width;
+    const u = Math.max(0, Math.min(1, ((ev.clientX - rect.left) / rect.width - padRatio) / (1 - 2 * padRatio)));
+    currentStep = Math.round(u * (run.res.steps - 1));
+    render3dFrame();
+    drawChart();
+  }
+  chartEl.addEventListener("pointerdown", e => { chartDragging = true; seekChart(e); });
+  window.addEventListener("pointermove", e => { if (chartDragging) seekChart(e); });
+  window.addEventListener("pointerup", () => { chartDragging = false; });
+
+  // 3D Orbit + Picking
+  function hitTest(clientX, clientY) {
+    const rect = sceneCanvas.getBoundingClientRect();
+    const dpr = sceneCanvas.width / Math.max(1, rect.width);
+    const x = (clientX - rect.left) * dpr;
+    const y = (clientY - rect.top) * dpr;
+    for (const p of lastProjected) {
+      const dx = x - p.sx, dy = y - p.sy;
+      if (dx * dx + dy * dy <= (p.r + 5 * dpr) ** 2) return p.id;
+    }
+    return null;
+  }
+
+  sceneCanvas.addEventListener("pointerdown", e => {
+    cam.dragging = true;
+    cam.moved = false;
+    cam.lastX = e.clientX;
+    cam.lastY = e.clientY;
+    sceneCanvas.setPointerCapture(e.pointerId);
+  });
+  sceneCanvas.addEventListener("pointermove", e => {
+    if (cam.dragging) {
+      const dx = e.clientX - cam.lastX;
+      const dy = e.clientY - cam.lastY;
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) cam.moved = true;
+      cam.targetYaw += dx * 0.0085;
+      cam.targetPitch = Math.max(-1.42, Math.min(1.42, cam.targetPitch + dy * 0.0085));
+      cam.lastX = e.clientX;
+      cam.lastY = e.clientY;
+    } else {
+      pointerX = e.clientX;
+      pointerY = e.clientY;
+      hoveredId = hitTest(pointerX, pointerY);
+    }
+  });
+  sceneCanvas.addEventListener("pointerup", e => {
+    if (cam.dragging && !cam.moved) {
+      const picked = hitTest(e.clientX, e.clientY);
+      pinnedId = picked === pinnedId ? null : picked;
+    }
+    cam.dragging = false;
+  });
+  sceneCanvas.addEventListener("wheel", e => {
+    e.preventDefault();
+    cam.targetDist = Math.max(3.1, Math.min(12.0, cam.targetDist + e.deltaY * 0.004));
+  }, { passive: false });
+
+  // Populate static validation tables
+  const tbody = document.querySelector("#evalTbl tbody");
+  for (const s of [EVAL_SUMMARY.lax, EVAL_SUMMARY.primary, EVAL_SUMMARY.strict]) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + s.sensitivity + "</td>" +
+      "<td><b>" + s.means.student.mean.toFixed(2) + "±" + s.means.student.se.toFixed(2) + "</b> (%" + (s.tp.student * 100).toFixed(0) + ")</td>" +
+      "<td>" + s.means.teacher.mean.toFixed(2) + "±" + s.means.teacher.se.toFixed(2) + " (%" + (s.tp.teacher * 100).toFixed(0) + ")</td>" +
+      "<td>" + s.means.rule.mean.toFixed(2) + "±" + s.means.rule.se.toFixed(2) + "</td>" +
+      "<td>" + s.means.greedy.mean.toFixed(2) + "±" + s.means.greedy.se.toFixed(2) + "</td>" +
+      "<td>" + s.means.oracle.mean.toFixed(2) + " (d=" + s.means.oracle.d + ")</td>" +
+      "<td><b>" + (s.ratios.vsTeacher * 100).toFixed(1) + "%</b></td>";
+    tbody.appendChild(tr);
+  }
+
+  const kBody = document.querySelector("#kalkanTbl tbody");
+  if (kBody && Array.isArray(KALKAN_SUMMARY.clusters)) {
+    for (const c of KALKAN_SUMMARY.clusters) {
+      const tr = document.createElement("tr");
+      const cells = [
+        String(c.sensitivity) + " (" + c.name + ")",
+        c.baseline.kv2.mean.toFixed(2) + " / " + c.baseline.stu.mean.toFixed(2),
+        c.kalkan_full.kv2.mean.toFixed(2) + " / " + c.kalkan_full.stu.mean.toFixed(2),
+        c.kalkan_v2.kv2.mean.toFixed(2) + "±" + c.kalkan_v2.kv2.se.toFixed(2) + " (%" + (c.kalkan_v2.kv2Tp * 100).toFixed(1) + ")",
+        c.kalkan_v2.stu.mean.toFixed(2) + "±" + c.kalkan_v2.stu.se.toFixed(2) + " (%" + (c.kalkan_v2.stuTp * 100).toFixed(1) + ")",
+        "%" + (c.kalkan_v2.cleanFp * 100).toFixed(1),
+        "-%" + ((1 - c.reductions.kv2Ratio) * 100).toFixed(1) + " / -%" + ((1 - c.reductions.stuRatio) * 100).toFixed(1),
+      ];
+      cells.forEach((val, idx) => {
+        const td = document.createElement("td");
+        if (idx === 3 || idx === 4 || idx === 6) {
+          const b = document.createElement("b");
+          b.textContent = val;
+          td.appendChild(b);
+        } else {
+          td.textContent = val;
+        }
+        tr.appendChild(td);
+      });
+      kBody.appendChild(tr);
+    }
+  }
+
+  document.getElementById("g3bModelName").textContent = GOLIATH3B_SUMMARY.model;
+  document.getElementById("g3bReplay").textContent = GOLIATH3B_SUMMARY.replay.ok + "/" + GOLIATH3B_SUMMARY.replay.total;
+  document.getElementById("g3bCloud").textContent = GOLIATH3B_SUMMARY.stats.cloudAtom120bRef.mean.toFixed(2);
+  document.getElementById("g3bGrid").innerHTML = [
+    { k: "GOLIATH-3B FLAT", v: GOLIATH3B_SUMMARY.stats.goliath3bFlat.mean.toFixed(2) + " ± " + GOLIATH3B_SUMMARY.stats.goliath3bFlat.se.toFixed(2), sub: "TP %" + (GOLIATH3B_SUMMARY.tp.goliath3bFlat * 100).toFixed(1) + " · " + GOLIATH3B_SUMMARY.callStats.goliath3bFlat.avgMs + "ms", col: "#34d399" },
+    { k: "GOLIATH-3B + KOVAN", v: GOLIATH3B_SUMMARY.stats.goliath3bKovan.mean.toFixed(2) + " ± " + GOLIATH3B_SUMMARY.stats.goliath3bKovan.se.toFixed(2), sub: "TP %" + (GOLIATH3B_SUMMARY.tp.goliath3bKovan * 100).toFixed(1) + " · " + GOLIATH3B_SUMMARY.callStats.goliath3bKovan.avgMs + "ms", col: "#a78bfa" },
+    { k: "Ham 3B Önceki (Flat)", v: GOLIATH3B_SUMMARY.stats.homunculusFlatRef.mean.toFixed(2) + " ± " + GOLIATH3B_SUMMARY.stats.homunculusFlatRef.se.toFixed(2), sub: "TP %" + (GOLIATH3B_SUMMARY.tp.homunculusFlatRef * 100).toFixed(1), col: "#94a3c7" },
+    { k: "KOVAN-V2 (Tam)", v: GOLIATH3B_SUMMARY.stats.kovanV2.mean.toFixed(2) + " ± " + GOLIATH3B_SUMMARY.stats.kovanV2.se.toFixed(2), sub: "TP %" + (GOLIATH3B_SUMMARY.tp.kovanV2 * 100).toFixed(1), col: "#38bdf8" }
+  ].map(c => '<div class="mini-box"><span style="font-size:11px;color:var(--mut)">' + c.k + '</span><b style="color:' + c.col + '">' + c.v + '</b><span style="font-size:11px;color:var(--mut)">' + c.sub + '</span></div>').join("");
+
+  // Expose tiny debug hook for automated verification without polluting UI
+  window.Goliath3D = {
+    getState: () => ({ activeCtrlKey, layoutMode, surfaceProfile, pinchDeSitterOn, ruledHelixOn, bypassOn, currentStep, cam: { ...cam } }),
+    getPhysics: () => ({ ...lastPhysics }),
+    getRuns: () => currentRuns
+  };
+
+  function tick(ts) {
+    const dt = lastFrameTs ? Math.min(0.08, (ts - lastFrameTs) / 1000) : 0.016;
+    lastFrameTs = ts;
+    animTime += dt;
+
+    if (cam.autoOrbit && !cam.dragging) {
+      cam.targetYaw += dt * 0.24;
+    }
+    cam.yaw += (cam.targetYaw - cam.yaw) * 0.16;
+    cam.pitch += (cam.targetPitch - cam.pitch) * 0.16;
+    cam.dist += (cam.targetDist - cam.dist) * 0.16;
+
+    const run = currentRuns[activeCtrlKey];
+    if (run && isPlaying && !chartDragging) {
+      stepAccumulator += dt * 6.5 * playSpeed;
+      if (stepAccumulator >= 1) {
+        const adv = Math.floor(stepAccumulator);
+        stepAccumulator -= adv;
+        currentStep = (currentStep + adv) % run.res.steps;
+        drawChart();
+      }
+    }
+
+    render3dFrame();
+    requestAnimationFrame(tick);
+  }
+
+  runAll();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

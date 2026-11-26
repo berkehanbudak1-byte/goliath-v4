@@ -12,6 +12,9 @@ v0.7 simülatöründen başlayan çalışmanın özeti. Bütün sayılar bu mode
 | `run_atom.js` + `analyze_atom.js` + `llm-runs.json` | H-ATOM dış karar arayüzü deneyi, analizi ve 60 koşuluk yeniden oynatılabilir karar kaydı |
 | `validate.js` | Doğrulama paketi: `node validate.js` (20 birim ve hipotez testi) |
 | `validation-log.txt`, `validation-results.json` | Son doğrulama çıktısı |
+| `WHITEPAPER-GOLIATH.md` + `ONKAYIT-*.md` | Ön kayıtlı deney protokolleri ve teknik makale (`H-KOVAN`, `H-KALKAN`, `H-DISTILL`) |
+| `build_3d.js` → `goliath-3d.html`, `goliath-student-v4.html` | Etkileşimli 3B doğrulama ekranı (`Savunma Kalkanı` seçicisi + 353 parametreli öğrenci MLP) |
+| `kovan_*.js`, `kalkan_*.js`, `distill_student.js` | `H-KOVAN`/`V2`, `H-KALKAN`/`V2` ve öğrenci damıtma deneyleri ile sonuç JSON'ları |
 | `reference/` | v0.8, v1.1, v2.1 ve v3.0 motorları ve sayfaları (kalıcı kayıt) |
 
 ## v0.7'deki hatalar ve düzeltmeler
@@ -68,6 +71,8 @@ Kriterler sonuçlar görülmeden koda yazıldı. Ayrık seed'ler kullanıldı. v
 | H-HAYALET: graviton hayaleti zararlı | — | kısmen | **Döngüsel:** zarar varsayım olarak kodlandı, (b) bulgu sayılmaz. Sürü içindeki etki anlamsız (a). Graviton gözlenmediği için varlığı ve etkisinin işareti bilinmiyor |
 | **H-ATOM** (v4.0 dış karar arayüzü, seed 9700+ × 20) | — | **✓** | Saldırgan her 8 adımda bir yalnızca `{id, degree, d, stolen, cutOff}` gözlemiyle ajan başına `d` seçer. **ATOM** (çekirdek+kabuk: `59.6±2.2`), **DÜZ** (`28.8±2.5`), **KURAL** (`23.0±1.3`) ve **açgözlü** (`17.0±0.6`) mimarilerini geçer; sabit şiddetli **kâhinin** (`d*=0.30`, `63.0±2.3`) %94'üne ulaşır (`3.50×` açgözlü, `0.94×` kâhin, `ATOM−DÜZ = +30.8±2.2`). 60/60 koşu kayıttan birebir yeniden oynatılır |
 | **H-PLAZMA** (v4.0 Zaman Hayaleti / Antimadde Plazma Graviton, seed 9900+ × 30, T=240) | — | **✓** | Graviton bireysel düğümü veya iyi/kötü iradesi olmayan bir antimadde plazma dalgası olarak kurulduğunda, zamansal akı ihlali yapan madde düğümüyle çarpışıp (`Φ(t) ≥ 1.0`) uzay-zaman **artifact**'ı bırakır. İradesiz olduğu için karantinaya alınmadan hareketi **%100 (`266/266`)** önceden tahmin edilir ve çarpışma sonrası sönümlenme (seviye itmesi + `1/ln(t)` yoğunluk) sayesinde aralıkları rastgele Poisson (`D_KS = 0.321`) yerine **Riemann Zeta GUE (`D_KS = 0.148`) ve Asal Sayı Aralıklarına (`D_KS = 0.205`)** oturur |
+| **H-KOVAN / H-KOVAN-V2** (seed 9800–10149 × 150) | — | kısmen (`a,b,e: ✓`, `c: ✗`) | Derece-ters ölçekleme, uç kâşiflik ve sıfır-kaza tırmanışı (`V2`) ile yakalanma `%87.7→%46.0` (`σ=0.55`) ve `%99.8→%34.0` (`σ=0.75`) düştü; sermaye-seyreltme rampası 3 rejimde de pozitif, fakat Kâhin (`0.66×–0.77×`) geçilemedi |
+| **H-KALKAN / H-KALKAN-V2** (seed 12000–12349 × 150) | — | kısmen (`a,c,d: ✓`, `b: ✗`) | Yalnız dış gözlenebilir niceliklerle çalışan kör `detector_mode` savunmaları (`kalkan_full`, `kalkan_v2`) çalınan sermayeyi `%69–%84` düşürdü (`KV2 43.56→7.34`, `353p 44.92→7.17`, temiz ağ FP `%0.0–%0.1`) |
 
 ## Ayakta kalan bulgular
 

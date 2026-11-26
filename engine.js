@@ -101,6 +101,7 @@ function defaultConfig(overrides = {}) {
     double_helix: true,
     quarantine_enabled: true,
     quarantine_sensitivity: 0.55,
+    detector_mode: 'baseline',
     contagion_rate: 0.24,
     buffer_share: 0.18,
     sigma_balance: 0.55,
@@ -132,6 +133,28 @@ function defaultConfig(overrides = {}) {
 // Düğümün kaos ajanı olup olmadığı bilgisi bu fonksiyonlara hiç ulaşmaz.
 function detectorSignal(stress, relGain, noise) {
   return 0.55 * stress + 2.0 * Math.max(0, relGain) + noise;
+}
+function detectorSignalByMode(mode, stress, cap, capPrev, cap0, degree, noise) {
+  if (!mode || mode === 'baseline') {
+    const relGain = (cap - capPrev) / Math.max(capPrev, 0.1);
+    return detectorSignal(stress, relGain, noise);
+  }
+  const gain = Math.max(0, cap - capPrev);
+  const absRelGain = gain / Math.max(cap0, 0.5);
+  const degGain = gain / Math.max(1.0, 0.35 * degree + 0.65);
+  const excess = Math.max(0, (cap - cap0) / Math.max(cap0, 0.5));
+  if (mode === 'kalkan_abs') return 0.55 * stress + 2.0 * absRelGain + noise;
+  if (mode === 'kalkan_deg') return 0.55 * stress + 1.5 * absRelGain + 1.4 * degGain + noise;
+  if (mode === 'kalkan_drift') return 0.55 * stress + 2.0 * absRelGain + 0.35 * excess + noise;
+  if (mode === 'kalkan_full') return 0.55 * stress + 1.4 * absRelGain + 1.2 * degGain + 0.38 * excess + noise;
+  if (mode === 'kalkan_v2') {
+    const degNorm = 1.0 / Math.max(0.5, 0.30 * degree + 0.55);
+    const degGainV2 = gain * degNorm;
+    const degExcess = excess * Math.min(1.85, 0.85 + 1.4 / Math.max(1, degree));
+    return 0.55 * stress + 1.4 * absRelGain + 1.3 * degGainV2 + 0.68 * degExcess + noise;
+  }
+  const relGain = (cap - capPrev) / Math.max(capPrev, 0.1);
+  return detectorSignal(stress, relGain, noise);
 }
 function detectorThreshold(sensitivity) {
   return 0.71 - 0.525 * sensitivity;
@@ -925,7 +948,9 @@ class GoliathSim {
     } else if (cmd.d && typeof cmd.d === 'object') {
       for (const i of this.agents) {
         if (cmd.d[i] !== undefined) {
-          const v = Math.max(0, Math.min(1, Number(cmd.d[i])));
+          const nVal = Number(cmd.d[i]);
+          if (!Number.isFinite(nVal)) continue;
+          const v = Math.max(0, Math.min(1, nVal));
           this.agentD[i] = v;
           this.agentDq[i] = quantize(v, h);
         }
@@ -1062,10 +1087,12 @@ class GoliathSim {
       for (let i = 0; i < n; i++) detNoise[i] = this.detRng.normal(0, c.detector_noise);
       if (c.quarantine_enabled && t >= c.warmup) {
         const threshold = detectorThreshold(c.quarantine_sensitivity);
+        const detMode = c.detector_mode || 'baseline';
         for (let i = 0; i < n; i++) {
           if (!this._active(i)) continue;
-          const relGain = (this.capital[i] - capPrev[i]) / Math.max(capPrev[i], 0.1);
-          const signal = detectorSignal(this.stress[i], relGain, detNoise[i]);
+          const signal = detMode === 'baseline'
+            ? detectorSignal(this.stress[i], (this.capital[i] - capPrev[i]) / Math.max(capPrev[i], 0.1), detNoise[i])
+            : detectorSignalByMode(detMode, this.stress[i], this.capital[i], capPrev[i], this.cap0[i], this.degrees[i], detNoise[i]);
           this.anomalyScore[i] = 0.65 * this.anomalyScore[i] + 0.35 * signal;
           if (this.anomalyScore[i] > threshold) {
             this.quarantined[i] = 1;
@@ -1077,9 +1104,12 @@ class GoliathSim {
       // 4b) Ölçüm aletleri: gürültüsüz gözlenebilir sinyal kaydı ve Rutherford sondaları
       if (c.instruments) {
         const sig = new Float64Array(n).fill(NaN);
+        const detMode = c.detector_mode || 'baseline';
         for (let i = 0; i < n; i++) {
           if (!this._active(i)) continue;
-          sig[i] = detectorSignal(this.stress[i], (this.capital[i] - capPrev[i]) / Math.max(capPrev[i], 0.1), 0);
+          sig[i] = detMode === 'baseline'
+            ? detectorSignal(this.stress[i], (this.capital[i] - capPrev[i]) / Math.max(capPrev[i], 0.1), 0)
+            : detectorSignalByMode(detMode, this.stress[i], this.capital[i], capPrev[i], this.cap0[i], this.degrees[i], 0);
         }
         this.sigHist.set(sig, t * n);
         if (t >= c.warmup) this._rutherfordStep(sig);
@@ -1186,6 +1216,7 @@ class GoliathSim {
       ghosts: this.ghosts, ghostHarm: this.ghostHarm, ghostEdges: this.ghostEdges, gravEdgeList: this.gravEdgeList.slice(),
       ghostRelief: this.ghostRelief, gExists: this.ghostActive, gKappa: this.ghostKappa,
       meanSig: this.meanSig,
+      agentD: Array.from(this.agents, i => this.agentD[i]), stolenByAgent: Array.from(this.agents, i => this.stolen[i]),
       ligo: { events: this.ligoEvents.length, rich: this.ligoEvents.filter(e => e.rich).length, list: this.ligoEvents.slice() },
       conversions: this.conversions, gravEdges: this.gravEdges, laundered: this.laundered,
       topology: c.topology, steps: T, snapshots,
@@ -1812,7 +1843,7 @@ function runPlasmaWraithExperiment(base, opts) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    SeededRNG, GoliathSim, defaultConfig, detectorSignal, detectorThreshold,
+    SeededRNG, GoliathSim, defaultConfig, detectorSignal, detectorSignalByMode, detectorThreshold,
     P, PKEY, SM_ORDER, PARTICLE_INFO, assignParticles, QUARK, FERMION, BOSON_ROLES,
     BOSON_KEYS, smPattern, quantumExperiment, runQuantumExperiment,
     PRR_DRAINS, PRR_H, PRR_AMPS, prrExperiment, runPrrExperiment, kekExperiment, runKekExperiment, clusterExperiment, runClusterExperiment, median, precisionAtK,
