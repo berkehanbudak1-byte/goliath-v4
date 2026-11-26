@@ -134,7 +134,18 @@ function defaultConfig(overrides = {}) {
 function detectorSignal(stress, relGain, noise) {
   return 0.55 * stress + 2.0 * Math.max(0, relGain) + noise;
 }
-function detectorSignalByMode(mode, stress, cap, capPrev, cap0, degree, noise) {
+function updateDetectorPersist(prevPersist, stress, cap, capPrev, cap0) {
+  const gain = Math.max(0, cap - capPrev);
+  const absRelGain = gain / Math.max(cap0, 0.5);
+  if (gain > 0.005 && cap > cap0 * 1.01 && stress > 0.035) {
+    return Math.min(2.0, prevPersist + 0.09 + 1.8 * absRelGain);
+  }
+  if (cap > cap0 * 1.22) {
+    return Math.min(2.0, prevPersist + 0.06);
+  }
+  return prevPersist * 0.72;
+}
+function detectorSignalByMode(mode, stress, cap, capPrev, cap0, degree, noise, persist = 0) {
   if (!mode || mode === 'baseline') {
     const relGain = (cap - capPrev) / Math.max(capPrev, 0.1);
     return detectorSignal(stress, relGain, noise);
@@ -152,6 +163,16 @@ function detectorSignalByMode(mode, stress, cap, capPrev, cap0, degree, noise) {
     const degGainV2 = gain * degNorm;
     const degExcess = excess * Math.min(1.85, 0.85 + 1.4 / Math.max(1, degree));
     return 0.55 * stress + 1.4 * absRelGain + 1.3 * degGainV2 + 0.68 * degExcess + noise;
+  }
+  if (mode === 'kalkan_v3') {
+    const degNorm = 1.0 / Math.max(0.5, 0.30 * degree + 0.55);
+    const degGainV3 = gain * degNorm;
+    const activeAccum = gain > 0.005 && cap > cap0 * 1.01;
+    const degExcess = (activeAccum || excess > 0.20)
+      ? excess * Math.min(1.85, 0.85 + 1.4 / Math.max(1, degree))
+      : 0;
+    const stressTerm = (gain > 0.002 ? 0.55 : 0.35) * stress;
+    return stressTerm + 1.4 * absRelGain + 1.3 * degGainV3 + 0.65 * degExcess + 0.52 * (persist || 0) + noise;
   }
   const relGain = (cap - capPrev) / Math.max(capPrev, 0.1);
   return detectorSignal(stress, relGain, noise);
@@ -971,6 +992,7 @@ class GoliathSim {
     const extractedHist = new Float64Array(T);
     const snapshots = c.recordSnapshots ? [] : null;
     let extracted = 0;
+    const detPersist = new Float64Array(n);
     if (c.instruments) {
       this.sigHist = new Float64Array(T * n).fill(NaN);
       this.rHist = new Float64Array(R_BINS);
@@ -1090,9 +1112,12 @@ class GoliathSim {
         const detMode = c.detector_mode || 'baseline';
         for (let i = 0; i < n; i++) {
           if (!this._active(i)) continue;
+          if (detMode === 'kalkan_v3') {
+            detPersist[i] = updateDetectorPersist(detPersist[i], this.stress[i], this.capital[i], capPrev[i], this.cap0[i]);
+          }
           const signal = detMode === 'baseline'
             ? detectorSignal(this.stress[i], (this.capital[i] - capPrev[i]) / Math.max(capPrev[i], 0.1), detNoise[i])
-            : detectorSignalByMode(detMode, this.stress[i], this.capital[i], capPrev[i], this.cap0[i], this.degrees[i], detNoise[i]);
+            : detectorSignalByMode(detMode, this.stress[i], this.capital[i], capPrev[i], this.cap0[i], this.degrees[i], detNoise[i], detPersist[i]);
           this.anomalyScore[i] = 0.65 * this.anomalyScore[i] + 0.35 * signal;
           if (this.anomalyScore[i] > threshold) {
             this.quarantined[i] = 1;
@@ -1109,7 +1134,7 @@ class GoliathSim {
           if (!this._active(i)) continue;
           sig[i] = detMode === 'baseline'
             ? detectorSignal(this.stress[i], (this.capital[i] - capPrev[i]) / Math.max(capPrev[i], 0.1), 0)
-            : detectorSignalByMode(detMode, this.stress[i], this.capital[i], capPrev[i], this.cap0[i], this.degrees[i], 0);
+            : detectorSignalByMode(detMode, this.stress[i], this.capital[i], capPrev[i], this.cap0[i], this.degrees[i], 0, detPersist[i]);
         }
         this.sigHist.set(sig, t * n);
         if (t >= c.warmup) this._rutherfordStep(sig);
@@ -1843,7 +1868,7 @@ function runPlasmaWraithExperiment(base, opts) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    SeededRNG, GoliathSim, defaultConfig, detectorSignal, detectorSignalByMode, detectorThreshold,
+    SeededRNG, GoliathSim, defaultConfig, detectorSignal, detectorSignalByMode, updateDetectorPersist, detectorThreshold,
     P, PKEY, SM_ORDER, PARTICLE_INFO, assignParticles, QUARK, FERMION, BOSON_ROLES,
     BOSON_KEYS, smPattern, quantumExperiment, runQuantumExperiment,
     PRR_DRAINS, PRR_H, PRR_AMPS, prrExperiment, runPrrExperiment, kekExperiment, runKekExperiment, clusterExperiment, runClusterExperiment, median, precisionAtK,

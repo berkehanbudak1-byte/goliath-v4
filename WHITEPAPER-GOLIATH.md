@@ -168,6 +168,21 @@ Bu bulgular savunma tarafı için doğrudan iki somut dedektör düzeltmesi öne
 - **`a: ✓`, `c: ✓`, `d: ✓`:** `kalkan_v2`, üç hassasiyetin tamamında çalınan sermayeyi **`%82.5–%84.0`** oranında kesti (yalnız `%16.0–%17.5` kaldı) ve temiz ağlarda **`%0.0 / %0.0 / %0.1`** FP korudu (birincilde saldırı FP `%0.4/%0.5`, sıkıda saldırı stresi altında `%7.7/%7.8`).
 - **`b: ✗` (`>= %90 TP`):** Birincilde `%83.8` (`KOVAN-V2`) ve `%85.2` (`353p`) elde edildi; `kalkan_v2` agresif saldırıyı `7.17–7.34` tabanına sıkıştırdığı için kalan son 1–2 ultra-düşük akılı ajan çok düşük hasarla eşik altında kalabilmektedir.
 
+### 5.3 H-KALKAN-V3: Israrlı Kalıcılık Drift Sınaması ve Otofaji Çürütmesi (`12400–12549`, 450/450 Replay)
+
+`ONKAYIT-H-KALKAN-V3.md` kapsamında `detPersist[i]` kör kalıcılık durumu (`kalkan_v3`), hiç kullanılmamış **150 yeni ayrık seed (`12400–12549`, `450/450` birebir replay)** üzerinde sınanmıştır (`kalkan_v3_experiment.js`, `kalkan-v3-results.json`):
+
+| Küme ($\sigma$, Seed) | Kip | **KOVAN-V2** (`TP`, `FP`) | **Öğrenci 353p** (`TP`, `FP`) | **Kâhin** (`d^*`) | **Temiz Ağ FP** |
+|---|---|---|---|---|---|
+| **Birincil** (`0.55`, `12400–12449`) | `baseline` | `44.76 ± 1.36` (`%42.8`, `%0.0`) | `43.92 ± 1.32` (`%51.8`, `%0.0`) | `64.92 ± 1.27` (`0.3`) | `%0.0` |
+| **Birincil** (`0.55`, `12400–12449`) | `kalkan_v2` | `7.36 ± 0.14` (`%84.7`, `%0.4`) | `7.17 ± 0.14` (`%85.7`, `%0.4`) | `9.43 ± 0.16` (`0.4`) | `%0.0` |
+| **Birincil** (`0.55`, `12400–12449`) | **`kalkan_v3`** | **`5.13 ± 0.09`** (`%90.5`, **`%45.8`**) | **`5.12 ± 0.09`** (`%90.2`, **`%46.0`**) | `8.61 ± 0.16` (`0.4`) | **`%50.5`** |
+| **Gevşek** (`0.35`, `12450–12499`) | `kalkan_v3` | `6.24 ± 0.14` (`%79.7`, `%40.3`) | `5.96 ± 0.13` (`%81.5`, `%41.5`) | `9.84 ± 0.16` (`0.4`) | `%48.2` |
+| **Sıkı** (`0.75`, `12500–12549`) | `kalkan_v3` | `4.07 ± 0.07` (`%95.2`, `%47.8`) | `4.06 ± 0.08` (`%95.2`, `%47.6`) | `7.38 ± 0.13` (`0.4`) | `%49.8` |
+
+- **`a: ✓`, `b: ✓`, `d: ✓`:** `kalkan_v3` birincil kümede çalınan sermayeyi **`%88.5` (`44.76 → 5.13`) / `%88.3` (`43.92 → 5.12`)** düşürdü ve ön kayıtlı **`>= %90 TP` (`%90.5` / `%90.2`)** eşiğini geçti.
+- **`c: ✗` (Önemli Dürüst Bulgulama — Sağlıklı Tampon Otofajisi):** `detPersist` durumu `cap > 1.01·cap0` / `cap > 1.22·cap0` koşulunu sağlıklı homeostatik tampon paylaşımında büyüyen düğümlerde de tetiklediği için temiz ağlarda **%48.2–%50.5 yanlış pozitif (otofaji)** üretti. Bu sonuç, yüksek `TP` ile `%0` `FP`'yi aynı anda sağlayan optimal karar sınırının **`kalkan_v2`** (`%0.0` temiz ağ FP, `%84.7–%85.7` birincil TP) olduğunu ortaya koymuştur.
+
 ---
 
 ## 6. Sınırlamalar ve Tekrarlanabilirlik
@@ -181,5 +196,6 @@ Bu bulgular savunma tarafı için doğrudan iki somut dedektör düzeltmesi öne
   node distill_student.js
   node kalkan_experiment.js
   node kalkan_v2_experiment.js
+  node kalkan_v3_experiment.js
   ```
 - Etkileşimli 3B doğrulama ekranı (`build_3d.js` → `goliath-3d.html`, `goliath-student-v4.html`) doğrudan **`Savunma Kalkanı`** seçicisiyle `baseline`, `kalkan_full` ve `kalkan_v2` kiplerini canlı karşılaştırır.

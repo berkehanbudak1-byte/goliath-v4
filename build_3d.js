@@ -293,6 +293,7 @@ function build3dHtml() {
         <label>Savunma Kalkanı</label>
         <select id="detModeSel">
           <option value="kalkan_v2" selected>H-KALKAN v2 (Derece-Drift)</option>
+          <option value="kalkan_v3">H-KALKAN v3 (Israrlı Drift · Yüksek FP)</option>
           <option value="kalkan_full">H-KALKAN v1 (Abs+Derece+Drift)</option>
           <option value="baseline">Standart Kör Dedektör (v4.0)</option>
           <option value="kalkan_drift">Sadece Drift Kesimi</option>
