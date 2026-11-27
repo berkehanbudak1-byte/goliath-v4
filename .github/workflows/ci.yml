@@ -25,5 +25,12 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Run engine validation and security/swarm tests
-        run: node validate.js && node --test test_llm_security.js test_swarm_orchestrator.js
+      - name: Syntax checks
+        run: |
+          for f in *.js; do node --check "$f"; done
+
+      - name: Run engine validation
+        run: node validate.js
+
+      - name: Run security and swarm unit tests
+        run: node --test test_llm_security.js test_swarm_orchestrator.js
