@@ -212,6 +212,19 @@ test('DNA çift sarmalı 68-haneli asal sayıya (Taban-4 A/T/G/C) ve ilk 28 asal
   assert(dna.totalRungs === 28 && dna.primeRange[0] === 2 && dna.primeRange[1] === 107 && dna.twinPrimePairs >= 9, 'asal DNA eşleme hatası');
   return `28 asal basamak (p=2..107, ${dna.twinPrimePairs} ikiz asal bağ, GC=%${dna.gcContentPct}) → ${dna.codons}`;
 });
+test('Fibonacci-Lucas hızlı ikiye katlama (Selfridge-BPSW: F_{p±1} ≡ 0 mod p, L_p ≡ 1 mod p) 68-haneli asalı doğrular ve bileşikleri eler', () => {
+  const { isFibonacciLucasPrimeBig } = require('./er_quantum_plasma_model.js');
+  const bigP = 82685700173622821895833542656587011200223984821638808880776929401141n;
+  // Carmichael sayıları (561, 1729, 2465) Fermat testini kandırır ama Fibonacci-Lucas testini geçemez!
+  assert(isFibonacciLucasPrimeBig(bigP) && !isFibonacciLucasPrimeBig(561n) && !isFibonacciLucasPrimeBig(1729n) && !isFibonacciLucasPrimeBig(bigP + 2n), 'Fibonacci-Lucas hatası');
+  return '68-hane asal ✓, Carmichael (561, 1729) elendi ✓';
+});
+test('ARGUS Kripto Flash-Crash Adrenalin + Fibonacci (%61.8 boğaz kilidi / %23.6 dış vur-kaç) kalkanı erimeyi önler', () => {
+  const { ERQuantumPlasmaModel } = require('./er_quantum_plasma_model.js');
+  const bt = new ERQuantumPlasmaModel({ seed: 9900 }).runCryptoAdrenalineBacktest({ startCash: 10000, bars: 120 });
+  assert(bt.supported, `adr=${bt.adrenalineBot.finalEquity}, std=${bt.standardBot.finalEquity}`);
+  return `Adrenalin ${bt.adrenalineBot.finalEquity} TL (DD %${bt.adrenalineBot.maxDrawdownPct}) vs Standart ${bt.standardBot.finalEquity} TL (DD %${bt.standardBot.maxDrawdownPct})`;
+});
 
 console.log(`\nBirim testleri: ${passed} geçti, ${failed} kaldı`);
 if (failed > 0) process.exit(1);
