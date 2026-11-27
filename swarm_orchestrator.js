@@ -33,6 +33,7 @@ const SWARM_DEFAULTS = Object.freeze({
   minSliceTimeoutMs: 20,
   maxSliceTimeoutMs: 120000,
   maxSlices: 16,
+  maxHistoryEntries: 20,
 });
 
 const READ_ONLY_SWARM_TOOLS = Object.freeze(
@@ -508,6 +509,325 @@ function runDryRunSlice({ slice, wrappedDirective }) {
   };
 }
 
+const goliathSwarmHistory = [];
+let goliathSwarmSeq = 0;
+
+function sanitizeHistoryText(text, maxLen = 160) {
+  const withoutUntrusted = String(text ?? "")
+    .replace(/<untrusted_data\b[^>]*>[\s\S]*?<\/untrusted_data>/gi, "[REDACTED_UNTRUSTED_PAYLOAD]")
+    .replace(/<untrusted_directive\b[^>]*>[\s\S]*?<\/untrusted_directive>/gi, "[REDACTED_UNTRUSTED_DIRECTIVE]");
+  return sanitizeAgentNote(escapeIsolationTags(redactSecrets(withoutUntrusted)), maxLen);
+}
+
+function sanitizeHistoryId(text, maxLen = 80) {
+  return String(text ?? "")
+    .replace(/[^a-zA-Z0-9._:/-]/g, "_")
+    .slice(0, maxLen);
+}
+
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+/**
+ * Records a sanitized, redacted GOLIATH swarm run entry into bounded in-memory history (max 20 entries).
+ * Raw untrusted inputs, directive notes, raw slice reports, and secrets are never retained.
+ */
+function recordSwarmRun(runResult = {}, context = {}) {
+  const maxEntries = SWARM_DEFAULTS.maxHistoryEntries;
+  const runId =
+    typeof runResult?.runId === "string" && runResult.runId.trim()
+      ? sanitizeHistoryId(runResult.runId.trim(), 80)
+      : `goliath_swarm_${Date.now()}_${++goliathSwarmSeq}`;
+
+  const telemetry = runResult?.telemetry && typeof runResult.telemetry === "object" ? runResult.telemetry : {};
+  const rawSlices = Array.isArray(context?.slices) ? context.slices : [];
+  const sliceSpecById = new Map(
+    rawSlices
+      .filter((s) => s && typeof s === "object")
+      .map((s, idx) => [String(s.id || `slice_${idx + 1}`).trim(), s])
+  );
+
+  const rawSliceResults = Array.isArray(runResult?.sliceResults)
+    ? runResult.sliceResults
+    : Array.isArray(telemetry.perSlice)
+      ? telemetry.perSlice
+      : [];
+
+  const sanitizedSlices = rawSliceResults.slice(0, SWARM_DEFAULTS.maxSlices).map((sr, idx) => {
+    const sliceId = sanitizeHistoryId(sr?.sliceId || `slice_${idx + 1}`, 80);
+    const spec = sliceSpecById.get(String(sr?.sliceId || "").trim()) || {};
+    const files = Array.isArray(spec.files)
+      ? spec.files.map((f) => sanitizeHistoryId(f, 120)).filter(Boolean).slice(0, 16)
+      : Array.isArray(sr?.checked)
+        ? sr.checked.map((f) => sanitizeHistoryId(f, 120)).filter(Boolean).slice(0, 16)
+        : [];
+    const agentIds = Array.isArray(spec.agentIds)
+      ? spec.agentIds.map((a) => sanitizeHistoryId(a, 32)).filter(Boolean).slice(0, 32)
+      : [];
+    const tools = Array.isArray(spec.tools)
+      ? spec.tools
+          .map((t) => sanitizeHistoryId(typeof t === "string" ? t : t?.tool || "", 64))
+          .filter(Boolean)
+          .slice(0, 16)
+      : [];
+    const blockedTools = Array.isArray(sr?.blockedTools)
+      ? sr.blockedTools.map((t) => sanitizeHistoryId(t, 64)).filter(Boolean).slice(0, 16)
+      : [];
+
+    return {
+      sliceId,
+      role: sanitizeHistoryId(sr?.role || spec.role || sliceId, 48),
+      provider: sanitizeHistoryId(sr?.provider || "dry_run", 40),
+      model: sanitizeHistoryId(sr?.model || "", 64),
+      mode: sanitizeHistoryId(sr?.mode || "dry_run", 32),
+      status: sanitizeHistoryId(sr?.status || (sr?.ok ? "completed" : "error"), 40),
+      ok: Boolean(sr?.ok),
+      timedOut: Boolean(sr?.timedOut),
+      durationMs: Math.max(0, Math.round(Number(sr?.durationMs) || 0)),
+      files,
+      agentIds,
+      tools,
+      ...(blockedTools.length > 0 ? { blockedTools } : {}),
+    };
+  });
+
+  const totalSlices = Number.isFinite(Number(telemetry.totalSlices))
+    ? Math.max(0, Math.trunc(Number(telemetry.totalSlices)))
+    : sanitizedSlices.length;
+  const completedSlices = Number.isFinite(Number(telemetry.completedSlices))
+    ? Math.max(0, Math.trunc(Number(telemetry.completedSlices)))
+    : sanitizedSlices.filter((s) => s.ok).length;
+  const failedSlices = Number.isFinite(Number(telemetry.failedSlices))
+    ? Math.max(0, Math.trunc(Number(telemetry.failedSlices)))
+    : sanitizedSlices.filter((s) => !s.ok).length;
+  const timedOutSlices = Number.isFinite(Number(telemetry.timedOutSlices))
+    ? Math.max(0, Math.trunc(Number(telemetry.timedOutSlices)))
+    : sanitizedSlices.filter((s) => s.timedOut).length;
+  const blockedSlices = Number.isFinite(Number(telemetry.blockedSlices))
+    ? Math.max(0, Math.trunc(Number(telemetry.blockedSlices)))
+    : sanitizedSlices.filter((s) => s.status === "blocked_tools").length;
+  const completionRate = totalSlices > 0 ? Number((completedSlices / totalSlices).toFixed(4)) : 0;
+
+  const rawInputs = Array.isArray(context?.inputs) ? context.inputs : [];
+  const inputIds = rawInputs
+    .map((inp, idx) =>
+      typeof inp === "string"
+        ? `input_${idx + 1}`
+        : sanitizeHistoryId(inp?.id || inp?.source || `input_${idx + 1}`, 100)
+    )
+    .filter(Boolean)
+    .slice(0, 32);
+
+  const rawAlerts = Array.isArray(runResult?.injectionAlerts) ? runResult.injectionAlerts : [];
+  const sanitizedAlerts = rawAlerts.slice(0, 32).map((a) => ({
+    id: sanitizeHistoryId(a?.id || "alert", 80),
+    source: sanitizeHistoryId(a?.source || "external", 80),
+    kind: sanitizeHistoryId(a?.kind || "untrusted_data", 40),
+    patternCount: Array.isArray(a?.patterns) ? a.patterns.length : Number(a?.patternCount) || 1,
+  }));
+
+  const providerBreakdown = {};
+  if (telemetry.providerBreakdown && typeof telemetry.providerBreakdown === "object") {
+    for (const [k, v] of Object.entries(telemetry.providerBreakdown)) {
+      const safeKey = sanitizeHistoryId(k, 40);
+      if (safeKey && Number.isFinite(Number(v))) {
+        providerBreakdown[safeKey] = Math.max(0, Math.trunc(Number(v)));
+      }
+    }
+  }
+
+  const sanitizedDirectiveBounds = context?.directive && typeof context.directive === "object"
+    ? (() => {
+        const cleanDir = sanitizeShellDirective(context.directive);
+        return { d_min: cleanDir.d_min, d_max: cleanDir.d_max };
+      })()
+    : null;
+
+  const entry = {
+    runId,
+    recordedAt: new Date().toISOString(),
+    ok: Boolean(runResult?.ok),
+    mode: "goliath_swarm",
+    stage: runResult?.ok ? "completed" : sanitizeHistoryId(runResult?.stage || "error", 48),
+    replayedFrom: context?.replayedFrom ? sanitizeHistoryId(context.replayedFrom, 80) : null,
+    objective: sanitizeHistoryText(runResult?.objective || context?.objective || "GOLIATH swarm run", 120),
+    scores: {
+      totalSlices,
+      completedSlices,
+      failedSlices,
+      timedOutSlices,
+      blockedSlices,
+      completionRate,
+      tracedCount: Math.max(0, Math.trunc(Number(runResult?.traceability?.tracedCount) || 0)),
+      traceabilityOk: runResult?.traceability ? Boolean(runResult.traceability.ok) : Boolean(runResult?.ok),
+      injectionAlertCount: sanitizedAlerts.length,
+      proposedAgentCount:
+        runResult?.proposedDrainMap && typeof runResult.proposedDrainMap === "object"
+          ? Object.keys(runResult.proposedDrainMap).length
+          : 0,
+      scoreLabel: `${completedSlices}/${totalSlices}`,
+    },
+    timings: {
+      elapsedMs: Math.max(0, Math.round(Number(runResult?.elapsedMs ?? telemetry.elapsedMs) || 0)),
+      sliceTimeoutMs: Math.max(
+        0,
+        Math.round(Number(telemetry.sliceTimeoutMs ?? context?.sliceTimeoutMs ?? SWARM_DEFAULTS.sliceTimeoutMs) || 0)
+      ),
+    },
+    concurrency: {
+      maxConcurrency: Math.max(
+        0,
+        Math.trunc(Number(telemetry.maxConcurrency ?? context?.maxConcurrency ?? SWARM_DEFAULTS.maxConcurrency) || 0)
+      ),
+      peakConcurrency: Math.max(0, Math.trunc(Number(telemetry.peakConcurrency) || 0)),
+    },
+    directiveBounds: sanitizedDirectiveBounds,
+    providerBreakdown,
+    inputIds,
+    slices: sanitizedSlices,
+    oneDoorOut: {
+      gateActive: Boolean(runResult?.oneDoorOut?.gateActive),
+      escalatedByInjection: Boolean(runResult?.oneDoorOut?.escalatedByInjection),
+      approvalRequired: Boolean(runResult?.oneDoorOut?.approvalRequired),
+      humanApproved: Boolean(runResult?.oneDoorOut?.humanApproved),
+      pendingCount: Array.isArray(runResult?.oneDoorOut?.pendingOutboundActions)
+        ? runResult.oneDoorOut.pendingOutboundActions.length
+        : 0,
+      releasedCount: Array.isArray(runResult?.oneDoorOut?.releasedActions)
+        ? runResult.oneDoorOut.releasedActions.length
+        : 0,
+    },
+    injectionAlerts: sanitizedAlerts,
+    error: runResult?.ok ? null : sanitizeHistoryText(runResult?.error || "", 200),
+    redacted: true,
+  };
+
+  goliathSwarmHistory.unshift(entry);
+  if (goliathSwarmHistory.length > maxEntries) {
+    goliathSwarmHistory.length = maxEntries;
+  }
+  return cloneJson(entry);
+}
+
+function getSwarmHistory(options = {}) {
+  const rawLimit =
+    typeof options === "number"
+      ? options
+      : options && typeof options === "object"
+        ? options.limit
+        : SWARM_DEFAULTS.maxHistoryEntries;
+  const parsed = Number(rawLimit);
+  const limit = Number.isFinite(parsed)
+    ? Math.max(1, Math.min(SWARM_DEFAULTS.maxHistoryEntries, Math.trunc(parsed)))
+    : SWARM_DEFAULTS.maxHistoryEntries;
+  return cloneJson(goliathSwarmHistory.slice(0, limit));
+}
+
+function clearSwarmHistory() {
+  const cleared = goliathSwarmHistory.length;
+  goliathSwarmHistory.length = 0;
+  return { ok: true, cleared };
+}
+
+/**
+ * Replays a recorded GOLIATH swarm run using only sanitized metadata (no raw untrusted payloads)
+ * and compares replay outcomes/timings against the original historical entry.
+ */
+async function replaySwarmRun(runIdOrOptions = "latest", overrides = {}) {
+  const opts =
+    runIdOrOptions && typeof runIdOrOptions === "object" && !Array.isArray(runIdOrOptions)
+      ? { ...runIdOrOptions, ...(overrides && typeof overrides === "object" ? overrides : {}) }
+      : { runId: runIdOrOptions, ...(overrides && typeof overrides === "object" ? overrides : {}) };
+
+  const requestedId = typeof opts.runId === "string" ? opts.runId.trim() : "";
+  const original =
+    !requestedId || requestedId === "latest"
+      ? goliathSwarmHistory[0] || null
+      : goliathSwarmHistory.find((entry) => entry.runId === requestedId) || null;
+
+  if (!original) {
+    return {
+      ok: false,
+      mode: "goliath_swarm_replay",
+      notFound: true,
+      error: requestedId
+        ? `Recorded GOLIATH swarm run not found: "${sanitizeHistoryId(requestedId, 80)}"`
+        : "No recorded GOLIATH swarm run available to replay",
+    };
+  }
+
+  if (!Array.isArray(original.slices) || original.slices.length === 0) {
+    return {
+      ok: false,
+      mode: "goliath_swarm_replay",
+      replayedFrom: original.runId,
+      error: "Recorded run contains no replayable slice metadata",
+      original: cloneJson(original),
+    };
+  }
+
+  const replayDirective = opts.directive
+    ? opts.directive
+    : original.directiveBounds
+      ? {
+          d_min: original.directiveBounds.d_min,
+          d_max: original.directiveBounds.d_max,
+          note: "Deterministic sanitized replay",
+        }
+      : null;
+
+  const replaySlices = original.slices.map((s) => ({
+    id: s.sliceId,
+    role: s.role,
+    provider: opts.dryRun === false && s.provider !== "dry_run" ? s.provider : "dry_run",
+    files: Array.isArray(s.files) ? [...s.files] : [],
+    agentIds: Array.isArray(s.agentIds) ? [...s.agentIds] : [],
+    tools: Array.isArray(s.tools) ? [...s.tools] : [],
+    mockResult: `[${s.role}] Deterministic replay analysis completed cleanly.`,
+  }));
+
+  const replayResult = await runGoliathSwarm({
+    objective: opts.objective || original.objective,
+    inputs: opts.inputs || original.inputIds.map((id) => ({ id, source: id, content: "" })),
+    directive: replayDirective,
+    slices: replaySlices,
+    maxConcurrency: opts.maxConcurrency ?? (original.concurrency?.maxConcurrency || SWARM_DEFAULTS.maxConcurrency),
+    sliceTimeoutMs: opts.sliceTimeoutMs ?? (original.timings?.sliceTimeoutMs || SWARM_DEFAULTS.sliceTimeoutMs),
+    dryRun: opts.dryRun !== false,
+    env: opts.env || process.env,
+    fetchImpl: opts.fetchImpl || null,
+    workerFn: opts.workerFn || null,
+    synthesizerFn: opts.synthesizerFn || null,
+    requireTraceability: opts.requireTraceability !== false,
+    requireHumanApprovalForOutbound: opts.requireHumanApprovalForOutbound !== false,
+    humanApproved: opts.humanApproved === true,
+    outboundActions: Array.isArray(opts.outboundActions) ? opts.outboundActions : [],
+    recordHistory: opts.recordHistory !== false,
+    replayedFrom: original.runId,
+  });
+
+  const replayStage = replayResult.ok ? "completed" : String(replayResult.stage || "error");
+  const replayCompleted = replayResult.telemetry?.completedSlices ?? 0;
+  const replayTotal = replayResult.telemetry?.totalSlices ?? replaySlices.length;
+
+  return {
+    ok: replayResult.ok,
+    mode: "goliath_swarm_replay",
+    replayedFrom: original.runId,
+    runId: replayResult.runId || null,
+    original: cloneJson(original),
+    replay: replayResult,
+    comparison: {
+      okMatched: Boolean(replayResult.ok) === Boolean(original.ok),
+      stageMatched: replayStage === original.stage,
+      sliceCountMatched: replayTotal === original.scores.totalSlices,
+      completedSlicesDelta: replayCompleted - original.scores.completedSlices,
+      durationDeltaMs: (replayResult.elapsedMs || 0) - (original.timings?.elapsedMs || 0),
+    },
+  };
+}
+
 function getSwarmCapabilities(env = process.env) {
   let activeConfig = null;
   try {
@@ -526,6 +846,8 @@ function getSwarmCapabilities(env = process.env) {
     enabled: true,
     mode: "goliath_swarm",
     defaults: SWARM_DEFAULTS,
+    historyMaxEntries: SWARM_DEFAULTS.maxHistoryEntries,
+    historyCount: goliathSwarmHistory.length,
     supportedProviders: ["xai", "cerebras", "openai", "dry_run"],
     defaultEndpoints: {
       xai: DEFAULT_XAI_URL,
@@ -546,6 +868,7 @@ function getSwarmCapabilities(env = process.env) {
       "number_traceability",
       "one_door_out_human_approval",
       "injection_escalation",
+      "redacted_run_history",
     ],
   };
 }
@@ -569,6 +892,8 @@ async function runGoliathSwarm({
   requireHumanApprovalForOutbound = true,
   humanApproved = false,
   outboundActions = [],
+  recordHistory = true,
+  replayedFrom = null,
 } = {}) {
   const startedAt = Date.now();
   const targetSlices =
@@ -576,9 +901,25 @@ async function runGoliathSwarm({
       ? slices
       : buildDefaultGoliathSlices({ directive });
 
+  const finalizeRun = (result, meta = {}) => {
+    if (recordHistory !== false) {
+      const recorded = recordSwarmRun(result, {
+        objective,
+        inputs,
+        directive,
+        slices: targetSlices,
+        maxConcurrency: meta.maxConcurrency ?? maxConcurrency,
+        sliceTimeoutMs: meta.sliceTimeoutMs ?? sliceTimeoutMs,
+        replayedFrom,
+      });
+      return { ...result, runId: recorded.runId };
+    }
+    return result;
+  };
+
   const disjoint = validateDisjointSlices(targetSlices);
   if (!disjoint.ok) {
-    return {
+    return finalizeRun({
       ok: false,
       mode: "goliath_swarm",
       stage: "slice_validation",
@@ -586,7 +927,7 @@ async function runGoliathSwarm({
       conflicts: disjoint.conflicts,
       injectionAlerts: [],
       elapsedMs: Date.now() - startedAt,
-    };
+    });
   }
 
   const rawConc = Number(maxConcurrency);
@@ -862,16 +1203,19 @@ async function runGoliathSwarm({
 
   if (failedSlices.length > 0) {
     const elapsedMs = Date.now() - startedAt;
-    return {
-      ok: false,
-      mode: "goliath_swarm",
-      stage: "worker_slices",
-      error: `${failedSlices.length}/${sliceResults.length} GOLIATH swarm slices failed; report withheld until all slices succeed`,
-      sliceResults,
-      injectionAlerts,
-      telemetry: buildTelemetry(elapsedMs),
-      elapsedMs,
-    };
+    return finalizeRun(
+      {
+        ok: false,
+        mode: "goliath_swarm",
+        stage: "worker_slices",
+        error: `${failedSlices.length}/${sliceResults.length} GOLIATH swarm slices failed; report withheld until all slices succeed`,
+        sliceResults,
+        injectionAlerts,
+        telemetry: buildTelemetry(elapsedMs),
+        elapsedMs,
+      },
+      { maxConcurrency: effectiveConcurrency, sliceTimeoutMs: effectiveTimeoutMs }
+    );
   }
 
   const allTraces = sliceResults.flatMap((r) => r.traces);
@@ -913,17 +1257,20 @@ async function runGoliathSwarm({
 
   if (requireTraceability && !traceability.ok) {
     const elapsedMs = Date.now() - startedAt;
-    return {
-      ok: false,
-      mode: "goliath_swarm",
-      stage: "traceability_gate",
-      error: "DONE WHEN traceability gate rejected untraced numbers or invalid trace sources",
-      traceability,
-      sliceResults,
-      injectionAlerts,
-      telemetry: buildTelemetry(elapsedMs),
-      elapsedMs,
-    };
+    return finalizeRun(
+      {
+        ok: false,
+        mode: "goliath_swarm",
+        stage: "traceability_gate",
+        error: "DONE WHEN traceability gate rejected untraced numbers or invalid trace sources",
+        traceability,
+        sliceResults,
+        injectionAlerts,
+        telemetry: buildTelemetry(elapsedMs),
+        elapsedMs,
+      },
+      { maxConcurrency: effectiveConcurrency, sliceTimeoutMs: effectiveTimeoutMs }
+    );
   }
 
   const candidateOutbound = Array.isArray(synthesized?.outboundActions) ? synthesized.outboundActions : [];
@@ -934,28 +1281,31 @@ async function runGoliathSwarm({
   const pendingOutboundActions = needsApproval && !humanApproved ? candidateOutbound : [];
   const elapsedMs = Date.now() - startedAt;
 
-  return {
-    ok: true,
-    mode: "goliath_swarm",
-    objective: sanitizeAgentNote(objective, 200),
-    report: redactSecrets(String(synthesized?.report || "")),
-    followUpList: Array.isArray(synthesized?.followUpList) ? synthesized.followUpList : allCouldNotDo,
-    checkedFiles,
-    proposedDrainMap: mergedProposals,
-    traceability,
-    injectionAlerts,
-    sliceResults,
-    telemetry: buildTelemetry(elapsedMs),
-    oneDoorOut: {
-      gateActive,
-      escalatedByInjection,
-      approvalRequired: needsApproval && !humanApproved,
-      humanApproved: Boolean(humanApproved),
-      releasedActions,
-      pendingOutboundActions,
+  return finalizeRun(
+    {
+      ok: true,
+      mode: "goliath_swarm",
+      objective: sanitizeAgentNote(objective, 200),
+      report: redactSecrets(String(synthesized?.report || "")),
+      followUpList: Array.isArray(synthesized?.followUpList) ? synthesized.followUpList : allCouldNotDo,
+      checkedFiles,
+      proposedDrainMap: mergedProposals,
+      traceability,
+      injectionAlerts,
+      sliceResults,
+      telemetry: buildTelemetry(elapsedMs),
+      oneDoorOut: {
+        gateActive,
+        escalatedByInjection,
+        approvalRequired: needsApproval && !humanApproved,
+        humanApproved: Boolean(humanApproved),
+        releasedActions,
+        pendingOutboundActions,
+      },
+      elapsedMs,
     },
-    elapsedMs,
-  };
+    { maxConcurrency: effectiveConcurrency, sliceTimeoutMs: effectiveTimeoutMs }
+  );
 }
 
 module.exports = {
@@ -972,5 +1322,9 @@ module.exports = {
   resolveSliceLlmRoute,
   verifyNumberTraceability,
   getSwarmCapabilities,
+  recordSwarmRun,
+  getSwarmHistory,
+  clearSwarmHistory,
+  replaySwarmRun,
   runGoliathSwarm,
 };
