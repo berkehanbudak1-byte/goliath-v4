@@ -7,122 +7,138 @@
 </head>
 <body class="bg-transparent text-[var(--foreground)] antialiased p-0 m-0">
   <div class="py-1.5 space-y-2 min-w-0">
-    <!-- Top Compact Control Bar: Quantum Cube Size L + Magnetic B + Gravity G + Time -->
+    <!-- Top Control Bar: Organism Vital Actions & 11D Status -->
     <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-[var(--card-border)] text-xs font-mono">
-      <div class="flex flex-wrap items-center gap-2.5">
-        <label class="flex items-center gap-1.5 text-[var(--foreground)] font-semibold" title="Kuantum Hapis Küpü Boyutu L (Küçüldükçe E ~ 1/L² artar, renk Kırmızı -> Sarı -> Yeşil olur)">
-          <span>Küp L=<b id="lVal" class="text-emerald-400">3.0 nm (520nm YEŞİL)</b></span>
-          <input id="lRange" type="range" min="3.0" max="7.0" step="0.1" value="3.0" class="w-20 sm:w-28 accent-emerald-400" />
-        </label>
-        <label class="flex items-center gap-1 text-[var(--muted-foreground)]" title="Manyetik Alan Şiddeti B">
-          <span>B=<b id="bVal" class="text-indigo-400">1.0</b></span>
-          <input id="bRange" type="range" min="0" max="2" step="0.1" value="1.0" class="w-12 sm:w-16 accent-indigo-400" />
-        </label>
-        <label class="flex items-center gap-1 text-[var(--muted-foreground)]" title="Antimadde Kütleçekimi G">
-          <span>G=<b id="gVal" class="text-emerald-400">+1.0g</b></span>
-          <input id="gRange" type="range" min="-1" max="1.5" step="0.1" value="1.0" class="w-12 sm:w-16 accent-emerald-400" />
-        </label>
+      <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
+        <span class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 font-bold">11B YAŞAYAN ORGANİZMA</span>
+        <button id="feedBtn" class="px-2 py-0.5 rounded border border-cyan-500/50 bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 transition">+Enerji Besle</button>
+        <button id="chaosBtn" class="px-2 py-0.5 rounded border border-amber-500/50 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 transition">⚡Kaos Enjekte Et</button>
+        <button id="shockBtn" class="px-2 py-0.5 rounded border border-rose-500/50 bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 transition">🌀Anti-G Şoku</button>
       </div>
-      <div class="flex items-center gap-1.5">
-        <span class="text-[var(--muted-foreground)]">t=<b id="tVal" class="text-[var(--foreground)]">180</b></span>
-        <button id="play3dBtn" class="px-2 py-0.5 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]">Dur</button>
+      <div class="flex items-center gap-2">
+        <span class="text-[var(--muted-foreground)]">Nabız: <b id="bpmRead" class="text-emerald-400">72 BPM (Asal Kilit)</b></span>
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input id="autoHomeo" type="checkbox" checked class="accent-emerald-400" />
+          <span class="text-[var(--foreground)]">Otonom Beyin</span>
+        </label>
       </div>
     </div>
 
-    <!-- Main 3D Einstein-Rosen Bridge + Quantum Confinement Cube Stage -->
+    <!-- Main 11D Living Stage -->
     <div class="relative w-full overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)]">
-      <canvas id="stage3d" class="block w-full h-[360px] cursor-grab active:cursor-grabbing"></canvas>
+      <canvas id="livingCanvas" class="block w-full h-[365px] cursor-grab active:cursor-grabbing"></canvas>
 
-      <!-- Top-Left Live HUD: Quantum Confinement Energy & Prime Resonance -->
+      <!-- Top-Left 11D Dimension & Homeostasis Telemetry -->
       <div class="pointer-events-none absolute top-2.5 left-2.5 space-y-1 font-mono text-xs max-w-[94%] sm:max-w-[74%]">
         <div class="flex flex-wrap items-center gap-1.5">
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            Hapis Enerjisi ΔE∝1/L²: <b id="hudEv" class="text-emerald-400">2.38 eV</b>
+            4B Zaman τ: <b id="tauRead" class="text-[var(--foreground)]">1</b>
           </span>
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            Seviye İtmesi (GUE): <b id="hudGue" class="text-amber-400">D_KS = 0.148 (Kilitli)</b>
+            5B Küp L(τ): <b id="lRead" class="text-emerald-400">3.02 nm (519nm)</b>
           </span>
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            Boğaz Kapanı: <b id="hudPinch" class="text-indigo-400">%98.5</b>
+            6B-7B Alan: <b id="bgRead" class="text-indigo-400">B=1.1T · G=+1.0g</b>
+          </span>
+          <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
+            11B Bilinç (CSI): <b id="csiRead" class="text-cyan-300">0.942</b>
           </span>
         </div>
         <div class="px-2 py-1 rounded bg-[var(--background)]/90 border border-[var(--border)] text-[var(--foreground)] truncate">
-          <span class="text-[var(--muted-foreground)]">68-Haneli Kuantum Asalı:</span>
-          <b id="hudBigPrime" class="text-emerald-400">82685700173607319645261957491347494500399900496890888580107105480969</b>
+          <span class="text-[var(--muted-foreground)]">10B Canlı Asal DNA:</span>
+          <b id="primeDnaRead" class="text-emerald-400">82685700173622821895833542656587011200223984821638808880776929401141</b>
+        </div>
+        <div id="thoughtRead" class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)] text-[var(--muted-foreground)]">
+          Organizma Durumu: Homeostaz dengede · Boğaz küpü 518nm zümrüt yeşilinde nefes alıyor
         </div>
       </div>
 
-      <!-- Bottom Legend -->
-      <div class="pointer-events-none absolute bottom-2 left-2.5 right-2.5 flex flex-wrap items-center justify-between gap-1.5 font-mono text-xs">
+      <!-- Bottom-Left Live ECG / Prime Heartbeat & Dimension Legend -->
+      <div class="pointer-events-none absolute bottom-2 left-2.5 right-2.5 flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
         <div class="flex flex-wrap items-center gap-2 px-2 py-1 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-          <span class="flex items-center gap-1"><span id="cubeLegendDot" class="inline-block w-2.5 h-2.5 border border-white bg-emerald-400"></span>Boğaz Kuantum Küpü (e⁻ Hapsi)</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-indigo-400"></span>Manyetik B</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-fuchsia-400"></span>Antimadde Plazma</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-emerald-400"></span>Asal Rezonans</span>
+          <span class="flex items-center gap-1"><span id="pulseDot" class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400"></span>5B Küp Kalbi</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-fuchsia-400"></span>8B Plazma Kanı</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-cyan-300"></span>Sinaptik Köprü (Doğum/Ölüm)</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-amber-300"></span>EKG Asal Nabız</span>
         </div>
-        <span class="hidden md:inline px-2 py-0.5 rounded bg-[var(--background)]/80 text-[var(--muted-foreground)]">Küp L sürgüsünü 7.0 nm ↔ 3.0 nm arasında kaydır!</span>
+        <span class="hidden md:inline px-2 py-0.5 rounded bg-[var(--background)]/80 text-[var(--muted-foreground)]">Düğüme Tıkla: Uyarı Gönder · Sürükle: 11B Manifold Döndür</span>
       </div>
     </div>
   </div>
 
   <script>
-    const canvas = document.getElementById('stage3d');
+    const canvas = document.getElementById('livingCanvas');
     const ctx = canvas.getContext('2d');
 
+    // =========================================================================
+    // 11-DIMENSIONAL (11B) LIVING EINSTEIN-ROSEN QUANTUM PLASMA ORGANISM
+    // =========================================================================
+    // D1, D2, D3 : 3B Uzay (x, y, z — Solucandeliği Hiperboloid Geometrisi)
+    // D4         : Öz-Zaman & Metabolik Yaş (τ — Sürekli akan biyolojik zaman)
+    // D5         : Kuantum Hapis Ölçeği L(τ) ∈ [3.0, 7.0] nm (Nefes alan boğaz küpü)
+    // D6         : Elektromanyetik Sarmal Alan B(τ) (Lorentz J×B damar büzülmesi)
+    // D7         : Kütleçekim Kuyusu G(τ) (CERN ALPHA-g +1g ↔ -1g solunum salınımı)
+    // D8         : Antimadde Plazma Fazı Φ(τ) (Dolaşım sistemi / enerji kanı)
+    // D9         : ATOM Kabuk Otonomisi d_i(τ) (Sinir sistemi / bağışıklık refleksi)
+    // D10        : Asal / Riemann GUE Rezonans Frekansı (Organizmanın kalp atışı)
+    // D11        : Homeostatik Öz-Bilinç & Entropi Belleği (CSI — Yaşayan denge)
+    // =========================================================================
+
     const SM_SYMS = ['u', 'd', 'c', 's', 't', 'b', 'e', 'νe', 'μ', 'νμ', 'τ', 'ντ', 'g', 'γ', 'Z', 'W', 'H'];
-    const N = 60, T = 240;
+    const N = 60;
     const nodes = [];
-    const edges = [];
+    const baseEdges = [];
+    const livingSynapses = []; // Dynamic synapses that are born at annihilation and decay organically
 
-    let cubeL = 3.0; // Quantum confinement cube size in nm (3.0 nm = 520nm Emerald Green -> 7.0 nm = 660nm Red)
-    let magB = 1.0;
-    let gravG = 1.0;
+    const org = {
+      tau: 1,
+      cubeL: 3.05,
+      targetL: 3.0,
+      magB: 1.05,
+      gravG: 1.0,
+      phi: 0.35,
+      energy: 1.0,
+      stress: 0.12,
+      csi: 0.942,
+      breathPhase: 0,
+      lastBeatTau: -5,
+      bpm: 72,
+      primeBig: 82685700173622821895833542656587011200223984821638808880776929401141n,
+      thought: 'Organizma Durumu: Homeostaz dengede · Boğaz küpü 518nm zümrüt yeşilinde nefes alıyor',
+      ecgHistory: new Array(90).fill(0)
+    };
 
-    // Quantum Dot wavelength & color from confinement length L (nm):
-    // E(L) = E_bulk + h^2 / (8 * m_eff * L^2) -> lambda from 515 nm (L=3.0, green) to 655 nm (L=7.0, red)
-    function quantumCubeSpectrum(L) {
-      const t = (L - 3.0) / 4.0; // 0 (smallest = green) .. 1 (largest = red)
-      const lambda = Math.round(518 + t * 142); // 518 nm .. 660 nm
+    function quantumSpectrum(L) {
+      const t = Math.max(0, Math.min(1, (L - 3.0) / 4.0));
+      const lambda = Math.round(518 + t * 142);
       const eV = (1239.8 / lambda).toFixed(2);
-      let r, g, b, name, hex;
+      let r, g, b, name;
       if (t < 0.25) {
-        // 3.0 - 4.0 nm: Pure Emerald / Neon Quantum Green
         const k = t / 0.25;
-        r = Math.round(16 + k * 110);
-        g = Math.round(235 - k * 10);
-        b = Math.round(129 - k * 80);
+        r = Math.round(16 + k * 110); g = Math.round(238 - k * 10); b = Math.round(132 - k * 80);
         name = 'YEŞİL';
       } else if (t < 0.55) {
-        // 4.0 - 5.2 nm: Lime -> Yellow
         const k = (t - 0.25) / 0.30;
-        r = Math.round(126 + k * 124);
-        g = Math.round(225 - k * 30);
-        b = Math.round(49 - k * 25);
+        r = Math.round(126 + k * 124); g = Math.round(225 - k * 30); b = Math.round(49 - k * 25);
         name = 'SARI';
       } else if (t < 0.80) {
-        // 5.2 - 6.2 nm: Orange
         const k = (t - 0.55) / 0.25;
-        r = 250;
-        g = Math.round(195 - k * 85);
-        b = 24;
+        r = 250; g = Math.round(195 - k * 85); b = 24;
         name = 'TURUNCU';
       } else {
-        // 6.2 - 7.0 nm: Deep Red
         const k = (t - 0.80) / 0.20;
-        r = 244;
-        g = Math.round(110 - k * 55);
-        b = Math.round(24 + k * 45);
+        r = 244; g = Math.round(110 - k * 55); b = Math.round(24 + k * 45);
         name = 'KIRMIZI';
       }
-      const rgb = `${r}, ${g}, ${b}`;
-      return { lambda, eV, r, g, b, rgb, name, confinementFactor: Math.pow(3.0 / L, 2) };
+      return { lambda, eV, r, g, b, rgb: `${r}, ${g}, ${b}`, name };
     }
 
     function wormholeRadius(u) {
-      // As the quantum cube shrinks (L -> 3.0 nm) and gravity G > 0 pulls, the throat pinches tighter
-      const cubeScale = 0.16 + 0.032 * (cubeL - 3.0);
-      const r0 = Math.max(0.15, cubeScale - 0.03 * gravG);
-      return r0 * Math.cosh(u * (1.12 + 0.08 * gravG));
+      // Breathing throat radius modulated by 5D Cube L, 7D Gravity G, and autonomous respiration
+      const breath = 0.018 * Math.sin(org.breathPhase);
+      const cubeScale = 0.165 + 0.032 * (org.cubeL - 3.0) + breath;
+      const r0 = Math.max(0.14, cubeScale - 0.028 * org.gravG);
+      return r0 * Math.cosh(u * (1.12 + 0.07 * org.gravG));
     }
     function wormholeY(u) {
       return 0.62 * Math.tanh(u * 1.05);
@@ -139,41 +155,45 @@
       };
     }
 
+    // Initialize 60 living cells/nodes on the manifold
     for (let i = 0; i < 4; i++) {
-      const u = 0, th = (i / 4) * Math.PI * 2;
-      nodes.push({ id: i, u, th, layer: 0, deg: 9 });
+      nodes.push({ id: i, u: 0, th: (i / 4) * Math.PI * 2, layer: 0, deg: 9, energy: 1.0, excitability: 0 });
     }
     for (let i = 0; i < 16; i++) {
       const upper = i < 8, k = i % 8;
-      const u = upper ? 0.62 : -0.62;
-      const th = (k / 8) * Math.PI * 2 + (upper ? 0.2 : -0.2);
-      nodes.push({ id: 4 + i, u, th, layer: 1, deg: 6 });
+      nodes.push({
+        id: 4 + i,
+        u: upper ? 0.62 : -0.62,
+        th: (k / 8) * Math.PI * 2 + (upper ? 0.2 : -0.2),
+        layer: 1,
+        deg: 6,
+        energy: 1.0,
+        excitability: 0
+      });
     }
     for (let i = 0; i < 40; i++) {
       const upper = i < 20, k = i % 20;
-      const u = upper ? 1.18 : -1.18;
-      const th = (k / 20) * Math.PI * 2 + (upper ? 0.1 : -0.1);
-      nodes.push({ id: 20 + i, u, th, layer: 2, deg: 3 });
+      nodes.push({
+        id: 20 + i,
+        u: upper ? 1.18 : -1.18,
+        th: (k / 20) * Math.PI * 2 + (upper ? 0.1 : -0.1),
+        layer: 2,
+        deg: 3,
+        energy: 1.0,
+        excitability: 0
+      });
     }
 
-    function updateNodeCoords() {
-      for (const n of nodes) {
-        const pt = wormholePoint(n.u, n.th);
-        n.x = pt.x; n.y = pt.y; n.z = pt.z;
-      }
-    }
-    updateNodeCoords();
-
-    for (let i = 0; i < 4; i++) edges.push([i, (i + 1) % 4]);
+    for (let i = 0; i < 4; i++) baseEdges.push([i, (i + 1) % 4]);
     for (let i = 0; i < 8; i++) {
       const uId = 4 + i, lId = 12 + i;
-      edges.push([uId, i % 4]); edges.push([lId, i % 4]);
-      edges.push([uId, 4 + ((i + 1) % 8)]); edges.push([lId, 12 + ((i + 1) % 8)]);
+      baseEdges.push([uId, i % 4]); baseEdges.push([lId, i % 4]);
+      baseEdges.push([uId, 4 + ((i + 1) % 8)]); baseEdges.push([lId, 12 + ((i + 1) % 8)]);
     }
     for (let i = 0; i < 20; i++) {
       const uId = 20 + i, lId = 40 + i;
-      edges.push([uId, 4 + Math.floor((i / 20) * 8)]); edges.push([lId, 12 + Math.floor((i / 20) * 8)]);
-      edges.push([uId, 20 + ((i + 1) % 20)]); edges.push([lId, 40 + ((i + 1) % 20)]);
+      baseEdges.push([uId, 4 + Math.floor((i / 20) * 8)]); baseEdges.push([lId, 12 + Math.floor((i / 20) * 8)]);
+      baseEdges.push([uId, 20 + ((i + 1) % 20)]); baseEdges.push([lId, 40 + ((i + 1) % 20)]);
     }
 
     const chaosIds = [0, 2, 5, 8, 13, 17, 21, 25, 30, 35, 38, 42, 46, 50, 53, 56, 59];
@@ -185,7 +205,6 @@
       n.d = n.isChaos ? (n.isInner ? 0.27 : 0.35) : 0;
     });
 
-    // 12 edges of a 3D cube: vertices (±1, ±1, ±1)
     const CUBE_VERTS = [
       [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
       [-1, -1,  1], [1, -1,  1], [1, 1,  1], [-1, 1,  1]
@@ -195,14 +214,13 @@
       [4,5],[5,6],[6,7],[7,4],
       [0,4],[1,5],[2,6],[3,7]
     ];
-    // 6 trapped electrons inside the quantum cube bouncing with speed ~ 1/L
-    const CUBE_ELECTRONS = Array.from({ length: 6 }, (_, k) => ({
-      px: 0.55 * Math.cos(k * 1.1),
-      py: 0.55 * Math.sin(k * 1.7),
-      pz: 0.55 * Math.cos(k * 2.3),
-      vx: (k % 2 ? 1 : -1) * (0.042 + 0.008 * k),
-      vy: (k % 3 ? 1 : -1) * (0.038 + 0.007 * k),
-      vz: (k % 2 ? -1 : 1) * (0.045 + 0.006 * k)
+    const CUBE_ELECTRONS = Array.from({ length: 7 }, (_, k) => ({
+      px: 0.5 * Math.cos(k * 1.1),
+      py: 0.5 * Math.sin(k * 1.7),
+      pz: 0.5 * Math.cos(k * 2.3),
+      vx: (k % 2 ? 1 : -1) * (0.045 + 0.008 * k),
+      vy: (k % 3 ? 1 : -1) * (0.040 + 0.007 * k),
+      vz: (k % 2 ? -1 : 1) * (0.048 + 0.006 * k)
     }));
 
     function isPrimeInt(n) {
@@ -211,41 +229,94 @@
       return true;
     }
 
-    let phiHist = new Float64Array(T + 1);
-    let artifacts = [];
-    function buildTrajectory() {
-      phiHist = new Float64Array(T + 1);
-      artifacts = [];
-      let phi = 0, lastHit = -3;
-      const throatPool = [0, 2, 5, 8];
-      const outerUpper = [21, 25, 30, 35, 38];
-      const innerLower = [13, 17];
-      const outerLower = [42, 46, 50, 53, 56, 59];
-      const conf = Math.pow(3.0 / cubeL, 0.5);
-      for (let t = 1; t <= T; t++) {
-        const flux = 0.84 + 0.35 * Math.cos(t * 0.23) + 0.28 * Math.sin(t * 0.71);
-        const dPhi = (flux / 3.05) * conf * Math.max(0.4, (1 + 0.12 * magB) * (1 + 0.08 * gravG)) / Math.log(t + 3) * (1 + 0.45 * Math.sin(t * (1.6180339887 + 0.05 * magB)));
-        phi += dPhi;
-        if (phi >= 1.0 && t - lastHit >= 2) {
-          phi -= 1.0;
-          const pullStrength = 0.55 * conf + 0.25 * magB + 0.22 * gravG;
-          const isPinched = ((t * 17) % 100) / 100 < pullStrength;
-          const a = isPinched ? throatPool[(t * 7) % throatPool.length] : outerUpper[(t * 7) % outerUpper.length];
-          const b = isPinched ? innerLower[(t * 13) % innerLower.length] : outerLower[(t * 13) % outerLower.length];
-          artifacts.push({ t, a, b, isPrimeStep: isPrimeInt(t) });
-          lastHit = t;
-        }
-        phiHist[t] = phi;
+    // Autonomous 11D Homeostatic Brain Tick
+    function stepOrganism() {
+      org.tau++;
+      org.breathPhase += 0.085;
+      const auto = document.getElementById('autoHomeo').checked;
+
+      // 1) Self-healing homeostasis (D11 Consciousness regulates D5 Cube L, D6 Magnetic B, D7 Gravity G)
+      if (auto) {
+        // If stress is high, the organism contracts its Quantum Cube toward 3.0nm (Green Prime Lock) and boosts Magnetic Pinch B!
+        const desiredL = org.stress > 0.25 ? 3.0 : 3.05 + 0.18 * Math.sin(org.breathPhase * 0.5);
+        org.cubeL += (desiredL - org.cubeL) * 0.08;
+        const desiredB = 1.0 + Math.min(0.9, org.stress * 1.8) + 0.12 * Math.cos(org.breathPhase);
+        org.magB += (desiredB - org.magB) * 0.08;
+        org.gravG += (1.0 - org.gravG) * 0.07;
+      }
+
+      // Natural stress decay & metabolic energy regeneration
+      org.stress = Math.max(0.06, org.stress * 0.965);
+      org.energy = Math.min(1.35, org.energy + (1.0 - org.energy) * 0.04);
+      org.csi = Math.max(0.20, Math.min(0.995, 0.96 - 0.35 * org.stress + 0.04 * (3.5 - org.cubeL)));
+
+      // 2) Cellular oscillation on the manifold
+      for (const n of nodes) {
+        n.th += (n.layer === 0 ? 0.012 : n.layer === 1 ? 0.006 : 0.0025) * (0.8 + 0.3 * org.magB);
+        n.excitability *= 0.90;
+        const pt = wormholePoint(n.u, n.th);
+        n.x = pt.x; n.y = pt.y; n.z = pt.z;
+      }
+
+      // 3) Plasma Circulation & Prime Heartbeat Annihilation (D8 & D10)
+      const conf = Math.pow(3.0 / org.cubeL, 0.7);
+      const dPhi = (0.14 + 0.18 * org.stress) * conf * (1 + 0.15 * org.magB) * (1 + 0.10 * org.gravG) * (1 + 0.35 * Math.sin(org.tau * 1.6180339887));
+      org.phi += Math.max(0.03, dPhi);
+
+      let beatSpike = 0.05 * Math.sin(org.breathPhase * 2);
+      if (org.phi >= 1.0 && org.tau - org.lastBeatTau >= 2) {
+        org.phi -= 1.0;
+        const gap = org.tau - org.lastBeatTau;
+        org.lastBeatTau = org.tau;
+        org.bpm = Math.round(Math.max(48, Math.min(145, 600 / Math.max(3, gap))));
+        beatSpike = 1.0;
+
+        // Select upper & lower nodes attracted by Magnetic B and Gravity G
+        const throatUpper = [0, 2, 4, 5, 8, 9];
+        const throatLower = [1, 3, 12, 13, 16, 17];
+        const a = throatUpper[(org.tau * 7) % throatUpper.length];
+        const b = throatLower[(org.tau * 13) % throatLower.length];
+        nodes[a].excitability = 1.0;
+        nodes[b].excitability = 1.0;
+
+        const isPrimeBeat = isPrimeInt(org.tau) || isPrimeInt(gap);
+        livingSynapses.push({
+          a,
+          b,
+          life: 1.0,
+          isPrime: isPrimeBeat
+        });
+        if (livingSynapses.length > 14) livingSynapses.shift();
+
+        // Evolve 68-digit Living Prime DNA
+        org.primeBig = ((org.primeBig * 104729n + BigInt(org.tau) * 7919n + BigInt(a * 60 + b) * 131071n) % (10n ** 68n)) | 1n;
+        if (org.primeBig < 10n ** 67n) org.primeBig += 8n * (10n ** 67n);
+      }
+
+      // Decay living synapses organically
+      for (let i = livingSynapses.length - 1; i >= 0; i--) {
+        livingSynapses[i].life -= 0.018;
+        if (livingSynapses[i].life <= 0) livingSynapses.splice(i, 1);
+      }
+
+      org.ecgHistory.push(beatSpike);
+      if (org.ecgHistory.length > 90) org.ecgHistory.shift();
+
+      // Update Organism Thought / Status
+      if (org.gravG < 0) {
+        org.thought = '⚠ Anti-Kütleçekim Şoku! Otonom Beyin manyetik alanı yükseltip boğazı geri topluyor...';
+      } else if (org.stress > 0.35) {
+        org.thought = '⚡ Kaos Algılandı: Boğaz küpü 3.0nm Yeşil Asal Kilide büzüldü, iç kabuk kısıldı (d=0.24)';
+      } else {
+        org.thought = 'Organizma Durumu: 11B Homeostaz dengede · Yeşil Kuantum Küpü asal ritimde nefes alıyor';
       }
     }
-    buildTrajectory();
 
-    const gridRings = [-1.18, -0.90, -0.62, -0.32, 0, 0.32, 0.62, 0.90, 1.18];
-    let curT = 180;
     let rotY = 0.45, rotX = 0.32, zoom = 1.0;
     let dragging = false, lx = 0, ly = 0;
-    let playing = true;
-    let lastFrameTime = performance.now();
+    let lastTick = performance.now();
+    let projectedCache = [];
+    const gridRings = [-1.18, -0.90, -0.62, -0.32, 0, 0.32, 0.62, 0.90, 1.18];
 
     function project(p, w, h) {
       const cy = Math.cos(rotY), sy = Math.sin(rotY);
@@ -258,35 +329,31 @@
       const scale = (Math.min(w, h) * 0.44) * (fov / (fov + z2 + 1.25));
       return {
         sx: w * 0.5 + x1 * scale,
-        sy: h * 0.53 + y2 * scale,
+        sy: h * 0.52 + y2 * scale,
         z: z2,
         s: fov / (fov + z2 + 1.25)
       };
     }
 
-    function updateUiHeader() {
-      const sp = quantumCubeSpectrum(cubeL);
-      const lEl = document.getElementById('lVal');
-      lEl.textContent = `${cubeL.toFixed(1)} nm (${sp.lambda}nm ${sp.name})`;
+    function updateHud(sp) {
+      document.getElementById('tauRead').textContent = org.tau;
+      const lEl = document.getElementById('lRead');
+      lEl.textContent = `${org.cubeL.toFixed(2)} nm (${sp.lambda}nm ${sp.name})`;
       lEl.style.color = `rgb(${sp.rgb})`;
-      document.getElementById('cubeLegendDot').style.backgroundColor = `rgb(${sp.rgb})`;
-      document.getElementById('hudEv').textContent = `${sp.eV} eV (${sp.name})`;
-      document.getElementById('hudEv').style.color = `rgb(${sp.rgb})`;
-
-      // As cube shrinks to 3.0 nm (green), level repulsion locks onto Riemann GUE (D_KS = 0.148)
-      const dKs = (0.148 + 0.042 * (cubeL - 3.0)).toFixed(3);
-      const locked = cubeL <= 3.8;
-      const gueEl = document.getElementById('hudGue');
-      gueEl.textContent = `D_GUE = ${dKs} (${locked ? 'Yeşil Asal Kilit ✓' : 'Gevşek Hapis'})`;
-      gueEl.style.color = `rgb(${sp.rgb})`;
+      document.getElementById('bgRead').textContent = `B=${org.magB.toFixed(2)}T · G=${(org.gravG >= 0 ? '+' : '') + org.gravG.toFixed(1)}g`;
+      document.getElementById('csiRead').textContent = org.csi.toFixed(3);
+      document.getElementById('bpmRead').textContent = `${org.bpm} BPM (${org.cubeL <= 3.5 ? 'Yeşil Asal Kilit ✓' : 'Uyarlanıyor'})`;
+      document.getElementById('primeDnaRead').textContent = org.primeBig.toString();
+      document.getElementById('thoughtRead').textContent = org.thought;
+      document.getElementById('pulseDot').style.backgroundColor = `rgb(${sp.rgb})`;
     }
 
     function draw(now) {
-      if (playing && now - lastFrameTime > 65) {
-        curT = curT >= T ? 1 : curT + 1;
-        lastFrameTime = now;
+      if (now - lastTick > 55) {
+        stepOrganism();
+        lastTick = now;
       }
-      if (!dragging) rotY += 0.0048;
+      if (!dragging) rotY += 0.0045;
 
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
@@ -299,17 +366,19 @@
       ctx.clearRect(0, 0, w, h);
 
       const isLight = document.documentElement.classList.contains('light');
-      const sp = quantumCubeSpectrum(cubeL);
+      const sp = quantumSpectrum(org.cubeL);
+      updateHud(sp);
+
       const throatCenter = project({ x: 0, y: 0, z: 0 }, w, h);
 
-      // 1) Draw Einstein-Rosen Hyperboloid Rings
+      // 1) Breathing Einstein-Rosen Tissue Rings
       ctx.save();
       for (const u of gridRings) {
         const isThroat = Math.abs(u) < 0.01;
         ctx.strokeStyle = isThroat
-          ? `rgba(${sp.rgb}, 0.65)`
-          : (isLight ? 'rgba(100, 116, 139, 0.18)' : 'rgba(56, 189, 248, 0.13)');
-        ctx.lineWidth = isThroat ? 1.8 : 0.7;
+          ? `rgba(${sp.rgb}, 0.70)`
+          : (isLight ? 'rgba(100, 116, 139, 0.16)' : 'rgba(56, 189, 248, 0.13)');
+        ctx.lineWidth = isThroat ? 2.0 : 0.7;
         ctx.beginPath();
         for (let k = 0; k <= 36; k++) {
           const th = (k / 36) * Math.PI * 2;
@@ -319,48 +388,44 @@
         ctx.stroke();
       }
 
-      // 2) Draw Helical Magnetic Field Lines (B-Field)
-      if (magB > 0.02) {
-        const nFieldLines = 8;
-        const alphaB = Math.min(0.82, 0.20 + 0.30 * magB);
-        for (let f = 0; f < nFieldLines; f++) {
-          const baseTheta = (f / nFieldLines) * Math.PI * 2 + now * 0.0004 * magB;
-          ctx.strokeStyle = f % 2 === 0
-            ? `rgba(129, 140, 248, ${alphaB})`
-            : `rgba(167, 139, 250, ${alphaB * 0.85})`;
-          ctx.lineWidth = 0.9 + 0.35 * magB;
-          ctx.beginPath();
-          for (let s = 0; s <= 32; s++) {
-            const u = -1.18 + (s / 32) * 2.36;
-            const twist = magB * 1.35 * Math.sin(u * 1.4);
-            const pt = project(wormholePoint(u, baseTheta, twist), w, h);
-            s === 0 ? ctx.moveTo(pt.sx, pt.sy) : ctx.lineTo(pt.sx, pt.sy);
-          }
-          ctx.stroke();
+      // 2) Pulsing Helical Magnetic Veins (D6)
+      const nFieldLines = 8;
+      const alphaB = Math.min(0.85, 0.22 + 0.28 * org.magB);
+      for (let f = 0; f < nFieldLines; f++) {
+        const baseTheta = (f / nFieldLines) * Math.PI * 2 + now * 0.0005 * org.magB;
+        ctx.strokeStyle = f % 2 === 0
+          ? `rgba(129, 140, 248, ${alphaB})`
+          : `rgba(${sp.rgb}, ${alphaB * 0.65})`;
+        ctx.lineWidth = 0.9 + 0.35 * org.magB;
+        ctx.beginPath();
+        for (let s = 0; s <= 32; s++) {
+          const u = -1.18 + (s / 32) * 2.36;
+          const twist = org.magB * 1.35 * Math.sin(u * 1.4);
+          const pt = project(wormholePoint(u, baseTheta, twist), w, h);
+          s === 0 ? ctx.moveTo(pt.sx, pt.sy) : ctx.lineTo(pt.sx, pt.sy);
         }
+        ctx.stroke();
       }
       ctx.restore();
 
-      // 3) Draw the 3D Quantum Confinement Nanocube at the Wormhole Throat (u = 0)!
-      // Cube half-size scales with cubeL (3.0 nm -> compact glowing green cube; 7.0 nm -> large red cube)
-      const halfL = 0.075 + 0.032 * (cubeL - 3.0);
+      // 3) Beating 5D Quantum Confinement Cube Heart at the Throat
+      const beatScale = 1 + 0.14 * Math.sin(org.breathPhase * 2);
+      const halfL = (0.078 + 0.032 * (org.cubeL - 3.0)) * beatScale;
       const cProj = CUBE_VERTS.map(([vx, vy, vz]) => project({ x: vx * halfL, y: vy * halfL, z: vz * halfL }, w, h));
 
-      // Quantum Cube Glow Aura
-      const cubeGlowR = Math.max(18, 65 * halfL * throatCenter.s * Math.min(w, h) * 0.008);
-      const cGrad = ctx.createRadialGradient(throatCenter.sx, throatCenter.sy, 2, throatCenter.sx, throatCenter.sy, cubeGlowR * 2.2);
-      cGrad.addColorStop(0, `rgba(${sp.rgb}, 0.50)`);
-      cGrad.addColorStop(0.5, `rgba(${sp.rgb}, 0.18)`);
+      const cubeGlowR = Math.max(22, 72 * halfL * throatCenter.s * Math.min(w, h) * 0.0085);
+      const cGrad = ctx.createRadialGradient(throatCenter.sx, throatCenter.sy, 2, throatCenter.sx, throatCenter.sy, cubeGlowR * 2.4);
+      cGrad.addColorStop(0, `rgba(${sp.rgb}, 0.58)`);
+      cGrad.addColorStop(0.5, `rgba(${sp.rgb}, 0.20)`);
       cGrad.addColorStop(1, `rgba(${sp.rgb}, 0.0)`);
       ctx.fillStyle = cGrad;
       ctx.beginPath();
-      ctx.arc(throatCenter.sx, throatCenter.sy, cubeGlowR * 2.2, 0, Math.PI * 2);
+      ctx.arc(throatCenter.sx, throatCenter.sy, cubeGlowR * 2.4, 0, Math.PI * 2);
       ctx.fill();
 
-      // Cube Wireframe Edges
       ctx.save();
       ctx.strokeStyle = `rgba(${sp.rgb}, 0.95)`;
-      ctx.lineWidth = 2.0;
+      ctx.lineWidth = 2.1;
       for (const [i, j] of CUBE_EDGES) {
         ctx.beginPath();
         ctx.moveTo(cProj[i].sx, cProj[i].sy);
@@ -369,8 +434,8 @@
       }
       ctx.restore();
 
-      // Trapped Electrons bouncing inside the Quantum Cube (speed ~ 1/L^2)
-      const speedMult = Math.pow(5.0 / cubeL, 1.8);
+      // Trapped Electrons inside the Beating Cube
+      const speedMult = Math.pow(5.0 / org.cubeL, 1.8);
       for (const el of CUBE_ELECTRONS) {
         el.px += el.vx * speedMult;
         el.py += el.vy * speedMult;
@@ -383,45 +448,19 @@
         ctx.arc(ep.sx, ep.sy, 2.8 * ep.s, 0, Math.PI * 2);
         ctx.fillStyle = '#ffffff';
         ctx.fill();
-        ctx.strokeStyle = `rgb(${sp.rgb})`;
-        ctx.lineWidth = 1.4;
-        ctx.stroke();
       }
 
       const proj = nodes.map(n => ({ n, ...project(n, w, h) }));
-      const pastArtifacts = artifacts.filter(e => e.t <= curT);
-      const nextEv = artifacts.find(e => e.t > curT) || artifacts[0];
+      projectedCache = proj;
 
-      const pinchPct = Math.max(42.0, Math.min(99.6, 87.6 + 7.2 * magB + 3.7 * gravG + 1.8 * (7.0 - cubeL) / 4.0));
-      document.getElementById('tVal').textContent = curT;
-      document.getElementById('hudPinch').textContent = `%${pinchPct.toFixed(1)}`;
-
-      // 4) Antimatter Plasma Wave & Prime Annihilation Bridges (colored by Quantum Cube spectrum!)
-      const confinement = gravG >= 0
-        ? 1 / (1 + 0.50 * magB + 0.45 * gravG + 0.25 * (7.0 - cubeL))
-        : Math.min(1.22, 0.85 - 0.35 * gravG);
-      const uWave = 1.12 * confinement * Math.sin(curT * 0.085);
-      const thWave = curT * (0.20 + 0.08 * magB);
-      const wPos = project(wormholePoint(uWave, thWave), w, h);
-
-      const rad = Math.max(14, 44 * wPos.s * (0.55 + 0.65 * phiHist[curT]));
-      const grad = ctx.createRadialGradient(wPos.sx, wPos.sy, 2, wPos.sx, wPos.sy, rad);
-      grad.addColorStop(0, 'rgba(232, 121, 249, 0.88)');
-      grad.addColorStop(0.5, `rgba(${sp.rgb}, 0.40)`);
-      grad.addColorStop(1, 'rgba(232, 121, 249, 0.0)');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(wPos.sx, wPos.sy, rad, 0, Math.PI * 2);
-      ctx.fill();
-
-      for (const ev of pastArtifacts) {
-        const pa = proj[ev.a], pb = proj[ev.b];
-        const alpha = Math.max(0.25, 1 - (curT - ev.t) / 150);
+      // 4) Living Synaptic Shortcuts (born from matter-antimatter annihilations)
+      for (const syn of livingSynapses) {
+        const pa = proj[syn.a], pb = proj[syn.b];
         ctx.save();
-        ctx.strokeStyle = ev.isPrimeStep
-          ? `rgba(${sp.rgb}, ${0.95 * alpha})`
-          : `rgba(56, 189, 248, ${0.65 * alpha})`;
-        ctx.lineWidth = ev.isPrimeStep ? 2.4 : 1.25;
+        ctx.strokeStyle = syn.isPrime
+          ? `rgba(${sp.rgb}, ${syn.life * 0.95})`
+          : `rgba(56, 189, 248, ${syn.life * 0.80})`;
+        ctx.lineWidth = 1.2 + syn.life * 2.2;
         ctx.beginPath();
         ctx.moveTo(pa.sx, pa.sy);
         ctx.quadraticCurveTo(throatCenter.sx, throatCenter.sy, pb.sx, pb.sy);
@@ -429,18 +468,37 @@
         ctx.restore();
       }
 
-      // 5) Draw Nodes
+      // 5) Circulating 8D Antimatter Plasma Bloodstream
+      const confinement = org.gravG >= 0
+        ? 1 / (1 + 0.50 * org.magB + 0.45 * org.gravG)
+        : Math.min(1.22, 0.85 - 0.35 * org.gravG);
+      for (let k = 0; k < 2; k++) {
+        const phaseOffset = k * Math.PI;
+        const uWave = 1.12 * confinement * Math.sin(org.tau * 0.09 + phaseOffset);
+        const thWave = org.tau * (0.22 + 0.08 * org.magB) + phaseOffset;
+        const wPos = project(wormholePoint(uWave, thWave), w, h);
+        const rad = Math.max(14, 38 * wPos.s * (0.6 + 0.5 * org.phi));
+        const grad = ctx.createRadialGradient(wPos.sx, wPos.sy, 2, wPos.sx, wPos.sy, rad);
+        grad.addColorStop(0, 'rgba(232, 121, 249, 0.85)');
+        grad.addColorStop(0.5, `rgba(${sp.rgb}, 0.38)`);
+        grad.addColorStop(1, 'rgba(232, 121, 249, 0.0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(wPos.sx, wPos.sy, rad, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 6) Living Cells / Nodes
       const sorted = proj.slice().sort((a, b) => b.z - a.z);
       for (const p of sorted) {
         const n = p.n;
-        const isNextTarget = n.id === nextEv.a || n.id === nextEv.b;
         const baseSize = n.layer === 0 ? 8.6 : n.layer === 1 ? 6.3 : 4.7;
-        const r = Math.max(2.5, baseSize * p.s);
+        const r = Math.max(2.5, (baseSize + n.excitability * 3.5) * p.s);
 
-        if (isNextTarget) {
+        if (n.excitability > 0.08) {
           ctx.beginPath();
-          ctx.arc(p.sx, p.sy, r + 5.2, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgb(${sp.rgb})`;
+          ctx.arc(p.sx, p.sy, r + 5 * n.excitability, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${sp.rgb}, ${n.excitability})`;
           ctx.lineWidth = 2.0;
           ctx.stroke();
         }
@@ -470,50 +528,84 @@
         }
       }
 
+      // 7) Live ECG Prime Heartbeat Monitor (Bottom-Right Overlay)
+      const ecgW = 155, ecgH = 38;
+      const ecgX = w - ecgW - 12, ecgY = h - ecgH - 34;
+      ctx.save();
+      ctx.fillStyle = isLight ? 'rgba(255,255,255,0.82)' : 'rgba(9,13,22,0.82)';
+      ctx.strokeStyle = `rgba(${sp.rgb}, 0.55)`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(ecgX, ecgY, ecgW, ecgH, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      for (let i = 0; i < org.ecgHistory.length; i++) {
+        const x = ecgX + 4 + (i / (org.ecgHistory.length - 1)) * (ecgW - 8);
+        const y = ecgY + ecgH * 0.72 - org.ecgHistory[i] * (ecgH * 0.55);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.restore();
+
       requestAnimationFrame(draw);
     }
 
-    canvas.addEventListener('pointerdown', e => { dragging = true; lx = e.clientX; ly = e.clientY; });
+    // Interactive Perturbations (Feed, Chaos, Antigravity Shock, Click Cell)
+    document.getElementById('feedBtn').addEventListener('click', () => {
+      org.energy = 1.35;
+      org.phi = 0.98;
+      org.cubeL = 3.0;
+      nodes.forEach(n => { if (n.layer === 0) n.excitability = 1.0; });
+    });
+
+    document.getElementById('chaosBtn').addEventListener('click', () => {
+      org.stress = Math.min(0.85, org.stress + 0.45);
+      org.cubeL = 5.6; // Swells toward orange, then autonomous brain contracts it back to 3.0nm green!
+      nodes.forEach(n => { if (n.isChaos) n.excitability = 1.0; });
+    });
+
+    document.getElementById('shockBtn').addEventListener('click', () => {
+      org.gravG = -1.0; // Antigravity shock expands the wormhole, then brain self-heals back to +1.0g!
+      org.cubeL = 6.8;
+      org.stress = 0.55;
+    });
+
+    let downX = 0, downY = 0;
+    canvas.addEventListener('pointerdown', e => {
+      dragging = true;
+      lx = downX = e.clientX;
+      ly = downY = e.clientY;
+    });
     window.addEventListener('pointermove', e => {
       if (!dragging) return;
       rotY += (e.clientX - lx) * 0.01;
       rotX = Math.max(-1.35, Math.min(1.35, rotX + (e.clientY - ly) * 0.01));
       lx = e.clientX; ly = e.clientY;
     });
-    window.addEventListener('pointerup', () => { dragging = false; });
+    window.addEventListener('pointerup', e => {
+      if (!dragging) return;
+      dragging = false;
+      if (Math.hypot(e.clientX - downX, e.clientY - downY) < 6) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        for (const p of projectedCache) {
+          if (Math.hypot(p.sx - mx, p.sy - my) < 22) {
+            p.n.excitability = 1.0;
+            org.phi = 0.99;
+            break;
+          }
+        }
+      }
+    });
     canvas.addEventListener('wheel', e => {
       e.preventDefault();
       zoom = Math.max(0.65, Math.min(1.65, zoom - e.deltaY * 0.001));
     }, { passive: false });
 
-    document.getElementById('lRange').addEventListener('input', e => {
-      cubeL = parseFloat(e.target.value);
-      updateUiHeader();
-      updateNodeCoords();
-      buildTrajectory();
-    });
-
-    document.getElementById('bRange').addEventListener('input', e => {
-      magB = parseFloat(e.target.value);
-      document.getElementById('bVal').textContent = magB.toFixed(1);
-      buildTrajectory();
-    });
-
-    document.getElementById('gRange').addEventListener('input', e => {
-      gravG = parseFloat(e.target.value);
-      document.getElementById('gVal').textContent = (gravG >= 0 ? '+' : '') + gravG.toFixed(1) + 'g';
-      document.getElementById('gVal').className = gravG >= 0 ? 'text-emerald-400' : 'text-rose-400';
-      updateNodeCoords();
-      buildTrajectory();
-    });
-
-    const playBtn = document.getElementById('play3dBtn');
-    playBtn.addEventListener('click', () => {
-      playing = !playing;
-      playBtn.textContent = playing ? 'Dur' : 'Oynat';
-    });
-
-    updateUiHeader();
     requestAnimationFrame(draw);
   </script>
 </body>
