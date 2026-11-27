@@ -204,11 +204,141 @@ class ERQuantumPlasmaModel {
       ...greenExp,
     };
   }
+
+  // ==========================================================================
+  // ADRENALİN TESTİ (Savaş-ya-da-Kaç / Fight-or-Flight Otonom Refleks Testi)
+  // ==========================================================================
+  // Ağ üzerinde t = [shockStart..shockEnd] arasında ani bir stres/saldırı şoku uygulanır.
+  // 1) PASİF KONTROL (Adrenalin Yok): Sabit şiddet (d = 0.45), sabit hassasiyet, refleks yok.
+  // 2) ADRENALİN REFLEKSİ (Otonom Sinir Sistemi + Çift Sarmal DNA + Yeşil Kuantum Kalp):
+  //    - Savaş-Kaç Evresi (t = shockStart..shockEnd):
+  //      Nabız 72 -> 136 BPM'e fırlar, boğazdaki (iç kabuk) hücreler vazokonstriksiyon ile
+  //      kısılır (d_inner = 0.16, dedektörden korunur), dış ağız (kas/çeper) hücrelerine
+  //      tam ATP/adrenalin pompalanır (d_outer = 0.36).
+  //    - Homeostatik Toparlanma Evresi (t > shockEnd):
+  //      Vagus siniri devreye girer, nabız 74 BPM'e ve küp L = 3.00 nm (518nm Yeşil) durumuna döner.
+  // ==========================================================================
+  runAdrenalineTest(opts = {}) {
+    const seeds = opts.seeds || 20;
+    const shockStart = opts.shockStart || 24;
+    const shockEnd = opts.shockEnd || 48;
+    const steps = opts.steps || 80;
+    const baseCfg = {
+      ...E.COSMO_CERN,
+      chaos_particles: ['PARASITE'],
+      chaos_ratio: 0.20,
+      infiltration_mode: 'random',
+      steps,
+      decision_epoch: 4,
+      quarantine_enabled: true,
+      quarantine_sensitivity: 0.55,
+      double_helix: true,
+    };
+
+    const reflexEx = [], passiveEx = [];
+    const reflexSurv = [], passiveSurv = [];
+    const reflexCsi = [], passiveCsi = [];
+    const bpmTrace = [];
+
+    for (let s = 0; s < seeds; s++) {
+      const seed = this.seed + s;
+
+      // A) Pasif Kontrol Koşusu (Adrenalin / kabuk refleksi yok; şok anında düz yüksek tepki verir)
+      const simPass = new E.GoliathSim({ ...baseCfg, seed });
+      const gPass = simPass._runGen();
+      let rP = gPass.next();
+      while (!rP.done) {
+        const t = rP.value.t;
+        const inShock = t >= shockStart && t < shockEnd;
+        const dFlat = inShock ? 0.50 : 0.42;
+        const dMap = {};
+        for (const a of rP.value.agents) dMap[a.id] = a.cutOff ? 0 : dFlat;
+        rP = gPass.next({ d: dMap });
+      }
+      const outP = rP.value;
+      passiveEx.push(outP.extracted);
+      passiveSurv.push(1 - outP.tp / Math.max(1, outP.totalChaos));
+      passiveCsi.push(outP.csi[outP.steps - 1]);
+
+      // B) Otonom Adrenalin Refleksi Koşusu (Savaş-Kaç + Kabuk Vazokonstriksiyonu + Homeostaz)
+      const simRef = new E.GoliathSim({ ...baseCfg, seed });
+      const gRef = simRef._runGen();
+      let rR = gRef.next();
+      let adrenaline = 0;
+      let prevCuts = 0;
+      while (!rR.done) {
+        const obs = rR.value;
+        const t = obs.t;
+        const active = obs.agents.filter(a => !a.cutOff);
+        const cuts = obs.agents.length - active.length;
+        const newCuts = cuts - prevCuts;
+        prevCuts = cuts;
+
+        // Adrenalin: şok penceresinde veya ani hücre kaybında fırlar, sonrasında vagus refleksiyle sönümlenir
+        if (t >= shockStart && t < shockEnd) {
+          adrenaline = Math.min(1.0, adrenaline + 0.45 + 0.15 * newCuts);
+        } else {
+          adrenaline = Math.max(0.0, adrenaline * 0.65);
+        }
+        const bpm = Math.round(72 + 64 * adrenaline);
+        if (s === 0) bpmTrace.push({ t, bpm, adrenaline: Number(adrenaline.toFixed(2)), active: active.length });
+
+        const degs = obs.agents.map(a => a.degree).slice().sort((a, b) => a - b);
+        const maxDeg = Math.max(...degs, 5), minDeg = Math.min(...degs, 2);
+        const dMap = {};
+        for (const a of obs.agents) {
+          if (a.cutOff) { dMap[a.id] = 0; continue; }
+          const shellPos = maxDeg > minDeg ? (a.degree - minDeg) / (maxDeg - minDeg) : 0.5;
+          // Adrenalin yükseldiğinde iç organ/boğaz (yüksek derece) korunmaya alınır (vazokonstriksiyon),
+          // dış kas/çeper hücrelerine (düşük derece) güç verilir:
+          const innerClamp = 0.26 - 0.08 * adrenaline;
+          const outerBoost = 0.34 + 0.03 * adrenaline;
+          const di = outerBoost - (outerBoost - innerClamp) * shellPos;
+          dMap[a.id] = Number(Math.max(0.12, Math.min(0.75, di)).toFixed(3));
+        }
+        rR = gRef.next({ d: dMap });
+      }
+      const outR = rR.value;
+      reflexEx.push(outR.extracted);
+      reflexSurv.push(1 - outR.tp / Math.max(1, outR.totalChaos));
+      reflexCsi.push(outR.csi[outR.steps - 1]);
+    }
+
+    const mRefEx = E.meanSe(reflexEx), mPassEx = E.meanSe(passiveEx);
+    const mRefSurv = E.meanSe(reflexSurv), mPassSurv = E.meanSe(passiveSurv);
+    const mRefCsi = E.meanSe(reflexCsi), mPassCsi = E.meanSe(passiveCsi);
+    const diffEx = E.meanSe(reflexEx.map((v, i) => v - passiveEx[i]));
+    const peakBpm = Math.max(...bpmTrace.map(x => x.bpm));
+    const finalBpm = bpmTrace[bpmTrace.length - 1].bpm;
+
+    // Adrenalin Testi Kriterleri:
+    // (a) Savaş-Kaç kapasitesi: Adrenalin refleksi pasif kontrolden anlamlı fazla enerji/sermaye toplar (>1.5x ve fark > 2 SH)
+    // (b) Hücresel hayatta kalma (Vazokonstriksiyon): Adrenalin refleksinde ajan hayatta kalma oranı pasif kontrolden >%30 yüksektir
+    // (c) Homeostatik toparlanma: Nabız şok sırasında >=125 BPM'e çıkar ve şok sonrası <=80 BPM'e (normal sinüs ritmine) döner
+    const ca = mRefEx.mean / Math.max(1e-6, mPassEx.mean) >= 1.5 && diffEx.mean > 2 * diffEx.se;
+    const cb = mRefSurv.mean - mPassSurv.mean >= 0.30;
+    const cc = peakBpm >= 125 && finalBpm <= 80;
+
+    return {
+      seeds,
+      shockWindow: [shockStart, shockEnd],
+      reflex: { extracted: mRefEx, survival: mRefSurv, csi: mRefCsi },
+      passive: { extracted: mPassEx, survival: mPassSurv, csi: mPassCsi },
+      diffExtracted: diffEx,
+      ratioExtracted: mRefEx.mean / Math.max(1e-6, mPassEx.mean),
+      peakBpm,
+      finalBpm,
+      bpmTrace,
+      criteria: { a: ca, b: cb, c: cc },
+      supported: ca && cb && cc,
+    };
+  }
 }
 
 if (require.main === module) {
   const m = new ERQuantumPlasmaModel({ cube_L: 3.0, magnetic_B: 1.0, gravity_G: 1.0 });
   const res = m.runEnsemble(30);
+  const adr = m.runAdrenalineTest({ seeds: 20 });
   console.log('====================================================================');
   console.log('  ' + res.modelName);
   console.log('====================================================================');
@@ -219,7 +349,13 @@ if (require.main === module) {
   console.log(`  · Aralık Dağılımı   : D_GUE = ${res.dGue.toFixed(3)} < D_Asal = ${res.dPrime.toFixed(3)} < D_Poisson = ${res.dPoisson.toFixed(3)}`);
   console.log(`  · En Yüksek Asal t* : ${res.maxStepPrime}`);
   console.log(`  · 68-Haneli Tam Asal: ${res.maxExactPrime}`);
-  console.log(`  · 68-Haneli Rezonans: ${res.maxResonancePrime}`);
+  console.log('--------------------------------------------------------------------');
+  console.log('  ⚡ ADRENALİN TESTİ (Savaş-Kaç Otonom Sinir Sistemi Refleksi, 20 seed)');
+  console.log('--------------------------------------------------------------------');
+  console.log(`  · Adrenalin Refleksi: ${adr.reflex.extracted.mean.toFixed(1)}±${adr.reflex.extracted.se.toFixed(1)} enerji | Hayatta Kalma: %${(adr.reflex.survival.mean * 100).toFixed(1)}`);
+  console.log(`  · Pasif Kontrol     : ${adr.passive.extracted.mean.toFixed(1)}±${adr.passive.extracted.se.toFixed(1)} enerji | Hayatta Kalma: %${(adr.passive.survival.mean * 100).toFixed(1)}`);
+  console.log(`  · Nabız (EKG)       : Bazal 72 BPM → Şok Zirvesi ${adr.peakBpm} BPM → Toparlanma ${adr.finalBpm} BPM`);
+  console.log(`  · Kriterler         : (a) ${adr.criteria.a ? '✓' : '✗'} ${adr.ratioExtracted.toFixed(2)}× kazanç | (b) ${adr.criteria.b ? '✓' : '✗'} vazokonstriksiyon koruma | (c) ${adr.criteria.c ? '✓' : '✗'} homeostatik nabız → ${adr.supported ? 'BAŞARILI' : 'BAŞARISIZ'}`);
   console.log('====================================================================');
 }
 

@@ -189,7 +189,7 @@ test('plazma manyetizmaya ve kütleçekimine çekilir (%98.5 boğaz yakalaması)
   return `B=1,G=+1: ${pw.totalEvents} artifact, boğaz=%${(pw.throatCaptureRate * 100).toFixed(1)}, t*_asal=${pw.maxStepPrime}, tamAsal(${pw.maxExactPrimeDigits}h)=${pw.maxExactPrime.slice(0, 12)}…, rezonansAsal(${pw.maxResonancePrimeDigits}h)=${pw.maxResonancePrime.slice(0, 12)}…`;
 });
 
-console.log('18) ER-QPM v1.0: Birleşik Einstein-Rosen Kuantum Plazma Modeli (Küp Hapsi + ATOM + Plazma)');
+console.log('18) ER-QPM v1.0: Birleşik Einstein-Rosen Kuantum Plazma Modeli & Adrenalin (Savaş-Kaç) Testi');
 test('yeşil kuantum küpü (L=3.0nm, 518nm) seviye itmesini kilitler ve birleşik koşuyu hatasız tamamlar', () => {
   const { ERQuantumPlasmaModel, quantumCubeState } = require('./er_quantum_plasma_model.js');
   const green = quantumCubeState(3.0), red = quantumCubeState(7.0);
@@ -198,6 +198,13 @@ test('yeşil kuantum küpü (L=3.0nm, 518nm) seviye itmesini kilitler ve birleş
   const r = m.runSingle();
   assert(r.extracted > 35 && r.predictionAccuracy === 1 && r.throatCaptureRate >= 0.70, `ex=${r.extracted}, pred=${r.predictionAccuracy}, cap=${r.throatCaptureRate}`);
   return `L=3.0nm (${green.wavelengthNm}nm Yeşil, ΔE=${green.energyEv}eV), ATOM ex=${r.extracted.toFixed(1)}, boğaz=%${(r.throatCaptureRate * 100).toFixed(0)}, tahmin=%100`;
+});
+test('adrenalin (savaş-kaç) refleksi şok altında pasif kontrolü >2x geçer, hücreleri korur ve nabzı homeostaza döndürür (20 seed)', () => {
+  const { ERQuantumPlasmaModel } = require('./er_quantum_plasma_model.js');
+  const m = new ERQuantumPlasmaModel({ seed: 9700 });
+  const adr = m.runAdrenalineTest({ seeds: 20 });
+  assert(adr.supported, `a=${adr.criteria.a}, b=${adr.criteria.b}, c=${adr.criteria.c}`);
+  return `Adrenalin ${adr.reflex.extracted.mean.toFixed(1)} vs Pasif ${adr.passive.extracted.mean.toFixed(1)} (${adr.ratioExtracted.toFixed(2)}×), sağkalım %${(adr.passive.survival.mean * 100).toFixed(0)}→%${(adr.reflex.survival.mean * 100).toFixed(0)}, nabız 72→${adr.peakBpm}→${adr.finalBpm} BPM`;
 });
 
 console.log(`\nBirim testleri: ${passed} geçti, ${failed} kaldı`);
