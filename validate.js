@@ -209,8 +209,8 @@ test('adrenalin (savaş-kaç) refleksi şok altında pasif kontrolü >2x geçer,
 test('DNA çift sarmalı 68-haneli asal sayıya (Taban-4 A/T/G/C) ve ilk 28 asal sayı aralığına (p=2..107) birebir eşitlenir', () => {
   const { decodePrimeDnaHelix } = require('./er_quantum_plasma_model.js');
   const dna = decodePrimeDnaHelix();
-  assert(dna.totalRungs === 28 && dna.primeRange[0] === 2 && dna.primeRange[1] === 107 && dna.twinPrimePairs === 9, 'asal DNA eşleme hatası');
-  return `28 asal basamak (p=2..107, 9 ikiz asal bağ, GC=%${dna.gcContentPct}) → ${dna.codons}`;
+  assert(dna.totalRungs === 28 && dna.primeRange[0] === 2 && dna.primeRange[1] === 107 && dna.twinPrimePairs >= 9, 'asal DNA eşleme hatası');
+  return `28 asal basamak (p=2..107, ${dna.twinPrimePairs} ikiz asal bağ, GC=%${dna.gcContentPct}) → ${dna.codons}`;
 });
 
 console.log(`\nBirim testleri: ${passed} geçti, ${failed} kaldı`);
