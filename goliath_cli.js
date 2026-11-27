@@ -15,7 +15,12 @@ const { runKovanV2 } = require("./kovan_v2_experiment.js");
 const { extractAgentFeatures, forwardStudent } = require("./distill_student.js");
 const { MODEL: G3B_MODEL, DEFAULT_BASE, callGoliath3b, runGoliathFlat, runGoliathKovan } = require("./run_goliath_3b.js");
 
-const OLLAMA_URL = process.env.OLLAMA_URL || "http://127.0.0.1:11434/api/chat";
+const { validateLlmEndpointUrl } = require("./llm_security.js");
+
+const OLLAMA_URL = validateLlmEndpointUrl(
+  process.env.OLLAMA_URL || "http://127.0.0.1:11434/api/chat",
+  { allowLocal: true }
+);
 const CHAT_MODEL = process.env.GOLIATH_CHAT_MODEL || "goliath-chat:latest";
 const STUDENT_MODEL = JSON.parse(fs.readFileSync(path.join(__dirname, "student-model.json"), "utf8"));
 const HTML_3D_PATH = path.join(__dirname, "goliath-3d.html");
@@ -27,6 +32,7 @@ async function streamChat(messages, onToken) {
   try {
     const res = await fetch(OLLAMA_URL, {
       method: "POST",
+      redirect: "error",
       headers: { "Content-Type": "application/json" },
       signal: ctrl.signal,
       body: JSON.stringify({

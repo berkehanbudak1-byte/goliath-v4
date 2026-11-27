@@ -7,8 +7,12 @@
 
 const E = require("./engine.js");
 const { replay } = require("./analyze_atom.js");
+const { redactSecrets, validateLlmEndpointUrl } = require("./llm_security.js");
 
-const OLLAMA_URL = process.env.OLLAMA_URL || "http://127.0.0.1:11434/api/chat";
+const OLLAMA_URL = validateLlmEndpointUrl(
+  process.env.OLLAMA_URL || "http://127.0.0.1:11434/api/chat",
+  { allowLocal: true }
+);
 const MODEL = process.env.GOLIATH_3B_MODEL || "goliath-3b:latest";
 
 const DEFAULT_BASE = {
@@ -46,6 +50,7 @@ async function callGoliath3b(userPrompt, { jsonMode = false, maxTokens = 260, te
 
     const res = await fetch(OLLAMA_URL, {
       method: "POST",
+      redirect: "error",
       headers: { "Content-Type": "application/json" },
       signal: ctrl.signal,
       body: JSON.stringify(body),
@@ -62,7 +67,7 @@ async function callGoliath3b(userPrompt, { jsonMode = false, maxTokens = 260, te
     if (!m) throw new Error("JSON yok");
     return { raw, json: JSON.parse(m[0]), ms, evalCount };
   } catch (e) {
-    return { raw: "HATA: " + e.message, json: null, ms: Date.now() - t0, evalCount: 0 };
+    return { raw: "HATA: " + redactSecrets(e.message), json: null, ms: Date.now() - t0, evalCount: 0 };
   } finally {
     clearTimeout(timer);
   }
