@@ -9,6 +9,7 @@ const E = require("./engine.js");
 const { replay } = require("./analyze_atom.js");
 const { runRule, runFixed } = require("./kovan_experiment.js");
 const { runKovanV2 } = require("./kovan_v2_experiment.js");
+const { injectStrictCsp } = require("./csp_utils.js");
 
 const BASE = {
   chaos_ratio: 0.20,
@@ -369,7 +370,7 @@ function buildStandaloneHtml(model, evalSummary) {
     strict: evalSummary.strict,
   });
 
-  return `<!DOCTYPE html>
+  return injectStrictCsp(`<!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
@@ -605,7 +606,7 @@ ${engineSrc}
 })();
 </script>
 </body>
-</html>`;
+</html>`);
 }
 
 if (require.main === module) {

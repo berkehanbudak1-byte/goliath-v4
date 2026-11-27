@@ -6,6 +6,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { injectStrictCsp } = require("./csp_utils.js");
 
 function safeInlineJson(obj) {
   return JSON.stringify(obj).replace(/<\/script/gi, "<\\/script");
@@ -82,7 +83,7 @@ function build3dHtml() {
     anyLeakage: goliath3bSummary.anyLeakage,
   });
 
-  return `<!DOCTYPE html>
+  return injectStrictCsp(`<!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
@@ -2078,7 +2079,7 @@ ${engineSrc}
 })();
 </script>
 </body>
-</html>`;
+</html>`);
 }
 
 if (require.main === module) {

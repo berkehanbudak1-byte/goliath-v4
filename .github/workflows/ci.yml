@@ -28,9 +28,10 @@ jobs:
       - name: Syntax checks
         run: |
           for f in *.js; do node --check "$f"; done
+          node --check tests/csp-audit.test.mjs
 
       - name: Run engine validation
         run: node validate.js
 
-      - name: Run security and swarm unit tests
-        run: node --test test_llm_security.js test_swarm_orchestrator.js
+      - name: Run security, swarm, and CSP unit tests
+        run: node --test test_llm_security.js test_swarm_orchestrator.js tests/csp-audit.test.mjs
