@@ -42,5 +42,7 @@
   ✓ yeşil kuantum küpü (L=3.0nm, 518nm) seviye itmesini kilitler ve birleşik koşuyu hatasız tamamlar (L=3.0nm (518nm Yeşil, ΔE=2.393eV), ATOM ex=39.9, boğaz=%75, tahmin=%100)
   ✓ adrenalin (savaş-kaç) refleksi şok altında pasif kontrolü >2x geçer, hücreleri korur ve nabzı homeostaza döndürür (20 seed) (Adrenalin 58.1 vs Pasif 24.1 (2.41×), sağkalım %3→%51, nabız 72→136→74 BPM)
   ✓ DNA çift sarmalı 68-haneli asal sayıya (Taban-4 A/T/G/C) ve ilk 28 asal sayı aralığına (p=2..107) birebir eşitlenir (28 asal basamak (p=2..107, 10 ikiz asal bağ, GC=%32.1) → TTC-ATG-TCA-CTC-AAA-ACT-GGA-AAT)
+  ✓ Fibonacci-Lucas hızlı ikiye katlama (Selfridge-BPSW: F_{p±1} ≡ 0 mod p, L_p ≡ 1 mod p) 68-haneli asalı doğrular ve bileşikleri eler (68-hane asal ✓, Carmichael (561, 1729) elendi ✓)
+  ✓ ARGUS Kripto Flash-Crash Adrenalin + Fibonacci (%61.8 boğaz kilidi / %23.6 dış vur-kaç) kalkanı erimeyi önler (Adrenalin 10107.45 TL (DD %2.11) vs Standart 7023.88 TL (DD %32.36))
 
-Birim testleri: 24 geçti, 0 kaldı
+Birim testleri: 26 geçti, 0 kaldı
