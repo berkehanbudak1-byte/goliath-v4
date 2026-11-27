@@ -588,6 +588,96 @@ class ERQuantumPlasmaModel {
       supported: finalAdrenaline > finalStandard && maxDdAdrenaline < maxDdStandard * 0.35,
     };
   }
+
+  /**
+   * Canlı Argus Trader Emir Döngüsü (tick) için Fibonacci + Adrenalin Kalkanı
+   * ATR volatilitesi, BTC 15m/1s ivmesi ve portföy çekilmesine (drawdown) göre
+   * kasa kilit oranını (%61.8 1/φ -> %76.4) ve aktif işlem bütçesini (%61.8 -> %23.6 1/φ³) ayarlar.
+   */
+  evaluateLiveAdrenalineShield(ctx = {}) {
+    const atrPct = Number(ctx.atrPct ?? 0.8);
+    const btcChangePct = Number(ctx.btcChangePct ?? 0);
+    const drawdownPct = Number(ctx.drawdownPct ?? 0);
+    const prevAdrenaline = Number(ctx.prevAdrenaline ?? 0);
+    const generation = Math.max(1, Number(ctx.generation ?? 1));
+
+    const atrStress = Math.max(0, (atrPct - 1.15) / 1.25);
+    const btcStress = btcChangePct <= -0.8 ? Math.min(1, Math.abs(btcChangePct + 0.5) / 1.5) : 0;
+    const ddStress = Math.max(0, (drawdownPct - 1.2) / 3.5);
+    const rawShock = Math.min(1.0, Math.max(atrStress, btcStress, ddStress));
+
+    const adrenalineLevel = rawShock > prevAdrenaline
+      ? Number(Math.min(1.0, prevAdrenaline * 0.35 + rawShock * 0.65).toFixed(3))
+      : Number(Math.max(0.0, prevAdrenaline * 0.72 + rawShock * 0.28).toFixed(3));
+
+    const bpm = Math.round(72 + 64 * adrenalineLevel);
+    const shockActive = adrenalineLevel >= 0.35 || atrPct >= 1.5 || btcChangePct <= -1.2;
+
+    // Altın Oran sabitleri: 1/φ = 0.618, 1/φ² = 0.382, 1/φ³ = 0.236
+    const vaultLockRatio = shockActive ? 0.764 : 0.618;
+    const activeExposureCap = shockActive ? 0.236 : 0.618;
+
+    return {
+      enabled: true,
+      generation,
+      adrenalineLevel,
+      bpm,
+      shockActive,
+      shieldMode: shockActive ? 'ADRENALINE_SHOCK_SHIELD' : 'FIBONACCI_HOMEOSTASIS',
+      vaultLockRatio,
+      activeExposureCap,
+      onlyReversalGreenEntries: shockActive,
+      atrPct: Number(atrPct.toFixed(2)),
+      btcChangePct: Number(btcChangePct.toFixed(2)),
+      drawdownPct: Number(drawdownPct.toFixed(2)),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Kendi Kendini Evrimleştiren Adaptif Katman (28 Asal Basamak + Fibonacci Seçilimi)
+   * Kapanan gerçek/örnek işlemlerin sonucuna ve şok şiddetine göre TP/SL ve kalkan
+   * katsayılarını bir sonraki nesle (generation) adapte eder.
+   */
+  evolveAdaptiveGeneration(ctx = {}) {
+    const prevGen = Math.max(1, Number(ctx.generation ?? 1));
+    const closedTrades = Array.isArray(ctx.closedTrades) ? ctx.closedTrades.slice(0, 12) : [];
+    const prevGenes = ctx.currentGenes || {};
+    const adrenalineLevel = Number(ctx.adrenalineLevel ?? 0);
+
+    const sampleCount = closedTrades.length;
+    const wins = closedTrades.filter((t) => Number(t && t.pnl) > 0).length;
+    const winRate = sampleCount > 0 ? wins / sampleCount : 0.64;
+    const avgPnlPct = sampleCount > 0
+      ? closedTrades.reduce((acc, t) => acc + Number((t && t.pnlPct) || 0), 0) / sampleCount
+      : 0.45;
+
+    const nextGen = prevGen + 1;
+    const rungIdx = (nextGen + Math.max(0, Math.round(winRate * 10))) % PRIME_RUNGS_28.length;
+    const primeRung = PRIME_RUNGS_28[rungIdx];
+    const fibSeq = [13, 21, 34, 55, 89];
+    const fibNode = fibSeq[nextGen % fibSeq.length];
+
+    // Başarı oranı yüksekse TP hedefini altın orana doğru esnet, şok veya kayıp varsa SL'i sıkılaştır
+    const baseTp = Number(prevGenes.tpMult ?? 1.0);
+    const baseSl = Number(prevGenes.slMult ?? 1.0);
+    const tpMult = Number(Math.max(0.86, Math.min(1.28, baseTp * 0.7 + (0.94 + winRate * 0.32 - adrenalineLevel * 0.12) * 0.3)).toFixed(3));
+    const slMult = Number(Math.max(0.70, Math.min(1.05, baseSl * 0.7 + (0.98 - adrenalineLevel * 0.24 + (avgPnlPct < 0 ? -0.10 : 0.02)) * 0.3)).toFixed(3));
+    const fitnessScore = Number(Math.max(25, Math.min(99.9, 54.0 + winRate * 28.0 + avgPnlPct * 4.5 - adrenalineLevel * 6.0)).toFixed(1));
+
+    return {
+      generation: nextGen,
+      tpMult,
+      slMult,
+      primeRungIndex: rungIdx + 1,
+      primeRungValue: primeRung,
+      fibonacciSpiralNode: fibNode,
+      winRatePct: Number((winRate * 100).toFixed(1)),
+      avgPnlPct: Number(avgPnlPct.toFixed(2)),
+      fitnessScore,
+      evolvedAt: new Date().toISOString(),
+    };
+  }
 }
 
 if (require.main === module) {
