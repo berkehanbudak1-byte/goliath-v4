@@ -22,6 +22,68 @@
 
 const E = require('./engine.js');
 
+// İlk 28 asal sayı: DNA çift sarmalının 28 basamağının (rung) tam koordinatlarını ve aralıklarını (Δp_k) belirler
+const PRIME_RUNGS_28 = [
+  2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
+  47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107
+];
+
+// 68-haneli Tam Asal Sayıyı (P_exact) Taban-4 (Base-4) üzerinden 28 basamaklı A-T / G-C DNA çift sarmalına birebir eşler:
+// 0 -> A=T, 1 -> T=A, 2 -> G≡C, 3 -> C≡G
+// Basamak yüksekliği u_k ∈ [-1.15, +1.15] ve sarmal bükülme açısı θ_k doğrudan p_k asal sayı koordinatından türetilir (Seviye İtmesi Δp_k >= 2).
+function decodePrimeDnaHelix(primeStr = '82685700173622821895833542656587011200223984821638808880776929401141') {
+  let n = BigInt(primeStr);
+  const PAIRS = [
+    ['A', 'T', 2], // 2 hidrojen bağı
+    ['T', 'A', 2],
+    ['G', 'C', 3], // 3 hidrojen bağı (yüksek bağlanma enerjisi)
+    ['C', 'G', 3],
+  ];
+  const pMin = PRIME_RUNGS_28[0], pMax = PRIME_RUNGS_28[PRIME_RUNGS_28.length - 1];
+  const GOLDEN_ANGLE = 2.39996322972865332; // 2π / φ² (asal filotaksis açısı)
+  const rungs = [];
+  let gcCount = 0;
+
+  for (let k = 0; k < PRIME_RUNGS_28.length; k++) {
+    const p = PRIME_RUNGS_28[k];
+    const gap = k === 0 ? 2 : p - PRIME_RUNGS_28[k - 1];
+    const isTwinPrime = gap === 2;
+    const base4Digit = Number(n & 3n);
+    n >>= 2n;
+    const [b1, b2, hBonds] = PAIRS[base4Digit];
+    if (hBonds === 3) gcCount++;
+    // Asal koordinatı solucandeliği eksenine [-1.15, +1.15] eşle (boğaz u=0 -> p=53..59 merkezi)
+    const u = Number((-1.15 + ((p - pMin) / (pMax - pMin)) * 2.30).toFixed(4));
+    const theta = Number(((p * GOLDEN_ANGLE) % (Math.PI * 2)).toFixed(4));
+    rungs.push({
+      rungIndex: k + 1,
+      prime: p,
+      primeGap: gap,
+      isTwinPrime,
+      baseAlpha: b1,
+      baseBeta: b2,
+      hBonds,
+      u,
+      theta,
+    });
+  }
+
+  // Üçlü kodon dizilimi (ilk 24 baz -> 8 kodon)
+  const alphaSeq = rungs.map(r => r.baseAlpha).join('');
+  const codons = [];
+  for (let i = 0; i + 3 <= 24; i += 3) codons.push(alphaSeq.slice(i, i + 3));
+
+  return {
+    primeSource: primeStr,
+    totalRungs: rungs.length,
+    primeRange: [pMin, pMax],
+    gcContentPct: Number(((gcCount / rungs.length) * 100).toFixed(1)),
+    twinPrimePairs: rungs.filter(r => r.isTwinPrime).length,
+    codons: codons.join('-'),
+    rungs,
+  };
+}
+
 function quantumCubeState(L = 3.0) {
   const clampedL = Math.max(3.0, Math.min(7.0, Number(L)));
   const t = (clampedL - 3.0) / 4.0; // 0 = 3.0nm (Yeşil), 1 = 7.0nm (Kırmızı)
@@ -339,6 +401,7 @@ if (require.main === module) {
   const m = new ERQuantumPlasmaModel({ cube_L: 3.0, magnetic_B: 1.0, gravity_G: 1.0 });
   const res = m.runEnsemble(30);
   const adr = m.runAdrenalineTest({ seeds: 20 });
+  const dna = decodePrimeDnaHelix(res.maxExactPrime);
   console.log('====================================================================');
   console.log('  ' + res.modelName);
   console.log('====================================================================');
@@ -349,6 +412,7 @@ if (require.main === module) {
   console.log(`  · Aralık Dağılımı   : D_GUE = ${res.dGue.toFixed(3)} < D_Asal = ${res.dPrime.toFixed(3)} < D_Poisson = ${res.dPoisson.toFixed(3)}`);
   console.log(`  · En Yüksek Asal t* : ${res.maxStepPrime}`);
   console.log(`  · 68-Haneli Tam Asal: ${res.maxExactPrime}`);
+  console.log(`  · Asal DNA Sarmalı  : 28 Asal Basamak (p=2..107, ${dna.twinPrimePairs} ikiz asal bağ, GC=%${dna.gcContentPct}) → ${dna.codons}`);
   console.log('--------------------------------------------------------------------');
   console.log('  ⚡ ADRENALİN TESTİ (Savaş-Kaç Otonom Sinir Sistemi Refleksi, 20 seed)');
   console.log('--------------------------------------------------------------------');
@@ -359,4 +423,4 @@ if (require.main === module) {
   console.log('====================================================================');
 }
 
-module.exports = { ERQuantumPlasmaModel, quantumCubeState };
+module.exports = { ERQuantumPlasmaModel, quantumCubeState, decodePrimeDnaHelix, PRIME_RUNGS_28 };

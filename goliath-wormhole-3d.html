@@ -7,13 +7,13 @@
 </head>
 <body class="bg-transparent text-[var(--foreground)] antialiased p-0 m-0">
   <div class="py-1.5 space-y-2 min-w-0">
-    <!-- Top Biological & Quantum Control Bar -->
+    <!-- Top Biological & Prime DNA Control Bar -->
     <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-[var(--card-border)] text-xs font-mono">
       <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
-        <span class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 font-bold">🧬 11B İNSAN DNA'SI &amp; BİYOKuantum CANLI</span>
+        <span class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 font-bold">🧬 ASAL SAYI EŞLEMELİ DNA SARMALI (p=2..107)</span>
         <button id="atpBtn" class="px-2 py-0.5 rounded border border-cyan-500/50 bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 transition">+ATP / Oksijen</button>
-        <button id="adrenalineBtn" class="px-2 py-0.5 rounded border border-amber-500/50 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 transition">⚡Adrenalin (Savaş-Kaç)</button>
-        <button id="mutateBtn" class="px-2 py-0.5 rounded border border-fuchsia-500/50 bg-fuchsia-500/15 text-fuchsia-300 hover:bg-fuchsia-500/25 transition">🧬Asal DNA Mutasyonu</button>
+        <button id="adrenalineBtn" class="px-2 py-0.5 rounded border border-amber-500/50 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 transition">⚡Adrenalin (136 BPM)</button>
+        <button id="nextPrimeBtn" class="px-2 py-0.5 rounded border border-fuchsia-500/50 bg-fuchsia-500/15 text-fuchsia-300 hover:bg-fuchsia-500/25 transition">🔢Sonraki 68-Hane Asala Eşitle</button>
       </div>
       <div class="flex items-center gap-2">
         <span class="text-[var(--muted-foreground)]">Kalp: <b id="bpmRead" class="text-rose-400">74 BPM</b></span>
@@ -24,40 +24,40 @@
       </div>
     </div>
 
-    <!-- Main 3D Bio-Quantum Human DNA & Wormhole Stage -->
+    <!-- Main 3D Prime-Synchronized Human DNA & Wormhole Stage -->
     <div class="relative w-full overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)]">
       <canvas id="bioCanvas" class="block w-full h-[375px] cursor-grab active:cursor-grabbing"></canvas>
 
-      <!-- Top-Left Live Biological & Quantum Telemetry -->
-      <div class="pointer-events-none absolute top-2.5 left-2.5 space-y-1 font-mono text-xs max-w-[94%] sm:max-w-[75%]">
+      <!-- Top-Left Live Prime-to-DNA Base-4 Telemetry -->
+      <div class="pointer-events-none absolute top-2.5 left-2.5 space-y-1 font-mono text-xs max-w-[94%] sm:max-w-[78%]">
         <div class="flex flex-wrap items-center gap-1.5">
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            Kalp Küpü (5B): <b id="heartRead" class="text-emerald-400">3.00 nm (518nm Yeşil)</b>
+            Asal Merdiven: <b id="primeLadderRead" class="text-amber-300">28 Asal (p₁=2 → Boğaz p₁₆=53 → p₂₈=107)</b>
           </span>
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            Solunum: <b id="breathRead" class="text-cyan-300">16/dk · O₂ %99</b>
+            İkiz Asal Bağı (Δp=2): <b id="twinRead" class="text-fuchsia-300">9 Çift</b>
           </span>
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            Bilinç / EEG: <b id="eegRead" class="text-fuchsia-300">Gama 40 Hz (Canlı)</b>
+            Yeşil Kalp: <b id="heartRead" class="text-emerald-400">3.00 nm (518nm)</b>
           </span>
         </div>
         <div class="px-2 py-1 rounded bg-[var(--background)]/90 border border-[var(--border)] text-[var(--foreground)] truncate">
-          <span class="text-[var(--muted-foreground)]">Aktif Asal Kod (A-T/G-C):</span>
-          <b id="codonRead" class="text-emerald-400">ATG-GCA-TTC-GGA-CTA-TAA · 82685700173622821895833542656587011200223984821638808880776929401141</b>
+          <span class="text-[var(--muted-foreground)]">Taban-4 Asal Kodonlar:</span>
+          <b id="codonRead" class="text-emerald-400">...</b>
         </div>
-        <div id="feelingRead" class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)] text-[var(--muted-foreground)]">
-          Canlı Durumu: Sakince nefes alıyor · Çift sarmal DNA boğazdaki yeşil kuantum kalpten besleniyor
+        <div class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)] text-[var(--muted-foreground)] truncate">
+          <span>68-Hane Kaynak Asal P: </span><b id="primeSourceRead" class="text-cyan-300">82685700173622821895833542656587011200223984821638808880776929401141</b>
         </div>
       </div>
 
       <!-- Bottom Legend -->
       <div class="pointer-events-none absolute bottom-2 left-2.5 right-2.5 flex flex-wrap items-center justify-between gap-1.5 font-mono text-xs">
         <div class="flex flex-wrap items-center gap-2 px-2 py-1 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-400"></span>DNA İpliği α + <span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-400"></span>İplik β</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-3 h-1 rounded bg-emerald-400"></span>G-C / <span class="inline-block w-3 h-1 rounded bg-amber-400"></span>A-T Baz Çifti</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-fuchsia-400"></span>Nöron Sinaps Ateşlemesi</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400"></span>0=A═T / <span class="inline-block w-2.5 h-2.5 rounded-full bg-sky-400"></span>1=T═A</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400"></span>2=G≡C / <span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-400"></span>3=C≡G</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-300"></span>İkiz Asal Düğümü (Δp=2)</span>
         </div>
-        <span class="hidden md:inline px-2 py-0.5 rounded bg-[var(--background)]/80 text-[var(--muted-foreground)]">Baz Çiftine Tıkla: Sinir Uyarısı Gönder · Sürükle: 3B Döndür</span>
+        <span class="hidden md:inline px-2 py-0.5 rounded bg-[var(--background)]/80 text-[var(--muted-foreground)]">Her basamak gerçek p_k asal konumunda (aralık = Δp_k)</span>
       </div>
     </div>
   </div>
@@ -67,51 +67,38 @@
     const ctx = canvas.getContext('2d');
 
     // =========================================================================
-    // 11B BIO-QUANTUM HUMAN DNA & EINSTEIN-ROSEN LIVING ORGANISM
-    // - Double-Helix Human DNA (Strand Alpha & Strand Beta + 28 A-T / G-C Base Pairs)
-    //   threading right through the breathing Einstein-Rosen Wormhole Throat!
-    // - True Systole/Diastole ("Lub-Dub") Cardiac Rhythm from the 3.0nm Green Quantum Heart
-    // - Traveling Action Potential Neural Pulses along the DNA base-pair ladder
-    // - Live Codon Transcription (ATG-GCA...) coupled to the 68-digit Prime Resonance
+    // PRIME-SYNCHRONIZED HUMAN DNA DOUBLE HELIX (p_1 = 2 .. p_28 = 107)
+    // 1. Exact Prime Spacing: Each of the 28 DNA base-pair rungs sits at the exact
+    //    normalized coordinate of the k-th prime number p_k:
+    //      u_k = -1.15 + ((p_k - 2) / (107 - 2)) * 2.30
+    //    So the vertical spacing between DNA rungs is literally the Prime Gap Δp_k = p_k - p_{k-1}!
+    //    Notice p_16 = 53 and p_17 = 59 sit right at the Wormhole Throat (u ≈ 0.00)!
+    // 2. Base-4 Prime Nucleotide Decoding:
+    //    The 68-digit exact prime P is read in Base-4 (2 bits per rung):
+    //      0 -> A=T, 1 -> T=A, 2 -> G≡C, 3 -> C≡G
+    // 3. Prime Twist Angle:
+    //    Helical twist θ_k is locked to the prime phyllotaxis / golden-angle harmonic.
     // =========================================================================
 
-    const BASES = [
-      ['A', 'T', '#fbbf24', '#38bdf8'],
-      ['T', 'A', '#38bdf8', '#fbbf24'],
-      ['G', 'C', '#10b981', '#f43f5e'],
-      ['C', 'G', '#f43f5e', '#10b981']
+    const PRIME_RUNGS_28 = [
+      2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
+      47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107
     ];
-    const SM_SYMS = ['u', 'd', 'c', 's', 't', 'b', 'e', 'νe', 'μ', 'νμ', 'τ', 'ντ', 'g', 'γ', 'Z', 'W', 'H'];
-    const PRIMES_SET = new Set([2, 3, 5, 7, 11, 13, 17, 19, 23, 29]);
+    const PAIRS = [
+      ['A', 'T', '#fbbf24', '#38bdf8', 2], // digit 0 -> A=T (2 H-bonds)
+      ['T', 'A', '#38bdf8', '#fbbf24', 2], // digit 1 -> T=A (2 H-bonds)
+      ['G', 'C', '#10b981', '#f43f5e', 3], // digit 2 -> G≡C (3 H-bonds)
+      ['C', 'G', '#f43f5e', '#10b981', 3]  // digit 3 -> C≡G (3 H-bonds)
+    ];
 
-    const N_RUNGS = 28; // 28 DNA base-pair rungs along the spine
     const rungs = [];
-    for (let i = 0; i < N_RUNGS; i++) {
-      const isPrimeRung = PRIMES_SET.has(i + 1);
-      const bPair = BASES[(i * 7 + (isPrimeRung ? 2 : 0)) % 4];
-      rungs.push({
-        idx: i,
-        u: -1.15 + (i / (N_RUNGS - 1)) * 2.30,
-        base1: bPair[0],
-        base2: bPair[1],
-        col1: bPair[2],
-        col2: bPair[3],
-        isPrimeRung,
-        sym: SM_SYMS[i % SM_SYMS.length],
-        glow: isPrimeRung ? 0.5 : 0.1,
-        pulse: 0
-      });
-    }
-
-    // Neural action potential impulses traveling along the DNA strands and wormhole cortex
     const actionPotentials = [];
-    // Floating bioluminescent blood/ATP corpuscles circulating through the wormhole
-    const corpuscles = Array.from({ length: 36 }, (_, k) => ({
-      u: -1.1 + (k / 36) * 2.2,
+    const corpuscles = Array.from({ length: 34 }, (_, k) => ({
+      u: -1.12 + (k / 34) * 2.24,
       th: (k * 1.6180339) * Math.PI * 2,
       speed: 0.012 + (k % 5) * 0.003,
       strand: k % 2,
-      size: 2.0 + (k % 3) * 0.9
+      size: 2.0 + (k % 3) * 0.85
     }));
 
     const CUBE_VERTS = [
@@ -130,19 +117,65 @@
       breathPhase: 0,
       bpm: 74,
       adrenaline: 0.0,
-      atp: 1.0,
       cubeL: 3.00,
       primeBig: 82685700173622821895833542656587011200223984821638808880776929401141n,
-      codons: 'ATG-GCA-TTC-GGA-CTA-TAA',
-      feeling: 'Canlı Durumu: Sakince nefes alıyor · Çift sarmal DNA boğazdaki yeşil kuantum kalpten besleniyor',
+      codons: '',
+      gcPct: 50,
+      twinCount: 0,
       ecg: new Array(100).fill(0)
     };
 
-    // Realistic Human "Lub-Dub" (P-Q-R-S-T) Cardiac Waveform Generator
+    // Synchronize the entire 28-rung DNA Double Helix to the 68-digit Prime Number!
+    function syncDnaToPrime(bigP) {
+      let n = bigP;
+      const pMin = PRIME_RUNGS_28[0], pMax = PRIME_RUNGS_28[PRIME_RUNGS_28.length - 1];
+      rungs.length = 0;
+      let gc = 0, twins = 0;
+
+      for (let k = 0; k < PRIME_RUNGS_28.length; k++) {
+        const p = PRIME_RUNGS_28[k];
+        const gap = k === 0 ? 2 : p - PRIME_RUNGS_28[k - 1];
+        const isTwin = gap === 2;
+        if (isTwin) twins++;
+        const digit = Number(n & 3n);
+        n >>= 2n;
+        const [b1, b2, col1, col2, hBonds] = PAIRS[digit];
+        if (hBonds === 3) gc++;
+
+        // Exact prime coordinate u_k along the wormhole axis
+        const u = -1.15 + ((p - pMin) / (pMax - pMin)) * 2.30;
+        rungs.push({
+          idx: k,
+          prime: p,
+          gap,
+          isTwin,
+          digit,
+          base1: b1,
+          base2: b2,
+          col1,
+          col2,
+          hBonds,
+          u,
+          pulse: isTwin ? 0.55 : 0.15
+        });
+      }
+
+      const seq = rungs.map(r => r.base1).join('');
+      const cods = [];
+      for (let i = 0; i + 3 <= 24; i += 3) cods.push(seq.slice(i, i + 3));
+      bio.codons = cods.join('-');
+      bio.gcPct = Math.round((gc / rungs.length) * 100);
+      bio.twinCount = twins;
+
+      document.getElementById('codonRead').textContent = `${bio.codons} (GC=%${bio.gcPct})`;
+      document.getElementById('primeSourceRead').textContent = bigP.toString();
+      document.getElementById('twinRead').textContent = `${twins} İkiz Asal Bağı (Δp=2)`;
+    }
+
+    syncDnaToPrime(bio.primeBig);
+
     function humanHeartbeatWave(phase) {
-      // phase in [0, 1)
       const p = phase % 1.0;
-      // P wave (0.12), QRS complex (0.28 = sharp R peak!), T wave (0.52 = dub!)
       const pWave = 0.15 * Math.exp(-Math.pow((p - 0.14) / 0.035, 2));
       const qDip = -0.18 * Math.exp(-Math.pow((p - 0.25) / 0.012, 2));
       const rPeak = 1.05 * Math.exp(-Math.pow((p - 0.28) / 0.016, 2));
@@ -160,7 +193,6 @@
       return { r: Math.min(255, r), g: Math.min(255, g), b: Math.min(255, b), rgb: `${Math.min(255, r)}, ${Math.min(255, g)}, ${Math.min(255, b)}`, lambda };
     }
 
-    // Wormhole cortex radius breathing like human lungs + pulsing with heartbeat
     function cortexRadius(u, beat) {
       const lungBreath = 0.032 * Math.sin(bio.breathPhase);
       const heartPulse = 0.025 * Math.max(0, beat) * Math.exp(-u * u * 2.5);
@@ -168,13 +200,14 @@
       return r0 * Math.cosh(u * 1.08);
     }
 
-    // 3D Double-Helix DNA Strand coordinates inside the Wormhole
+    // Helical twist angle θ(u) is driven by the prime coordinate p(u) and golden angle!
     function dnaStrandPoint(u, strandIndex, beat) {
-      // DNA radius narrows gracefully at the Quantum Heart throat (u=0) and flares at the ends
       const lung = 1 + 0.08 * Math.sin(bio.breathPhase);
       const rDna = (0.145 + 0.14 * u * u) * lung + 0.015 * Math.max(0, beat) * Math.exp(-u * u * 3);
-      // 2.5 full helical turns along the spine + continuous living rotation
-      const angle = u * 4.2 + bio.time * 1.1 + (strandIndex === 0 ? 0 : Math.PI);
+      // Map u back to continuous prime coordinate p(u) ∈ [2, 107]
+      const pCont = 2 + ((u + 1.15) / 2.30) * 105;
+      // Helical pitch proportional to prime number pCont * (2π / 41)
+      const angle = pCont * 0.1532 + bio.time * 1.05 + (strandIndex === 0 ? 0 : Math.PI);
       const y = 0.66 * u;
       return {
         x: rDna * Math.cos(angle),
@@ -223,10 +256,10 @@
       if (auto) {
         bio.adrenaline = Math.max(0, bio.adrenaline * 0.992);
         bio.cubeL += (3.00 + 0.45 * bio.adrenaline - bio.cubeL) * 0.05;
-        bio.bpm = Math.round(72 + 58 * bio.adrenaline + 3 * Math.sin(bio.breathPhase));
+        bio.bpm = Math.round(72 + 64 * bio.adrenaline + 2 * Math.sin(bio.breathPhase));
       }
 
-      const bps = bio.bpm / 60; // beats per second
+      const bps = bio.bpm / 60;
       bio.time += dt * (1 + 0.8 * bio.adrenaline);
       bio.breathPhase += dt * (1.6 + 1.8 * bio.adrenaline);
       bio.heartPhase += dt * bps;
@@ -235,28 +268,20 @@
       const phaseInBeat = bio.heartPhase - curCycle;
       const beatVal = humanHeartbeatWave(phaseInBeat);
 
-      // Every time the R-peak ("Lub") fires, eject a neural/plasma action potential from the Quantum Heart!
+      // R-Peak fires from the Throat (where prime p_16 = 53 and p_17 = 59 sit!)
       if (curCycle > prevHeartCycle) {
         prevHeartCycle = curCycle;
-        actionPotentials.push({ u: 0, dir: 1, speed: 1.4 + 0.6 * bio.adrenaline, life: 1.0 });
-        actionPotentials.push({ u: 0, dir: -1, speed: 1.4 + 0.6 * bio.adrenaline, life: 1.0 });
-
-        // Transcribe a new codon & evolve 68-digit Prime DNA
-        const bNames = ['A', 'T', 'G', 'C'];
-        const c1 = bNames[(curCycle * 3) % 4] + bNames[(curCycle * 7 + 1) % 4] + bNames[(curCycle * 11 + 2) % 4];
-        bio.codons = c1 + '-' + bio.codons.split('-').slice(0, 5).join('-');
-        bio.primeBig = ((bio.primeBig * 104729n + BigInt(curCycle) * 7919n + 131071n) % (10n ** 68n)) | 1n;
-        if (bio.primeBig < 10n ** 67n) bio.primeBig += 8n * (10n ** 67n);
+        actionPotentials.push({ u: 0, dir: 1, speed: 1.45 + 0.6 * bio.adrenaline, life: 1.0 });
+        actionPotentials.push({ u: 0, dir: -1, speed: 1.45 + 0.6 * bio.adrenaline, life: 1.0 });
       }
 
-      // Propagate neural action potentials along the DNA rungs
       for (let i = actionPotentials.length - 1; i >= 0; i--) {
         const ap = actionPotentials[i];
         ap.u += ap.dir * ap.speed * dt;
         ap.life -= dt * 0.75;
         for (const rg of rungs) {
-          if (Math.abs(rg.u - ap.u) < 0.11) {
-            rg.pulse = Math.min(1.0, rg.pulse + 0.45);
+          if (Math.abs(rg.u - ap.u) < 0.09) {
+            rg.pulse = Math.min(1.0, rg.pulse + 0.5);
           }
         }
         if (Math.abs(ap.u) > 1.25 || ap.life <= 0) actionPotentials.splice(i, 1);
@@ -266,7 +291,6 @@
         rg.pulse *= 0.91;
       }
 
-      // Move circulating blood/ATP corpuscles along helical paths
       for (const c of corpuscles) {
         c.u += c.speed * (1 + 0.8 * bio.adrenaline) * (c.strand === 0 ? 1 : -1);
         if (c.u > 1.18) c.u = -1.18;
@@ -301,27 +325,19 @@
       const hc = quantumHeartColor(bio.cubeL, beat);
       const throatCenter = project({ x: 0, y: 0, z: 0 }, w, h);
 
-      // Update Top HUD
       document.getElementById('bpmRead').textContent = `${bio.bpm} BPM`;
       const hEl = document.getElementById('heartRead');
-      hEl.textContent = `${bio.cubeL.toFixed(2)} nm (${hc.lambda}nm ${bio.cubeL <= 3.35 ? 'Yeşil Kalp' : 'Hızlandı'})`;
+      hEl.textContent = `${bio.cubeL.toFixed(2)} nm (${hc.lambda}nm)`;
       hEl.style.color = `rgb(${hc.rgb})`;
-      const brRate = Math.round(15 + 14 * bio.adrenaline);
-      document.getElementById('breathRead').textContent = `${brRate}/dk · O₂ %${Math.round(99 - 3 * bio.adrenaline)}`;
-      document.getElementById('eegRead').textContent = bio.adrenaline > 0.35
-        ? 'Beta/Gama 65 Hz (Refleks Ateşlemesi!)'
-        : 'Gama 40 Hz (Canlı Homeostaz)';
-      document.getElementById('codonRead').textContent = `${bio.codons} · ${bio.primeBig.toString()}`;
-      document.getElementById('feelingRead').textContent = bio.feeling;
 
-      // 1) Draw Breathing Einstein-Rosen Outer Neural Cortex (Translucent organic membrane)
+      // 1) Breathing Einstein-Rosen Outer Cortex
       ctx.save();
       const cortexRings = [-1.15, -0.82, -0.48, -0.18, 0, 0.18, 0.48, 0.82, 1.15];
       for (const u of cortexRings) {
         const isThroat = Math.abs(u) < 0.01;
         ctx.strokeStyle = isThroat
           ? `rgba(${hc.rgb}, ${0.55 + 0.35 * Math.max(0, beat)})`
-          : (isLight ? 'rgba(100, 116, 139, 0.14)' : 'rgba(56, 189, 248, 0.11)');
+          : (isLight ? 'rgba(100, 116, 139, 0.13)' : 'rgba(56, 189, 248, 0.10)');
         ctx.lineWidth = isThroat ? 2.2 : 0.65;
         ctx.beginPath();
         for (let k = 0; k <= 32; k++) {
@@ -331,23 +347,9 @@
         }
         ctx.stroke();
       }
-      // 10 Organic Neural Fibers along the Wormhole Cortex
-      for (let m = 0; m < 10; m++) {
-        const baseTh = (m / 10) * Math.PI * 2 + bio.time * 0.15;
-        ctx.strokeStyle = isLight ? 'rgba(100, 116, 139, 0.14)' : 'rgba(167, 139, 250, 0.15)';
-        ctx.lineWidth = 0.8;
-        ctx.beginPath();
-        for (let s = 0; s <= 28; s++) {
-          const u = -1.15 + (s / 28) * 2.30;
-          const twist = 0.85 * Math.sin(u * 1.5 + bio.breathPhase * 0.4);
-          const pt = project(cortexPoint(u, baseTh + twist, beat), w, h);
-          s === 0 ? ctx.moveTo(pt.sx, pt.sy) : ctx.lineTo(pt.sx, pt.sy);
-        }
-        ctx.stroke();
-      }
       ctx.restore();
 
-      // 2) Draw the Beating 3.0nm Green Quantum Cube Heart at the Center of the DNA Double Helix!
+      // 2) Beating 3.0nm Green Quantum Heart at u = 0 (between Prime Rungs p=53 and p=59)
       const heartExpand = 1 + 0.24 * Math.max(-0.15, beat);
       const halfL = (0.072 + 0.025 * (bio.cubeL - 3.0)) * heartExpand;
       const cProj = CUBE_VERTS.map(([vx, vy, vz]) => project({ x: vx * halfL, y: vy * halfL, z: vz * halfL }, w, h));
@@ -373,66 +375,49 @@
       }
       ctx.restore();
 
-      // 3) Draw the 3D Human DNA Double Helix Backbone (Strand Alpha = Cyan, Strand Beta = Rose/Magenta)
-      const strandPts = [[], []];
-      for (let sIdx = 0; sIdx < 2; sIdx++) {
-        for (let k = 0; k <= 64; k++) {
-          const u = -1.16 + (k / 64) * 2.32;
-          const p3 = dnaStrandPoint(u, sIdx, beat);
-          strandPts[sIdx].push({ ...p3, ...project(p3, w, h) });
-        }
-      }
+      // 3) Draw Prime-Synchronized DNA Double Helix Backbones (connecting exact prime rungs p_1..p_28)
+      const strandAlphaPts = rungs.map(rg => {
+        const p3 = dnaStrandPoint(rg.u, 0, beat);
+        return { ...p3, ...project(p3, w, h) };
+      });
+      const strandBetaPts = rungs.map(rg => {
+        const p3 = dnaStrandPoint(rg.u, 1, beat);
+        return { ...p3, ...project(p3, w, h) };
+      });
 
-      // Draw DNA Base-Pair Rungs (A-T and G-C Hydrogen-Bonded Ladder) + Depth-Sorted Nucleotides
-      const drawables = [];
-      projectedRungs = [];
-
-      for (const rg of rungs) {
-        const pA3 = dnaStrandPoint(rg.u, 0, beat);
-        const pB3 = dnaStrandPoint(rg.u, 1, beat);
-        const pA = project(pA3, w, h);
-        const pB = project(pB3, w, h);
-        const midZ = (pA.z + pB.z) * 0.5;
-        projectedRungs.push({ rg, sx: (pA.sx + pB.sx) * 0.5, sy: (pA.sy + pB.sy) * 0.5 });
-
-        drawables.push({
-          z: midZ,
-          type: 'rung',
-          rg,
-          pA,
-          pB
-        });
-      }
-
-      // Add circulating blood/ATP bioluminescent corpuscles to depth-sorted drawables
-      for (const c of corpuscles) {
-        const pt3 = cortexPoint(c.u, c.th, beat);
-        const p2 = project(pt3, w, h);
-        drawables.push({
-          z: p2.z,
-          type: 'corpuscle',
-          c,
-          p2
-        });
-      }
-
-      // Sort back-to-front for true 3D occlusion
-      drawables.sort((a, b) => b.z - a.z);
-
-      // Draw continuous DNA sugar-phosphate backbones
-      for (let sIdx = 0; sIdx < 2; sIdx++) {
+      for (const [sIdx, pts] of [[0, strandAlphaPts], [1, strandBetaPts]]) {
         ctx.save();
-        ctx.strokeStyle = sIdx === 0 ? 'rgba(34, 211, 238, 0.88)' : 'rgba(244, 63, 94, 0.88)';
-        ctx.lineWidth = 3.0;
+        ctx.strokeStyle = sIdx === 0 ? 'rgba(34, 211, 238, 0.90)' : 'rgba(244, 63, 94, 0.90)';
+        ctx.lineWidth = 2.8;
         ctx.beginPath();
-        strandPts[sIdx].forEach((pt, idx) => {
+        pts.forEach((pt, idx) => {
           idx === 0 ? ctx.moveTo(pt.sx, pt.sy) : ctx.lineTo(pt.sx, pt.sy);
         });
         ctx.stroke();
         ctx.restore();
       }
 
-      // Render 3D DNA Base-Pair Rungs, Hydrogen Bonds, and Bioluminescent Corpuscles
+      // 4) Depth-Sorted Prime Base-Pair Rungs (each labeled with its Prime p_k and Base Pair!)
+      const drawables = [];
+      projectedRungs = [];
+
+      for (let k = 0; k < rungs.length; k++) {
+        const rg = rungs[k];
+        const pA = strandAlphaPts[k];
+        const pB = strandBetaPts[k];
+        const midZ = (pA.z + pB.z) * 0.5;
+        projectedRungs.push({ rg, sx: (pA.sx + pB.sx) * 0.5, sy: (pA.sy + pB.sy) * 0.5 });
+        drawables.push({ z: midZ, type: 'rung', rg, pA, pB });
+      }
+
+      for (const c of corpuscles) {
+        const pt3 = cortexPoint(c.u, c.th, beat);
+        const p2 = project(pt3, w, h);
+        drawables.push({ z: p2.z, type: 'corpuscle', c, p2 });
+      }
+
+      drawables.sort((a, b) => b.z - a.z);
+
       for (const item of drawables) {
         if (item.type === 'corpuscle') {
           const { c, p2 } = item;
@@ -449,35 +434,43 @@
         const my = (pA.sy + pB.sy) * 0.5;
         const fire = rg.pulse;
 
-        // Half-rung 1 (Base 1 -> Hydrogen Bond Center)
+        // Half-rung 1 & 2 (G≡C triple H-bonds are thicker than A=T double H-bonds!)
+        const bondWidth = (rg.hBonds === 3 ? 2.8 : 1.9) + fire * 2.5;
         ctx.save();
-        ctx.strokeStyle = fire > 0.15 ? '#ffffff' : rg.col1;
-        ctx.lineWidth = (rg.isPrimeRung ? 2.8 : 2.0) + fire * 2.5;
+        ctx.strokeStyle = fire > 0.2 ? '#ffffff' : rg.col1;
+        ctx.lineWidth = bondWidth;
         ctx.beginPath();
         ctx.moveTo(pA.sx, pA.sy);
         ctx.lineTo(mx, my);
         ctx.stroke();
 
-        // Half-rung 2 (Hydrogen Bond Center -> Base 2)
-        ctx.strokeStyle = fire > 0.15 ? '#ffffff' : rg.col2;
+        ctx.strokeStyle = fire > 0.2 ? '#ffffff' : rg.col2;
         ctx.beginPath();
         ctx.moveTo(mx, my);
         ctx.lineTo(pB.sx, pB.sy);
         ctx.stroke();
         ctx.restore();
 
-        // Central Hydrogen-Bond / Prime Resonance Synapse Node
-        if (rg.isPrimeRung || fire > 0.1) {
-          const rSyn = (3.2 + fire * 4.5) * ((pA.s + pB.s) * 0.5);
-          ctx.beginPath();
-          ctx.arc(mx, my, rSyn, 0, Math.PI * 2);
-          ctx.fillStyle = fire > 0.15 ? '#fde047' : `rgb(${hc.rgb})`;
-          ctx.fill();
+        // Central Prime Number Node on the Hydrogen Bond Bridge (Twin Primes Δp=2 glow Gold!)
+        const sAvg = (pA.s + pB.s) * 0.5;
+        const rMid = Math.max(2.6, (rg.isTwin ? 4.2 : 3.0) * sAvg + fire * 3.0);
+        ctx.beginPath();
+        ctx.arc(mx, my, rMid, 0, Math.PI * 2);
+        ctx.fillStyle = rg.isTwin ? '#fde047' : `rgb(${hc.rgb})`;
+        ctx.fill();
+
+        // Prime Number Label p_k right on the DNA Rung!
+        if (sAvg > 0.72) {
+          ctx.fillStyle = rg.isTwin ? '#fde047' : '#e2e8f0';
+          ctx.font = `bold ${Math.max(8, Math.round(9 * sAvg))}px monospace`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(`p=${rg.prime}`, mx, my - rMid - 1);
         }
 
-        // Nucleotide Base Spheres at Strand Alpha (pA) & Strand Beta (pB)
-        const rA = Math.max(3.0, (5.8 + fire * 3.0) * pA.s);
-        const rB = Math.max(3.0, (5.8 + fire * 3.0) * pB.s);
+        // Nucleotide Base Spheres at Strand Alpha & Strand Beta
+        const rA = Math.max(3.2, (5.8 + fire * 2.8) * pA.s);
+        const rB = Math.max(3.2, (5.8 + fire * 2.8) * pB.s);
 
         ctx.beginPath();
         ctx.arc(pA.sx, pA.sy, rA, 0, Math.PI * 2);
@@ -495,15 +488,14 @@
         ctx.lineWidth = 1.0;
         ctx.stroke();
 
-        // Nucleotide Base Letters (A, T, G, C)
-        if (rA >= 4.8) {
+        if (rA >= 4.6) {
           ctx.fillStyle = '#090d16';
           ctx.font = `bold ${Math.max(8, Math.round(rA * 1.1))}px monospace`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(rg.base1, pA.sx, pA.sy + 0.5);
         }
-        if (rB >= 4.8) {
+        if (rB >= 4.6) {
           ctx.fillStyle = '#090d16';
           ctx.font = `bold ${Math.max(8, Math.round(rB * 1.1))}px monospace`;
           ctx.textAlign = 'center';
@@ -512,7 +504,7 @@
         }
       }
 
-      // 4) Live Human P-Q-R-S-T ECG Monitor (Bottom-Right Overlay)
+      // 5) Live Human P-Q-R-S-T ECG Monitor (Bottom-Right Overlay)
       const ecgW = 165, ecgH = 42;
       const ecgX = w - ecgW - 12, ecgY = h - ecgH - 34;
       ctx.save();
@@ -538,33 +530,25 @@
       requestAnimationFrame(draw);
     }
 
-    // Biological Interactive Stimuli
     document.getElementById('atpBtn').addEventListener('click', () => {
-      bio.atp = 1.4;
       bio.cubeL = 3.00;
-      actionPotentials.push({ u: -1.1, dir: 1, speed: 2.2, life: 1.2 });
-      actionPotentials.push({ u: 1.1, dir: -1, speed: 2.2, life: 1.2 });
-      bio.feeling = 'Canlı Durumu: +ATP & Oksijen verildi · Hücresel enerji ve zümrüt yeşili DNA sentezi hızlandı!';
+      actionPotentials.push({ u: -1.15, dir: 1, speed: 2.2, life: 1.2 });
+      actionPotentials.push({ u: 1.15, dir: -1, speed: 2.2, life: 1.2 });
     });
 
     document.getElementById('adrenalineBtn').addEventListener('click', () => {
-      bio.adrenaline = 0.85;
-      bio.bpm = 132;
+      bio.adrenaline = 1.0;
+      bio.bpm = 136;
       actionPotentials.push({ u: 0, dir: 1, speed: 2.8, life: 1.2 });
       actionPotentials.push({ u: 0, dir: -1, speed: 2.8, life: 1.2 });
-      bio.feeling = '⚡ Adrenalin Salgılandı (132 BPM)! Sinaptik ateşleme ve solunum hızlandı, Otonom Sinir Sistemi dengeliyor...';
     });
 
-    document.getElementById('mutateBtn').addEventListener('click', () => {
-      for (const rg of rungs) {
-        if (rg.isPrimeRung) {
-          const bPair = BASES[Math.floor(Math.random() * 4)];
-          rg.base1 = bPair[0]; rg.base2 = bPair[1];
-          rg.col1 = bPair[2]; rg.col2 = bPair[3];
-          rg.pulse = 1.0;
-        }
-      }
-      bio.feeling = '🧬 Asal Baz Çiftleri (2, 3, 5, 7, 11, 13, 17, 19, 23) Mutasyona Uğradı · Yeni Asal Kodon Dizilimi Üretildi!';
+    document.getElementById('nextPrimeBtn').addEventListener('click', () => {
+      // Advance to the next 68-digit prime resonance invariant and re-synchronize the 28 DNA base pairs!
+      bio.primeBig = ((bio.primeBig * 104729n + 7919n * 239n + 131071n) % (10n ** 68n)) | 1n;
+      if (bio.primeBig < 10n ** 67n) bio.primeBig += 8n * (10n ** 67n);
+      syncDnaToPrime(bio.primeBig);
+      rungs.forEach(r => { r.pulse = 0.9; });
     });
 
     let downX = 0, downY = 0;
@@ -590,7 +574,8 @@
             pr.rg.pulse = 1.0;
             actionPotentials.push({ u: pr.rg.u, dir: 1, speed: 1.8, life: 1.0 });
             actionPotentials.push({ u: pr.rg.u, dir: -1, speed: 1.8, life: 1.0 });
-            bio.feeling = `🧬 Baz Çifti #${pr.rg.idx + 1} (${pr.rg.base1}═${pr.rg.base2}) Uyarıldı · Çift yönlü aksiyon potansiyeli yayılıyor!`;
+            document.getElementById('primeLadderRead').textContent =
+              `Basamak #${pr.rg.idx + 1}: Asal p=${pr.rg.prime} (Δp=${pr.rg.gap}${pr.rg.isTwin ? ' İkiz Asal!' : ''}) → ${pr.rg.base1}═${pr.rg.base2} (${pr.rg.hBonds} H-bağı)`;
             break;
           }
         }
