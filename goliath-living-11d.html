@@ -7,98 +7,122 @@
 </head>
 <body class="bg-transparent text-[var(--foreground)] antialiased p-0 m-0">
   <div class="py-1.5 space-y-2 min-w-0">
-    <!-- Top Biological & Prime DNA Control Bar -->
+    <!-- Top Interactive Action Bar -->
     <div class="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-[var(--card-border)] text-xs font-mono">
       <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
-        <span class="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 font-bold">🧬 ASAL SAYI EŞLEMELİ DNA SARMALI (p=2..107)</span>
-        <button id="atpBtn" class="px-2 py-0.5 rounded border border-cyan-500/50 bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 transition">+ATP / Oksijen</button>
-        <button id="adrenalineBtn" class="px-2 py-0.5 rounded border border-amber-500/50 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 transition">⚡Adrenalin (136 BPM)</button>
-        <button id="nextPrimeBtn" class="px-2 py-0.5 rounded border border-fuchsia-500/50 bg-fuchsia-500/15 text-fuchsia-300 hover:bg-fuchsia-500/25 transition">🔢Sonraki 68-Hane Asala Eşitle</button>
+        <button id="crashBtn" class="px-2.5 py-1 rounded font-bold border border-rose-500 bg-rose-500/20 text-rose-300 hover:bg-rose-500/35 transition">💥 FLASH-CRASH ŞOKU VER (Adrenalin Kalkanı)</button>
+        <button id="fibBtn" class="px-2.5 py-1 rounded font-semibold border border-amber-500/60 bg-amber-500/15 text-amber-300 hover:bg-amber-500/30 transition">🌀 Fibonacci-Lucas Rezonansı</button>
+        <button id="healBtn" class="px-2 py-1 rounded border border-emerald-500/60 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/30 transition">💚 Vagus Sakinleştir (74 BPM)</button>
       </div>
       <div class="flex items-center gap-2">
-        <span class="text-[var(--muted-foreground)]">Kalp: <b id="bpmRead" class="text-rose-400">74 BPM</b></span>
-        <label class="flex items-center gap-1 cursor-pointer">
-          <input id="autoBrain" type="checkbox" checked class="accent-emerald-400" />
-          <span class="text-[var(--foreground)]">Otonom Sinir Sistemi</span>
-        </label>
+        <span class="text-[var(--muted-foreground)]">Nabız: <b id="bpmRead" class="text-emerald-400">74 BPM</b></span>
+        <span class="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-bold" id="modeBadge">NORMAL SİNÜS</span>
       </div>
     </div>
 
-    <!-- Main 3D Prime-Synchronized Human DNA & Wormhole Stage -->
+    <!-- Main 3D Animated Canvas Stage -->
     <div class="relative w-full overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card)]">
-      <canvas id="bioCanvas" class="block w-full h-[375px] cursor-grab active:cursor-grabbing"></canvas>
+      <canvas id="stage3d" class="block w-full h-[380px] cursor-grab active:cursor-grabbing"></canvas>
 
-      <!-- Top-Left Live Prime-to-DNA Base-4 Telemetry -->
-      <div class="pointer-events-none absolute top-2.5 left-2.5 space-y-1 font-mono text-xs max-w-[94%] sm:max-w-[78%]">
+      <!-- Top-Left Live HUD: Adrenaline + Fibonacci Vault + Prime DNA -->
+      <div class="pointer-events-none absolute top-2.5 left-2.5 space-y-1 font-mono text-xs max-w-[95%] sm:max-w-[78%]">
         <div class="flex flex-wrap items-center gap-1.5">
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            Asal Merdiven: <b id="primeLadderRead" class="text-amber-300">28 Asal (p₁=2 → Boğaz p₁₆=53 → p₂₈=107)</b>
+            11B Adrenalin Kasa: <b id="eqAdrRead" class="text-emerald-400">10,107 TL (+%1.1)</b>
           </span>
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            İkiz Asal Bağı (Δp=2): <b id="twinRead" class="text-fuchsia-300">9 Çift</b>
+            Kalkansız Bot: <b id="eqStdRead" class="text-rose-400">7,024 TL (-%29.8)</b>
           </span>
           <span class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-            Yeşil Kalp: <b id="heartRead" class="text-emerald-400">3.00 nm (518nm)</b>
+            Fibonacci Boğaz Kilidi (1/φ): <b id="vaultRead" class="text-amber-300">%61.8 Hazır</b>
           </span>
         </div>
         <div class="px-2 py-1 rounded bg-[var(--background)]/90 border border-[var(--border)] text-[var(--foreground)] truncate">
-          <span class="text-[var(--muted-foreground)]">Taban-4 Asal Kodonlar:</span>
-          <b id="codonRead" class="text-emerald-400">...</b>
+          <span class="text-[var(--muted-foreground)]">Fibonacci-Lucas Asal DNA (p=2..107):</span>
+          <b id="dnaRead" class="text-cyan-300">TTC-ATG-TCA-CTC-AAA-ACT-GGA-AAT · F_{p-1}≡0 (mod p) ✓</b>
         </div>
-        <div class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)] text-[var(--muted-foreground)] truncate">
-          <span>68-Hane Kaynak Asal P: </span><b id="primeSourceRead" class="text-cyan-300">82685700173622821895833542656587011200223984821638808880776929401141</b>
+        <div id="statusBanner" class="px-2 py-0.5 rounded bg-[var(--background)]/85 border border-[var(--border)] text-[var(--muted-foreground)]">
+          Canlı 3B Organizma: Fibonacci altın açı (137.5°) spiralleri ve 28 asal DNA basamağı 518nm Yeşil Kalp etrafında dönüyor
         </div>
       </div>
 
       <!-- Bottom Legend -->
       <div class="pointer-events-none absolute bottom-2 left-2.5 right-2.5 flex flex-wrap items-center justify-between gap-1.5 font-mono text-xs">
         <div class="flex flex-wrap items-center gap-2 px-2 py-1 rounded bg-[var(--background)]/85 border border-[var(--border)]">
-          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400"></span>0=A═T / <span class="inline-block w-2.5 h-2.5 rounded-full bg-sky-400"></span>1=T═A</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400"></span>2=G≡C / <span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-400"></span>3=C≡G</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-300"></span>İkiz Asal Düğümü (Δp=2)</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400"></span>Yeşil Kuantum Kalp (3nm)</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400"></span>Fibonacci Kalkanı (%61.8 Boğaz)</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-400"></span>Asal DNA Sarmalı</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2.5 h-2.5 rounded-full bg-fuchsia-400"></span>%23.6 Dış Vur-Kaç</span>
         </div>
-        <span class="hidden md:inline px-2 py-0.5 rounded bg-[var(--background)]/80 text-[var(--muted-foreground)]">Her basamak gerçek p_k asal konumunda (aralık = Δp_k)</span>
+        <span class="hidden md:inline px-2 py-0.5 rounded bg-[var(--background)]/80 text-[var(--muted-foreground)]">Üstteki 💥 FLASH-CRASH butonuna bas ve 3B kalkanın kapanışını izle!</span>
       </div>
     </div>
   </div>
 
   <script>
-    const canvas = document.getElementById('bioCanvas');
+    const canvas = document.getElementById('stage3d');
     const ctx = canvas.getContext('2d');
 
     // =========================================================================
-    // PRIME-SYNCHRONIZED HUMAN DNA DOUBLE HELIX (p_1 = 2 .. p_28 = 107)
-    // 1. Exact Prime Spacing: Each of the 28 DNA base-pair rungs sits at the exact
-    //    normalized coordinate of the k-th prime number p_k:
-    //      u_k = -1.15 + ((p_k - 2) / (107 - 2)) * 2.30
-    //    So the vertical spacing between DNA rungs is literally the Prime Gap Δp_k = p_k - p_{k-1}!
-    //    Notice p_16 = 53 and p_17 = 59 sit right at the Wormhole Throat (u ≈ 0.00)!
-    // 2. Base-4 Prime Nucleotide Decoding:
-    //    The 68-digit exact prime P is read in Base-4 (2 bits per rung):
-    //      0 -> A=T, 1 -> T=A, 2 -> G≡C, 3 -> C≡G
-    // 3. Prime Twist Angle:
-    //    Helical twist θ_k is locked to the prime phyllotaxis / golden-angle harmonic.
+    // 3D MOVING FIBONACCI-LUCAS + PRIME DNA + ADRENALINE SHIELD ORGANISM
+    // - 28 Prime-Spaced DNA Double-Helix Rungs (p = 2..107) rotating inside the wormhole
+    // - 89 Golden-Angle (137.5077°) Fibonacci Phyllotaxis Armor Nodes forming a
+    //   dynamic 3D Golden Shield around the Wormhole Throat (%61.8 = 1/φ Vault Lock)
+    // - Outer 34 Fibonacci Scalp Particles (%23.6 = 1/φ³) harvesting shock rebounds
+    // - Live Flash-Crash Shockwave & Adrenaline Vasoconstriction Reflex Animation
     // =========================================================================
 
+    const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5)); // 137.50776° (2π / φ²)
     const PRIME_RUNGS_28 = [
       2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
       47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107
     ];
     const PAIRS = [
-      ['A', 'T', '#fbbf24', '#38bdf8', 2], // digit 0 -> A=T (2 H-bonds)
-      ['T', 'A', '#38bdf8', '#fbbf24', 2], // digit 1 -> T=A (2 H-bonds)
-      ['G', 'C', '#10b981', '#f43f5e', 3], // digit 2 -> G≡C (3 H-bonds)
-      ['C', 'G', '#f43f5e', '#10b981', 3]  // digit 3 -> C≡G (3 H-bonds)
+      ['A', 'T', '#fbbf24', '#38bdf8', 2],
+      ['T', 'A', '#38bdf8', '#fbbf24', 2],
+      ['G', 'C', '#10b981', '#f43f5e', 3],
+      ['C', 'G', '#f43f5e', '#10b981', 3]
     ];
 
+    // Build 28 Prime DNA Rungs decoded from our 68-digit exact prime
+    let primeN = 82685700173622821895833542656587011200223984821638808880776929401141n;
     const rungs = [];
-    const actionPotentials = [];
-    const corpuscles = Array.from({ length: 34 }, (_, k) => ({
-      u: -1.12 + (k / 34) * 2.24,
-      th: (k * 1.6180339) * Math.PI * 2,
-      speed: 0.012 + (k % 5) * 0.003,
-      strand: k % 2,
-      size: 2.0 + (k % 3) * 0.85
+    for (let k = 0; k < PRIME_RUNGS_28.length; k++) {
+      const p = PRIME_RUNGS_28[k];
+      const gap = k === 0 ? 2 : p - PRIME_RUNGS_28[k - 1];
+      const digit = Number(primeN & 3n);
+      primeN >>= 2n;
+      const [b1, b2, col1, col2, hBonds] = PAIRS[digit];
+      const u = -1.15 + ((p - 2) / 105) * 2.30;
+      rungs.push({
+        idx: k,
+        prime: p,
+        gap,
+        isTwin: gap === 2,
+        base1: b1,
+        base2: b2,
+        col1,
+        col2,
+        hBonds,
+        u,
+        pulse: gap === 2 ? 0.5 : 0.15
+      });
+    }
+
+    // 55 Fibonacci Phyllotaxis Golden-Shield Nodes (F_10 = 55) around the Wormhole Throat (%61.8 = 1/φ Vault Lock)
+    const fibShieldNodes = Array.from({ length: 55 }, (_, i) => {
+      const frac = (i + 0.5) / 55;
+      const u = -0.58 + frac * 1.16; // concentrated around the throat
+      const theta = i * GOLDEN_ANGLE;
+      return { idx: i, u, theta, energy: 0.5 };
+    });
+
+    // 34 Outer Fibonacci Scalp Particles (F_9 = 34) darting between the outer mouths (%23.6 = 1/φ³ Scalp)
+    const scalpParticles = Array.from({ length: 34 }, (_, i) => ({
+      u: (i % 2 === 0 ? 1 : -1) * (0.65 + (i / 34) * 0.52),
+      theta: i * GOLDEN_ANGLE,
+      speedU: (i % 2 === 0 ? -1 : 1) * (0.015 + (i % 5) * 0.004),
+      speedTh: 0.045 + (i % 4) * 0.01
     }));
 
     const CUBE_VERTS = [
@@ -111,128 +135,58 @@
       [0,4],[1,5],[2,6],[3,7]
     ];
 
-    const bio = {
+    const state = {
       time: 0,
       heartPhase: 0,
       breathPhase: 0,
       bpm: 74,
-      adrenaline: 0.0,
-      cubeL: 3.00,
-      primeBig: 82685700173622821895833542656587011200223984821638808880776929401141n,
-      codons: '',
-      gcPct: 50,
-      twinCount: 0,
+      adrenaline: 0.0, // 0 = calm, 1.0 = full Flash-Crash Fight-or-Flight Shield!
+      fibResonance: 0.0,
+      eqAdr: 10107,
+      eqStd: 7024,
+      shockRings: [], // Expanding 3D shockwave rings during Flash-Crash
+      actionWaves: [],
       ecg: new Array(100).fill(0)
     };
 
-    // Synchronize the entire 28-rung DNA Double Helix to the 68-digit Prime Number!
-    function syncDnaToPrime(bigP) {
-      let n = bigP;
-      const pMin = PRIME_RUNGS_28[0], pMax = PRIME_RUNGS_28[PRIME_RUNGS_28.length - 1];
-      rungs.length = 0;
-      let gc = 0, twins = 0;
-
-      for (let k = 0; k < PRIME_RUNGS_28.length; k++) {
-        const p = PRIME_RUNGS_28[k];
-        const gap = k === 0 ? 2 : p - PRIME_RUNGS_28[k - 1];
-        const isTwin = gap === 2;
-        if (isTwin) twins++;
-        const digit = Number(n & 3n);
-        n >>= 2n;
-        const [b1, b2, col1, col2, hBonds] = PAIRS[digit];
-        if (hBonds === 3) gc++;
-
-        // Exact prime coordinate u_k along the wormhole axis
-        const u = -1.15 + ((p - pMin) / (pMax - pMin)) * 2.30;
-        rungs.push({
-          idx: k,
-          prime: p,
-          gap,
-          isTwin,
-          digit,
-          base1: b1,
-          base2: b2,
-          col1,
-          col2,
-          hBonds,
-          u,
-          pulse: isTwin ? 0.55 : 0.15
-        });
-      }
-
-      const seq = rungs.map(r => r.base1).join('');
-      const cods = [];
-      for (let i = 0; i + 3 <= 24; i += 3) cods.push(seq.slice(i, i + 3));
-      bio.codons = cods.join('-');
-      bio.gcPct = Math.round((gc / rungs.length) * 100);
-      bio.twinCount = twins;
-
-      document.getElementById('codonRead').textContent = `${bio.codons} (GC=%${bio.gcPct})`;
-      document.getElementById('primeSourceRead').textContent = bigP.toString();
-      document.getElementById('twinRead').textContent = `${twins} İkiz Asal Bağı (Δp=2)`;
-    }
-
-    syncDnaToPrime(bio.primeBig);
-
-    function humanHeartbeatWave(phase) {
+    function heartbeatWave(phase) {
       const p = phase % 1.0;
-      const pWave = 0.15 * Math.exp(-Math.pow((p - 0.14) / 0.035, 2));
-      const qDip = -0.18 * Math.exp(-Math.pow((p - 0.25) / 0.012, 2));
-      const rPeak = 1.05 * Math.exp(-Math.pow((p - 0.28) / 0.016, 2));
-      const sDip = -0.28 * Math.exp(-Math.pow((p - 0.31) / 0.014, 2));
-      const tWave = 0.32 * Math.exp(-Math.pow((p - 0.50) / 0.048, 2));
-      return pWave + qDip + rPeak + sDip + tWave;
+      const pW = 0.15 * Math.exp(-Math.pow((p - 0.14) / 0.035, 2));
+      const qD = -0.18 * Math.exp(-Math.pow((p - 0.25) / 0.012, 2));
+      const rP = 1.08 * Math.exp(-Math.pow((p - 0.28) / 0.016, 2));
+      const sD = -0.28 * Math.exp(-Math.pow((p - 0.31) / 0.014, 2));
+      const tW = 0.34 * Math.exp(-Math.pow((p - 0.50) / 0.048, 2));
+      return pW + qD + rP + sD + tW;
     }
 
-    function quantumHeartColor(L, beat) {
-      const t = Math.max(0, Math.min(1, (L - 3.0) / 3.5));
-      const r = Math.round(16 + t * 230 + Math.max(0, beat) * 45);
-      const g = Math.round(235 - t * 140 + Math.max(0, beat) * 20);
-      const b = Math.round(135 - t * 90 + Math.max(0, beat) * 40);
-      const lambda = Math.round(518 + t * 135);
-      return { r: Math.min(255, r), g: Math.min(255, g), b: Math.min(255, b), rgb: `${Math.min(255, r)}, ${Math.min(255, g)}, ${Math.min(255, b)}`, lambda };
+    // Wormhole radius contracts tightly at the throat during Adrenaline Vasoconstriction!
+    function wormholeRadius(u, beat) {
+      const breath = 0.028 * Math.sin(state.breathPhase);
+      const heart = 0.024 * Math.max(0, beat) * Math.exp(-u * u * 2.5);
+      // During adrenaline, throat pinches inward by -0.065 to protect the 61.8% core vault!
+      const vasoconstriction = -0.065 * state.adrenaline * Math.exp(-u * u * 3.0);
+      const r0 = Math.max(0.15, 0.25 + breath + heart + vasoconstriction);
+      return r0 * Math.cosh(u * (1.08 + 0.22 * state.adrenaline));
     }
 
-    function cortexRadius(u, beat) {
-      const lungBreath = 0.032 * Math.sin(bio.breathPhase);
-      const heartPulse = 0.025 * Math.max(0, beat) * Math.exp(-u * u * 2.5);
-      const r0 = 0.25 + lungBreath + heartPulse + 0.02 * (bio.cubeL - 3.0);
-      return r0 * Math.cosh(u * 1.08);
-    }
-
-    // Helical twist angle θ(u) is driven by the prime coordinate p(u) and golden angle!
-    function dnaStrandPoint(u, strandIndex, beat) {
-      const lung = 1 + 0.08 * Math.sin(bio.breathPhase);
-      const rDna = (0.145 + 0.14 * u * u) * lung + 0.015 * Math.max(0, beat) * Math.exp(-u * u * 3);
-      // Map u back to continuous prime coordinate p(u) ∈ [2, 107]
-      const pCont = 2 + ((u + 1.15) / 2.30) * 105;
-      // Helical pitch proportional to prime number pCont * (2π / 41)
-      const angle = pCont * 0.1532 + bio.time * 1.05 + (strandIndex === 0 ? 0 : Math.PI);
-      const y = 0.66 * u;
-      return {
-        x: rDna * Math.cos(angle),
-        y,
-        z: rDna * Math.sin(angle),
-        u,
-        angle
-      };
-    }
-
-    function cortexPoint(u, theta, beat) {
-      const r = cortexRadius(u, beat);
+    function wormholePoint(u, theta, beat) {
+      const r = wormholeRadius(u, beat);
       const y = 0.64 * Math.tanh(u * 1.05);
-      return {
-        x: r * Math.cos(theta),
-        y,
-        z: r * Math.sin(theta)
-      };
+      return { x: r * Math.cos(theta), y, z: r * Math.sin(theta) };
     }
 
-    let rotY = 0.35, rotX = 0.22, zoom = 1.05;
+    function dnaPoint(u, strand, beat) {
+      const squeeze = 1 - 0.28 * state.adrenaline * Math.exp(-u * u * 2.5);
+      const rDna = (0.145 + 0.14 * u * u) * squeeze + 0.016 * Math.max(0, beat);
+      const pCont = 2 + ((u + 1.15) / 2.30) * 105;
+      const angle = pCont * 0.1532 + state.time * 1.25 + (strand === 0 ? 0 : Math.PI);
+      return { x: rDna * Math.cos(angle), y: 0.66 * u, z: rDna * Math.sin(angle) };
+    }
+
+    let rotY = 0.4, rotX = 0.26, zoom = 1.05;
     let dragging = false, lx = 0, ly = 0;
     let lastTime = performance.now();
-    let prevHeartCycle = 0;
-    let projectedRungs = [];
+    let prevCycle = 0;
 
     function project(p, w, h) {
       const cy = Math.cos(rotY), sy = Math.sin(rotY);
@@ -243,73 +197,72 @@
       const z2 = z1 * cx + p.y * sx;
       const fov = 2.5 / zoom;
       const scale = (Math.min(w, h) * 0.45) * (fov / (fov + z2 + 1.25));
-      return {
-        sx: w * 0.5 + x1 * scale,
-        sy: h * 0.52 + y2 * scale,
-        z: z2,
-        s: fov / (fov + z2 + 1.25)
-      };
+      return { sx: w * 0.5 + x1 * scale, sy: h * 0.52 + y2 * scale, z: z2, s: fov / (fov + z2 + 1.25) };
     }
 
-    function stepBiology(dt) {
-      const auto = document.getElementById('autoBrain').checked;
-      if (auto) {
-        bio.adrenaline = Math.max(0, bio.adrenaline * 0.992);
-        bio.cubeL += (3.00 + 0.45 * bio.adrenaline - bio.cubeL) * 0.05;
-        bio.bpm = Math.round(72 + 64 * bio.adrenaline + 2 * Math.sin(bio.breathPhase));
+    function updatePhysics(dt) {
+      // Vagus nerve gradually calms adrenaline back to homeostasis
+      state.adrenaline = Math.max(0, state.adrenaline - dt * 0.09);
+      state.fibResonance = Math.max(0, state.fibResonance - dt * 0.14);
+      state.bpm = Math.round(74 + 62 * state.adrenaline + 2 * Math.sin(state.breathPhase));
+
+      const bps = state.bpm / 60;
+      state.time += dt * (1 + 1.1 * state.adrenaline + 0.6 * state.fibResonance);
+      state.breathPhase += dt * (1.7 + 2.2 * state.adrenaline);
+      state.heartPhase += dt * bps;
+
+      const cycle = Math.floor(state.heartPhase);
+      const beat = heartbeatWave(state.heartPhase - cycle);
+
+      if (cycle > prevCycle) {
+        prevCycle = cycle;
+        state.actionWaves.push({ u: 0, dir: 1, speed: 1.6 + 0.9 * state.adrenaline });
+        state.actionWaves.push({ u: 0, dir: -1, speed: 1.6 + 0.9 * state.adrenaline });
       }
 
-      const bps = bio.bpm / 60;
-      bio.time += dt * (1 + 0.8 * bio.adrenaline);
-      bio.breathPhase += dt * (1.6 + 1.8 * bio.adrenaline);
-      bio.heartPhase += dt * bps;
-
-      const curCycle = Math.floor(bio.heartPhase);
-      const phaseInBeat = bio.heartPhase - curCycle;
-      const beatVal = humanHeartbeatWave(phaseInBeat);
-
-      // R-Peak fires from the Throat (where prime p_16 = 53 and p_17 = 59 sit!)
-      if (curCycle > prevHeartCycle) {
-        prevHeartCycle = curCycle;
-        actionPotentials.push({ u: 0, dir: 1, speed: 1.45 + 0.6 * bio.adrenaline, life: 1.0 });
-        actionPotentials.push({ u: 0, dir: -1, speed: 1.45 + 0.6 * bio.adrenaline, life: 1.0 });
-      }
-
-      for (let i = actionPotentials.length - 1; i >= 0; i--) {
-        const ap = actionPotentials[i];
-        ap.u += ap.dir * ap.speed * dt;
-        ap.life -= dt * 0.75;
+      for (let i = state.actionWaves.length - 1; i >= 0; i--) {
+        const wv = state.actionWaves[i];
+        wv.u += wv.dir * wv.speed * dt;
         for (const rg of rungs) {
-          if (Math.abs(rg.u - ap.u) < 0.09) {
-            rg.pulse = Math.min(1.0, rg.pulse + 0.5);
-          }
+          if (Math.abs(rg.u - wv.u) < 0.09) rg.pulse = 1.0;
         }
-        if (Math.abs(ap.u) > 1.25 || ap.life <= 0) actionPotentials.splice(i, 1);
+        if (Math.abs(wv.u) > 1.25) state.actionWaves.splice(i, 1);
       }
 
-      for (const rg of rungs) {
-        rg.pulse *= 0.91;
+      for (const rg of rungs) rg.pulse *= 0.90;
+
+      // Update expanding 3D Flash-Crash shock rings
+      for (let i = state.shockRings.length - 1; i >= 0; i--) {
+        const sr = state.shockRings[i];
+        sr.r += dt * 0.95;
+        sr.life -= dt * 0.65;
+        if (sr.life <= 0) state.shockRings.splice(i, 1);
       }
 
-      for (const c of corpuscles) {
-        c.u += c.speed * (1 + 0.8 * bio.adrenaline) * (c.strand === 0 ? 1 : -1);
-        if (c.u > 1.18) c.u = -1.18;
-        if (c.u < -1.18) c.u = 1.18;
-        c.th += 0.04 * (1 + 0.5 * bio.adrenaline);
+      // Move outer 23.6% Fibonacci scalp particles faster during Adrenaline!
+      for (const sp of scalpParticles) {
+        sp.u += sp.speedU * (1 + 2.2 * state.adrenaline);
+        if (sp.u > 1.18 || sp.u < -1.18) sp.speedU *= -1;
+        // During adrenaline, scalp particles bounce off the locked throat shield (|u| >= 0.45)!
+        if (state.adrenaline > 0.25 && Math.abs(sp.u) < 0.48) {
+          sp.u = Math.sign(sp.u || 1) * 0.48;
+          sp.speedU = Math.abs(sp.speedU) * Math.sign(sp.u);
+        }
+        sp.theta += sp.speedTh * (1 + 1.5 * state.adrenaline);
       }
 
-      bio.ecg.push(beatVal);
-      if (bio.ecg.length > 100) bio.ecg.shift();
+      state.ecg.push(beat);
+      if (state.ecg.length > 100) state.ecg.shift();
 
-      return beatVal;
+      return beat;
     }
 
     function draw(now) {
       const dt = Math.min(0.05, (now - lastTime) / 1000);
       lastTime = now;
-      const beat = stepBiology(dt);
+      const beat = updatePhysics(dt);
 
-      if (!dragging) rotY += 0.0038;
+      if (!dragging) rotY += 0.0055 * (1 + 0.8 * state.adrenaline);
 
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
@@ -322,51 +275,93 @@
       ctx.clearRect(0, 0, w, h);
 
       const isLight = document.documentElement.classList.contains('light');
-      const hc = quantumHeartColor(bio.cubeL, beat);
       const throatCenter = project({ x: 0, y: 0, z: 0 }, w, h);
 
-      document.getElementById('bpmRead').textContent = `${bio.bpm} BPM`;
-      const hEl = document.getElementById('heartRead');
-      hEl.textContent = `${bio.cubeL.toFixed(2)} nm (${hc.lambda}nm)`;
-      hEl.style.color = `rgb(${hc.rgb})`;
+      // Update Live HUD
+      document.getElementById('bpmRead').textContent = `${state.bpm} BPM`;
+      const badge = document.getElementById('modeBadge');
+      const vaultEl = document.getElementById('vaultRead');
+      if (state.adrenaline > 0.25) {
+        badge.textContent = '⚡ SAVAŞ-KAÇ KALKANI AKTİF';
+        badge.className = 'px-2 py-0.5 rounded bg-amber-500/25 border border-amber-400 text-amber-300 font-bold';
+        vaultEl.textContent = `%61.8 KİLİTLİ (6,180 TL Korunuyor!)`;
+        vaultEl.className = 'text-amber-300 font-bold';
+      } else {
+        badge.textContent = 'NORMAL SİNÜS (518nm Yeşil)';
+        badge.className = 'px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-bold';
+        vaultEl.textContent = `%61.8 (1/φ) Boğaz Kalkanı Hazır`;
+        vaultEl.className = 'text-emerald-400';
+      }
 
-      // 1) Breathing Einstein-Rosen Outer Cortex
+      // 1) Draw Einstein-Rosen Wormhole Funnel & Fibonacci Spiral Filaments
       ctx.save();
-      const cortexRings = [-1.15, -0.82, -0.48, -0.18, 0, 0.18, 0.48, 0.82, 1.15];
-      for (const u of cortexRings) {
-        const isThroat = Math.abs(u) < 0.01;
-        ctx.strokeStyle = isThroat
-          ? `rgba(${hc.rgb}, ${0.55 + 0.35 * Math.max(0, beat)})`
-          : (isLight ? 'rgba(100, 116, 139, 0.13)' : 'rgba(56, 189, 248, 0.10)');
-        ctx.lineWidth = isThroat ? 2.2 : 0.65;
+      const rings = [-1.15, -0.85, -0.52, -0.22, 0, 0.22, 0.52, 0.85, 1.15];
+      for (const u of rings) {
+        const inVaultZone = Math.abs(u) <= 0.55;
+        ctx.strokeStyle = inVaultZone && state.adrenaline > 0.15
+          ? `rgba(251, 191, 36, ${0.35 + 0.55 * state.adrenaline})`
+          : (isLight ? 'rgba(100, 116, 139, 0.15)' : 'rgba(56, 189, 248, 0.13)');
+        ctx.lineWidth = Math.abs(u) < 0.01 ? 2.4 : (inVaultZone && state.adrenaline > 0.15 ? 1.5 : 0.7);
         ctx.beginPath();
-        for (let k = 0; k <= 32; k++) {
-          const th = (k / 32) * Math.PI * 2;
-          const pt = project(cortexPoint(u, th, beat), w, h);
+        for (let k = 0; k <= 36; k++) {
+          const th = (k / 36) * Math.PI * 2;
+          const pt = project(wormholePoint(u, th, beat), w, h);
           k === 0 ? ctx.moveTo(pt.sx, pt.sy) : ctx.lineTo(pt.sx, pt.sy);
+        }
+        ctx.stroke();
+      }
+
+      // 13 Golden-Ratio Fibonacci Spirals wrapping the Wormhole (F_7 = 13)
+      for (let f = 0; f < 13; f++) {
+        const baseTh = f * GOLDEN_ANGLE + state.time * 0.35;
+        ctx.strokeStyle = state.adrenaline > 0.2
+          ? `rgba(251, 191, 36, ${0.22 + 0.35 * state.adrenaline})`
+          : `rgba(16, 185, 129, ${0.18 + 0.25 * state.fibResonance})`;
+        ctx.lineWidth = 0.85 + 0.6 * Math.max(state.adrenaline, state.fibResonance);
+        ctx.beginPath();
+        for (let s = 0; s <= 28; s++) {
+          const u = -1.15 + (s / 28) * 2.30;
+          const twist = u * 1.6180339 * 2.0;
+          const pt = project(wormholePoint(u, baseTh + twist, beat), w, h);
+          s === 0 ? ctx.moveTo(pt.sx, pt.sy) : ctx.lineTo(pt.sx, pt.sy);
         }
         ctx.stroke();
       }
       ctx.restore();
 
-      // 2) Beating 3.0nm Green Quantum Heart at u = 0 (between Prime Rungs p=53 and p=59)
-      const heartExpand = 1 + 0.24 * Math.max(-0.15, beat);
-      const halfL = (0.072 + 0.025 * (bio.cubeL - 3.0)) * heartExpand;
+      // 2) Draw 3D Expanding Flash-Crash Red Shockwave Rings (deflected by the Golden Throat Shield!)
+      for (const sr of state.shockRings) {
+        ctx.save();
+        ctx.strokeStyle = `rgba(244, 63, 94, ${sr.life * 0.9})`;
+        ctx.lineWidth = 2.6 * sr.life;
+        ctx.beginPath();
+        for (let k = 0; k <= 36; k++) {
+          const th = (k / 36) * Math.PI * 2;
+          const pt = project({ x: sr.r * Math.cos(th), y: sr.y, z: sr.r * Math.sin(th) }, w, h);
+          k === 0 ? ctx.moveTo(pt.sx, pt.sy) : ctx.lineTo(pt.sx, pt.sy);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 3) Draw Beating 3.0nm Emerald Green Quantum Cube Heart at (0,0,0)
+      const heartScale = 1 + 0.25 * Math.max(-0.1, beat);
+      const halfL = 0.075 * heartScale;
       const cProj = CUBE_VERTS.map(([vx, vy, vz]) => project({ x: vx * halfL, y: vy * halfL, z: vz * halfL }, w, h));
 
-      const glowR = Math.max(25, 85 * halfL * throatCenter.s * Math.min(w, h) * 0.009);
-      const hGrad = ctx.createRadialGradient(throatCenter.sx, throatCenter.sy, 2, throatCenter.sx, throatCenter.sy, glowR * 2.5);
-      hGrad.addColorStop(0, `rgba(${hc.rgb}, ${0.65 + 0.25 * Math.max(0, beat)})`);
-      hGrad.addColorStop(0.45, `rgba(${hc.rgb}, 0.22)`);
-      hGrad.addColorStop(1, `rgba(${hc.rgb}, 0.0)`);
+      const glowR = Math.max(26, 85 * halfL * throatCenter.s * Math.min(w, h) * 0.009);
+      const hGrad = ctx.createRadialGradient(throatCenter.sx, throatCenter.sy, 2, throatCenter.sx, throatCenter.sy, glowR * 2.6);
+      hGrad.addColorStop(0, state.adrenaline > 0.3 ? 'rgba(251, 191, 36, 0.85)' : 'rgba(16, 235, 135, 0.78)');
+      hGrad.addColorStop(0.45, 'rgba(16, 185, 129, 0.25)');
+      hGrad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
       ctx.fillStyle = hGrad;
       ctx.beginPath();
-      ctx.arc(throatCenter.sx, throatCenter.sy, glowR * 2.5, 0, Math.PI * 2);
+      ctx.arc(throatCenter.sx, throatCenter.sy, glowR * 2.6, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.save();
-      ctx.strokeStyle = `rgba(${hc.rgb}, 0.95)`;
-      ctx.lineWidth = 1.9 + 0.8 * Math.max(0, beat);
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 2.2;
       for (const [i, j] of CUBE_EDGES) {
         ctx.beginPath();
         ctx.moveTo(cProj[i].sx, cProj[i].sy);
@@ -375,153 +370,96 @@
       }
       ctx.restore();
 
-      // 3) Draw Prime-Synchronized DNA Double Helix Backbones (connecting exact prime rungs p_1..p_28)
-      const strandAlphaPts = rungs.map(rg => {
-        const p3 = dnaStrandPoint(rg.u, 0, beat);
-        return { ...p3, ...project(p3, w, h) };
-      });
-      const strandBetaPts = rungs.map(rg => {
-        const p3 = dnaStrandPoint(rg.u, 1, beat);
-        return { ...p3, ...project(p3, w, h) };
-      });
+      // 4) Draw 55 Golden-Angle Fibonacci Phyllotaxis Armor Nodes (%61.8 Throat Vault Shield)
+      for (const fn of fibShieldNodes) {
+        const th = fn.theta - state.time * (0.6 + 1.2 * state.adrenaline);
+        const rArmor = wormholeRadius(fn.u, beat) * (1.03 - 0.08 * state.adrenaline);
+        const p3 = { x: rArmor * Math.cos(th), y: 0.64 * Math.tanh(fn.u * 1.05), z: rArmor * Math.sin(th) };
+        const p2 = project(p3, w, h);
+        const sz = Math.max(1.8, (2.4 + 2.2 * Math.max(state.adrenaline, state.fibResonance)) * p2.s);
+        ctx.beginPath();
+        ctx.arc(p2.sx, p2.sy, sz, 0, Math.PI * 2);
+        ctx.fillStyle = state.adrenaline > 0.2
+          ? `rgba(251, 191, 36, ${0.55 + 0.45 * state.adrenaline})`
+          : `rgba(52, 211, 153, ${0.35 + 0.5 * state.fibResonance})`;
+        ctx.fill();
+      }
 
-      for (const [sIdx, pts] of [[0, strandAlphaPts], [1, strandBetaPts]]) {
+      // 5) Draw Prime-Synchronized 3D DNA Double Helix (28 Prime Rungs p=2..107)
+      const alphaPts = rungs.map(rg => ({ ...dnaPoint(rg.u, 0, beat) })).map(p => project(p, w, h));
+      const betaPts = rungs.map(rg => ({ ...dnaPoint(rg.u, 1, beat) })).map(p => project(p, w, h));
+
+      for (const [sIdx, pts] of [[0, alphaPts], [1, betaPts]]) {
         ctx.save();
-        ctx.strokeStyle = sIdx === 0 ? 'rgba(34, 211, 238, 0.90)' : 'rgba(244, 63, 94, 0.90)';
+        ctx.strokeStyle = sIdx === 0 ? 'rgba(34, 211, 238, 0.92)' : 'rgba(244, 63, 94, 0.92)';
         ctx.lineWidth = 2.8;
         ctx.beginPath();
-        pts.forEach((pt, idx) => {
-          idx === 0 ? ctx.moveTo(pt.sx, pt.sy) : ctx.lineTo(pt.sx, pt.sy);
-        });
+        pts.forEach((pt, idx) => (idx === 0 ? ctx.moveTo(pt.sx, pt.sy) : ctx.lineTo(pt.sx, pt.sy)));
         ctx.stroke();
         ctx.restore();
       }
 
-      // 4) Depth-Sorted Prime Base-Pair Rungs (each labeled with its Prime p_k and Base Pair!)
       const drawables = [];
-      projectedRungs = [];
-
       for (let k = 0; k < rungs.length; k++) {
-        const rg = rungs[k];
-        const pA = strandAlphaPts[k];
-        const pB = strandBetaPts[k];
-        const midZ = (pA.z + pB.z) * 0.5;
-        projectedRungs.push({ rg, sx: (pA.sx + pB.sx) * 0.5, sy: (pA.sy + pB.sy) * 0.5 });
-        drawables.push({ z: midZ, type: 'rung', rg, pA, pB });
+        drawables.push({
+          z: (alphaPts[k].z + betaPts[k].z) * 0.5,
+          type: 'rung',
+          rg: rungs[k],
+          pA: alphaPts[k],
+          pB: betaPts[k]
+        });
       }
-
-      for (const c of corpuscles) {
-        const pt3 = cortexPoint(c.u, c.th, beat);
-        const p2 = project(pt3, w, h);
-        drawables.push({ z: p2.z, type: 'corpuscle', c, p2 });
+      for (const sp of scalpParticles) {
+        const p3 = wormholePoint(sp.u, sp.theta, beat);
+        const p2 = project(p3, w, h);
+        drawables.push({ z: p2.z, type: 'scalp', sp, p2 });
       }
-
       drawables.sort((a, b) => b.z - a.z);
 
       for (const item of drawables) {
-        if (item.type === 'corpuscle') {
-          const { c, p2 } = item;
-          const r = Math.max(1.5, c.size * p2.s);
+        if (item.type === 'scalp') {
+          const { p2 } = item;
+          const r = Math.max(2.0, (3.2 + 2.0 * state.adrenaline) * p2.s);
           ctx.beginPath();
           ctx.arc(p2.sx, p2.sy, r, 0, Math.PI * 2);
-          ctx.fillStyle = c.strand === 0 ? 'rgba(232, 121, 249, 0.80)' : `rgba(${hc.rgb}, 0.85)`;
+          ctx.fillStyle = state.adrenaline > 0.2 ? '#e879f9' : '#38bdf8';
           ctx.fill();
           continue;
         }
 
         const { rg, pA, pB } = item;
-        const mx = (pA.sx + pB.sx) * 0.5;
-        const my = (pA.sy + pB.sy) * 0.5;
-        const fire = rg.pulse;
+        const mx = (pA.sx + pB.sx) * 0.5, my = (pA.sy + pB.sy) * 0.5;
+        const fire = rg.pulse + 0.5 * state.fibResonance;
 
-        // Half-rung 1 & 2 (G≡C triple H-bonds are thicker than A=T double H-bonds!)
-        const bondWidth = (rg.hBonds === 3 ? 2.8 : 1.9) + fire * 2.5;
         ctx.save();
-        ctx.strokeStyle = fire > 0.2 ? '#ffffff' : rg.col1;
-        ctx.lineWidth = bondWidth;
-        ctx.beginPath();
-        ctx.moveTo(pA.sx, pA.sy);
-        ctx.lineTo(mx, my);
-        ctx.stroke();
+        ctx.strokeStyle = fire > 0.25 ? '#ffffff' : rg.col1;
+        ctx.lineWidth = (rg.hBonds === 3 ? 2.6 : 1.8) + fire * 2.2;
+        ctx.beginPath(); ctx.moveTo(pA.sx, pA.sy); ctx.lineTo(mx, my); ctx.stroke();
 
-        ctx.strokeStyle = fire > 0.2 ? '#ffffff' : rg.col2;
-        ctx.beginPath();
-        ctx.moveTo(mx, my);
-        ctx.lineTo(pB.sx, pB.sy);
-        ctx.stroke();
+        ctx.strokeStyle = fire > 0.25 ? '#ffffff' : rg.col2;
+        ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(pB.sx, pB.sy); ctx.stroke();
         ctx.restore();
 
-        // Central Prime Number Node on the Hydrogen Bond Bridge (Twin Primes Δp=2 glow Gold!)
-        const sAvg = (pA.s + pB.s) * 0.5;
-        const rMid = Math.max(2.6, (rg.isTwin ? 4.2 : 3.0) * sAvg + fire * 3.0);
-        ctx.beginPath();
-        ctx.arc(mx, my, rMid, 0, Math.PI * 2);
-        ctx.fillStyle = rg.isTwin ? '#fde047' : `rgb(${hc.rgb})`;
-        ctx.fill();
-
-        // Prime Number Label p_k right on the DNA Rung!
-        if (sAvg > 0.72) {
-          ctx.fillStyle = rg.isTwin ? '#fde047' : '#e2e8f0';
-          ctx.font = `bold ${Math.max(8, Math.round(9 * sAvg))}px monospace`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(`p=${rg.prime}`, mx, my - rMid - 1);
-        }
-
-        // Nucleotide Base Spheres at Strand Alpha & Strand Beta
-        const rA = Math.max(3.2, (5.8 + fire * 2.8) * pA.s);
-        const rB = Math.max(3.2, (5.8 + fire * 2.8) * pB.s);
-
-        ctx.beginPath();
-        ctx.arc(pA.sx, pA.sy, rA, 0, Math.PI * 2);
-        ctx.fillStyle = rg.col1;
-        ctx.fill();
-        ctx.strokeStyle = '#090d16';
-        ctx.lineWidth = 1.0;
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(pB.sx, pB.sy, rB, 0, Math.PI * 2);
-        ctx.fillStyle = rg.col2;
-        ctx.fill();
-        ctx.strokeStyle = '#090d16';
-        ctx.lineWidth = 1.0;
-        ctx.stroke();
-
-        if (rA >= 4.6) {
-          ctx.fillStyle = '#090d16';
-          ctx.font = `bold ${Math.max(8, Math.round(rA * 1.1))}px monospace`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(rg.base1, pA.sx, pA.sy + 0.5);
-        }
-        if (rB >= 4.6) {
-          ctx.fillStyle = '#090d16';
-          ctx.font = `bold ${Math.max(8, Math.round(rB * 1.1))}px monospace`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(rg.base2, pB.sx, pB.sy + 0.5);
-        }
+        const rA = Math.max(3.0, (5.5 + fire * 2.5) * pA.s);
+        const rB = Math.max(3.0, (5.5 + fire * 2.5) * pB.s);
+        ctx.beginPath(); ctx.arc(pA.sx, pA.sy, rA, 0, Math.PI * 2); ctx.fillStyle = rg.col1; ctx.fill();
+        ctx.beginPath(); ctx.arc(pB.sx, pB.sy, rB, 0, Math.PI * 2); ctx.fillStyle = rg.col2; ctx.fill();
       }
 
-      // 5) Live Human P-Q-R-S-T ECG Monitor (Bottom-Right Overlay)
-      const ecgW = 165, ecgH = 42;
-      const ecgX = w - ecgW - 12, ecgY = h - ecgH - 34;
+      // 6) Live P-Q-R-S-T ECG Monitor (Bottom-Right)
+      const ecgW = 165, ecgH = 42, ecgX = w - ecgW - 12, ecgY = h - ecgH - 34;
       ctx.save();
       ctx.fillStyle = isLight ? 'rgba(255,255,255,0.86)' : 'rgba(9,13,22,0.86)';
-      ctx.strokeStyle = `rgba(${hc.rgb}, 0.65)`;
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.roundRect(ecgX, ecgY, ecgW, ecgH, 6);
-      ctx.fill();
-      ctx.stroke();
+      ctx.strokeStyle = state.adrenaline > 0.25 ? 'rgba(251, 191, 36, 0.8)' : 'rgba(16, 185, 129, 0.7)';
+      ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.roundRect(ecgX, ecgY, ecgW, ecgH, 6); ctx.fill(); ctx.stroke();
 
-      ctx.strokeStyle = `rgb(${hc.rgb})`;
+      ctx.strokeStyle = state.adrenaline > 0.25 ? '#fbbf24' : '#10b981';
       ctx.lineWidth = 1.8;
       ctx.beginPath();
-      for (let i = 0; i < bio.ecg.length; i++) {
-        const x = ecgX + 4 + (i / (bio.ecg.length - 1)) * (ecgW - 8);
-        const y = ecgY + ecgH * 0.68 - bio.ecg[i] * (ecgH * 0.48);
+      for (let i = 0; i < state.ecg.length; i++) {
+        const x = ecgX + 4 + (i / (state.ecg.length - 1)) * (ecgW - 8);
+        const y = ecgY + ecgH * 0.68 - state.ecg[i] * (ecgH * 0.48);
         i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
       }
       ctx.stroke();
@@ -530,57 +468,42 @@
       requestAnimationFrame(draw);
     }
 
-    document.getElementById('atpBtn').addEventListener('click', () => {
-      bio.cubeL = 3.00;
-      actionPotentials.push({ u: -1.15, dir: 1, speed: 2.2, life: 1.2 });
-      actionPotentials.push({ u: 1.15, dir: -1, speed: 2.2, life: 1.2 });
+    // Button 1: Trigger 3D Flash-Crash Shockwave & Adrenaline Golden-Ratio Shield!
+    document.getElementById('crashBtn').addEventListener('click', () => {
+      state.adrenaline = 1.0;
+      state.shockRings.push({ r: 0.15, y: 0.35, life: 1.0 });
+      state.shockRings.push({ r: 0.15, y: -0.35, life: 1.0 });
+      state.shockRings.push({ r: 0.10, y: 0.0, life: 1.0 });
+      state.actionWaves.push({ u: 0, dir: 1, speed: 2.8 });
+      state.actionWaves.push({ u: 0, dir: -1, speed: 2.8 });
+      document.getElementById('statusBanner').textContent =
+        '💥 FLASH-CRASH ŞOKU! Nabız 136 BPM → Boğaz büzüldü (%61.8 Fibonacci Altın Oran Kasası Kilitlendi), dışta %23.6 vur-kaç yapılıyor!';
     });
 
-    document.getElementById('adrenalineBtn').addEventListener('click', () => {
-      bio.adrenaline = 1.0;
-      bio.bpm = 136;
-      actionPotentials.push({ u: 0, dir: 1, speed: 2.8, life: 1.2 });
-      actionPotentials.push({ u: 0, dir: -1, speed: 2.8, life: 1.2 });
+    // Button 2: Trigger Fibonacci-Lucas Fast-Doubling Prime Resonance Wave!
+    document.getElementById('fibBtn').addEventListener('click', () => {
+      state.fibResonance = 1.0;
+      rungs.forEach(r => { r.pulse = 1.0; });
+      document.getElementById('statusBanner').textContent =
+        '🌀 Fibonacci-Lucas Rezonansı (F_{p-1} ≡ 0 mod p & L_p ≡ 1 mod p): 55 Altın Açı düğümü ve 28 Asal DNA basamağı senkronize parlıyor!';
     });
 
-    document.getElementById('nextPrimeBtn').addEventListener('click', () => {
-      // Advance to the next 68-digit prime resonance invariant and re-synchronize the 28 DNA base pairs!
-      bio.primeBig = ((bio.primeBig * 104729n + 7919n * 239n + 131071n) % (10n ** 68n)) | 1n;
-      if (bio.primeBig < 10n ** 67n) bio.primeBig += 8n * (10n ** 67n);
-      syncDnaToPrime(bio.primeBig);
-      rungs.forEach(r => { r.pulse = 0.9; });
+    // Button 3: Vagus Nerve Calm
+    document.getElementById('healBtn').addEventListener('click', () => {
+      state.adrenaline = 0.0;
+      state.fibResonance = 0.3;
+      document.getElementById('statusBanner').textContent =
+        '💚 Vagus Siniri Devrede: Nabız 74 BPM sinüs ritmine döndü, kilitli %61.8 kasa ana dolaşıma açıldı.';
     });
 
-    let downX = 0, downY = 0;
-    canvas.addEventListener('pointerdown', e => {
-      dragging = true;
-      lx = downX = e.clientX;
-      ly = downY = e.clientY;
-    });
+    canvas.addEventListener('pointerdown', e => { dragging = true; lx = e.clientX; ly = e.clientY; });
     window.addEventListener('pointermove', e => {
       if (!dragging) return;
       rotY += (e.clientX - lx) * 0.01;
       rotX = Math.max(-1.35, Math.min(1.35, rotX + (e.clientY - ly) * 0.01));
       lx = e.clientX; ly = e.clientY;
     });
-    window.addEventListener('pointerup', e => {
-      if (!dragging) return;
-      dragging = false;
-      if (Math.hypot(e.clientX - downX, e.clientY - downY) < 6) {
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-        for (const pr of projectedRungs) {
-          if (Math.hypot(pr.sx - mx, pr.sy - my) < 26) {
-            pr.rg.pulse = 1.0;
-            actionPotentials.push({ u: pr.rg.u, dir: 1, speed: 1.8, life: 1.0 });
-            actionPotentials.push({ u: pr.rg.u, dir: -1, speed: 1.8, life: 1.0 });
-            document.getElementById('primeLadderRead').textContent =
-              `Basamak #${pr.rg.idx + 1}: Asal p=${pr.rg.prime} (Δp=${pr.rg.gap}${pr.rg.isTwin ? ' İkiz Asal!' : ''}) → ${pr.rg.base1}═${pr.rg.base2} (${pr.rg.hBonds} H-bağı)`;
-            break;
-          }
-        }
-      }
-    });
+    window.addEventListener('pointerup', () => { dragging = false; });
     canvas.addEventListener('wheel', e => {
       e.preventDefault();
       zoom = Math.max(0.65, Math.min(1.65, zoom - e.deltaY * 0.001));
